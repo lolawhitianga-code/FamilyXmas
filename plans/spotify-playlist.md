@@ -1,6 +1,6 @@
 # Plan: shared Spotify playlist ("Camp tunes")
 
-Status: built 20 Nov 2026 (build x34). Lola: one big playlist, no clean-songs line.
+Status: built 20 Nov 2026, redone on build x37. Lola: one big playlist, no clean-songs line.
 
 ## What it is
 
@@ -50,7 +50,7 @@ two do not play over each other. The mute chip on Home already covers the music 
    Accept any `open.spotify.com/playlist/<id>` link (with or without `?si=`), build the embed URL from the id, reject anything else.
 2. Song requests: add form, list, Find it, Added, delete own request (or any with PIN), the "On the playlist" fold.
 3. Pause the carol music box while on `music.html`.
-4. Home tile; add `./music.html` to `SHELL` in `sw.js`; bump `CACHE` and every page's build stamp to x34.
+4. Home tile; add `./music.html` to `SHELL` in `sw.js`; bump `CACHE` and every page's build stamp to the next build.
 5. (Optional) Own unadded requests in "Just show me my stuff".
 
 Done looks like: paste a real playlist link with the PIN, the player shows on two phones; a request made

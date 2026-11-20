@@ -12,7 +12,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
-<title>Steal &amp; Grab · Christmas at Bateau Bay</title>
+<title>Secret Santa · Christmas at Bateau Bay</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -71,22 +71,22 @@
 <body>
 <header class="top">
   <a class="back" href="home.html">← Home</a>
-  <p class="eyebrow">Secret Santa, family style</p>
-  <h1 class="wordmark">Steal &amp; Grab</h1>
+  <p class="eyebrow">Steal &amp; grab style</p>
+  <h1 class="wordmark">Secret Santa</h1>
   <p class="sub" id="sub">&nbsp;</p>
 </header>
 
 <main>
   <div id="app"><div class="empty">Loading…</div></div>
-  <p class="buildstamp">build x34</p>
+  <p class="buildstamp">build x37</p>
 </main>
 
 <script type="module">
 import { boot, me, settings, celebrate, jingle, toast, openSheet, closeSheet, askPin, esc, uid,
-         people, households, household, person, pname, badge, onPeople, heroFromWall } from "./app.js";
+         people, households, household, person, pname, badge, onPeople, heroFromWall, tapName } from "./app.js";
 
 /* ============================================================
-   STEAL & GRAB — everyone brings one wrapped gift that isn't for
+   SECRET SANTA (steal & grab) — everyone brings one wrapped gift that isn't for
    anyone in particular. The app draws the order and keeps score
    on the day: who has what, how many times each gift has been
    stolen, and whose turn it is. Everything lives in the one
@@ -268,7 +268,7 @@ function skip(){
 /* ---------- rules ---------- */
 async function editRules(){
   if(!(await askPin("Only organisers change the rules."))) return;
-  const sh = openSheet(`<h3>Steal &amp; Grab rules</h3>
+  const sh = openSheet(`<h3>Secret Santa rules</h3>
     <label class="f" for="b">Spend (if you buy something)</label><input class="in" id="b" value="${esc(S.budget)}">
     <label class="f" for="w">When do we play?</label><input class="in" id="w" value="${esc(S.swapWhen)}">
     <label class="f" for="m">A gift locks after this many steals</label><input class="in" id="m" type="number" min="1" max="9" inputmode="numeric" value="${esc(S.maxSteals || 3)}">
@@ -317,7 +317,7 @@ function giftTile(g){
   const cls = ["g", can ? "can" : "", lk ? "lock" : "", g.holder === me.id ? "mine" : "", back ? "back" : ""].filter(Boolean).join(" ");
   const tag = can ? "button" : "div";
   return `<${tag} class="${cls}"${can ? ` data-steal="${esc(g.id)}"` : ""}><span class="w">${esc(giftName(g))}</span>
-    <span class="h">${badge(g.holder)} ${esc(pname(g.holder))}</span>
+    <span class="h">${badge(g.holder)} ${tapName(g.holder)}</span>
     <span class="s">${lk ? "Locked" : back ? "Can't steal straight back" : "Steals " + steals(g)}</span></${tag}>`;
 }
 
@@ -340,7 +340,7 @@ function orderCard(){
   const upAt = S.order.indexOf(S.up);
   return `<div class="card"><ol class="order">${S.order.map((id, i) => {
     const g = giftOf(id), cls = id === S.up ? "up" : (S.state === "done" || i < S.next) ? "done" : "";
-    return `<li class="${cls}"><span class="num">${i + 1}</span>${badge(id)}<span class="nm">${esc(pname(id))}${id === me.id ? " (you)" : ""}</span>
+    return `<li class="${cls}"><span class="num">${i + 1}</span>${badge(id)}<span class="nm">${tapName(id)}${id === me.id ? " (you)" : ""}</span>
       <span class="has">${g ? esc(giftName(g)) : id === S.up ? "up now" : i < S.next ? "—" : "waiting"}</span></li>`;
   }).join("")}</ol></div>`;
 }

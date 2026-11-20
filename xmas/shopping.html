@@ -67,11 +67,11 @@ details.troll summary{cursor:pointer;font-weight:600;padding:12px 4px;font-size:
   <div id="list"></div>
   <h2 class="sec">Shops nearby</h2>
   <div class="card" id="shops"></div>
-  <p class="buildstamp">build x34</p>
+  <p class="buildstamp">build x37</p>
 </main>
 
 <script type="module">
-import { boot, me, col, heroFromWall, people, onPeople, pname, esc, celebrate, openSheet, closeSheet, toast, askPin, mapsLink } from "./app.js";
+import { boot, me, col, heroFromWall, people, onPeople, pname, esc, celebrate, openSheet, closeSheet, toast, askPin, mapsLink, tapName } from "./app.js";
 import { PLACES } from "./places.js";
 
 if(boot("shopping.html")){
@@ -86,7 +86,7 @@ function row(i){
   return `<div class="tag item${i.done ? " ok" : ""}"><button class="tick" data-tick="${i.id}" aria-pressed="${!!i.done}" aria-label="Got ${esc(i.text)}">\u2713</button>
     <div class="body"><div class="tx" data-edit="${i.id}" role="button" tabindex="0">${esc(i.text)}${i.qty ? `<span class="qty">${esc(i.qty)}</span>` : ""}</div>
     <div class="meta">${i.forWhat ? `<span class="pill gold">${esc(i.forWhat)}</span>` : ""}
-    ${i.done && i.doneBy ? `<span>Got by ${esc(pname(i.doneBy))}</span>` : i.buyer ? `<span>\ud83d\uded2 ${esc(pname(i.buyer))} is getting it</span>` : i.done ? "" : `<button class="chip get" data-get="${i.id}">I\u2019ll get it</button>`}</div></div></div>`;
+    ${i.done && i.doneBy ? `<span>Got by ${tapName(i.doneBy)}</span>` : i.buyer ? `<span>\ud83d\uded2 ${tapName(i.buyer)} is getting it</span>` : i.done ? "" : `<button class="chip get" data-get="${i.id}">I\u2019ll get it</button>`}</div></div></div>`;
 }
 function render(){
   document.querySelectorAll("#seg button").forEach(b => {

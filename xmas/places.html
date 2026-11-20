@@ -45,10 +45,10 @@
   <div class="filters" id="filters"></div>
   <div id="list"></div>
   <button class="fab" id="add" aria-label="Add an idea">+</button>
-  <p class="buildstamp">build x34</p>
+  <p class="buildstamp">build x37</p>
 </main>
 <script type="module">
-import { boot, me, col, settings, heroFromWall, onPeople, pname, esc, openSheet, closeSheet, toast, celebrate, mapsLink, noPokies } from "./app.js";
+import { boot, me, col, settings, heroFromWall, onPeople, pname, esc, openSheet, closeSheet, toast, celebrate, mapsLink, noPokies, tapName } from "./app.js";
 import { PLACES, KINDS } from "./places.js";
 /* people who've asked for no pokies get a different badge on the clubs */
 const kindOf = k => k === "club" && noPokies() ? ["🥂", KINDS.club[1]] : KINDS[k];
@@ -80,7 +80,7 @@ function placeCard(p){
 }
 function ideaCard(i){
   return `<div class="card pc"><h3>💡 ${esc(i.title)}</h3>${i.note ? `<p>${esc(i.note)}</p>` : ""}
-    <p class="addr">Added by ${esc(pname(i.by))}</p>
+    <p class="addr">Added by ${tapName(i.by)}</p>
     <div class="acts2">${i.link ? `<a class="chip" target="_blank" rel="noopener" href="${esc(linkOf(i.link))}">🔗 Link</a>` : ""}
       <a class="chip" href="${planHref(i.title, linkOf(i.link))}">🗓️ Add to plan</a>
       <button class="chip" data-edit="${i.id}">✏️ Change</button></div>

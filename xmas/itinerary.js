@@ -6,10 +6,11 @@
    anyone can edit, move or delete.
    ids never change — they stop anything being added twice.
    ============================================================ */
-export const ITIN_VERSION = 6;
+export const ITIN_VERSION = 7;
 /* Anything added after the first load carries v: the version it arrived in. When the site already has an
    older version loaded, the Planner offers to load just the newer bits — it never re-adds things people deleted.
-   An entry with was:{…} is a CHANGE to something already loaded: it's only applied if nobody has edited it since. */
+   An entry with was:{…} is a CHANGE to something already loaded: it's only applied if nobody has edited it since.
+   was can also be a list of {…}, one per earlier wording, so a site that skipped a version still gets the change. */
 
 /* slot is worked out from the time unless given: before noon = morning, before 5pm = midday, else evening */
 export const ITINERARY = [
@@ -36,7 +37,7 @@ export const ITINERARY = [
   { id:"i2-25-0800", date:"2026-12-25", time:"08:00", text:"Christmas Day set-up & decorations — organisers: Tayla, Lynda & Sunny" },
   { id:"i2-25-0900", date:"2026-12-25", time:"09:00", text:"Christmas bingo starts, plus games & activities — organisers: Mikayla, Charlie, Georgie & Mila" },
   { id:"i2-25-1045", date:"2026-12-25", time:"10:45", text:"WA FaceTime call" },
-  { id:"i2-25-1100", date:"2026-12-25", time:"11:00", text:"Steal & Grab gift swap — organisers: Gem & Isla", link:"santa.html", v:5, was:{ text:"Secret Santa — organisers: Gem & Isla" } },
+  { id:"i2-25-1100", date:"2026-12-25", time:"11:00", text:"Secret Santa — organisers: Gem & Isla", link:"santa.html", v:7, was:{ text:"Steal & Grab gift swap — organisers: Gem & Isla" } },
   { id:"i2-25-1200", date:"2026-12-25", time:"12:00", text:"Family photos" },
   { id:"i2-25-1230", date:"2026-12-25", time:"12:30", text:"Christmas Day lunch", link:"food.html#lunch" },
   { id:"i2-25-1400", date:"2026-12-25", time:"14:00", text:"Christmas Day cricket match — organisers: Shawn, Cooper & Nate" },
@@ -102,6 +103,6 @@ export const ITIN_GEAR = [
   { id:"gr-tree",    text:"Small Christmas tree & decorations",   forWhat:"Gem & Lynda" },
   { id:"gr-hawaii",  text:"Hawaiian themed outfit",               forWhat:"Everyone" },
   { id:"gr-outfit",  text:"Christmas themed outfit",                 forWhat:"Everyone", v:4, was:{ text:"Christmas Day outfit" } },
-  { id:"gr-santa",   v:5, text:"Wrapped Steal & Grab gift — funny, homemade or free (up to $25)", forWhat:"Everyone", was:{ text:"$20–25 Secret Santa present" } },
+  { id:"gr-santa",   v:7, text:"Wrapped Secret Santa gift — funny, homemade or free (up to $25)", forWhat:"Everyone", was:[{ text:"$20–25 Secret Santa present" }, { text:"Wrapped Steal & Grab gift — funny, homemade or free (up to $25)" }] },
   { id:"gr-attire",  v:4, text:"Bowls & golf attire",                  forWhat:"Everyone" }
 ];

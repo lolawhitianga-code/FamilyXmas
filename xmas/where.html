@@ -64,10 +64,10 @@
   <h2 class="sec">Check-ins</h2>
   <div class="card" id="feed"></div>
   <p class="small muted" style="margin:10px 2px 0">Locations only show for people who've switched sharing on, and only update while they have the site open. Dots older than a few hours fade out.</p>
-  <p class="buildstamp">build x34</p>
+  <p class="buildstamp">build x37</p>
 </main>
 <script type="module">
-import { boot, me, col, heroFromWall, esc, toast, pname, person, household, badge, sharingOn, setSharing, checkIn, metres, howFar } from "./app.js";
+import { boot, me, col, heroFromWall, esc, toast, pname, person, household, badge, sharingOn, setSharing, checkIn, metres, howFar, tapName } from "./app.js";
 import { PLACES } from "./places.js";
 if(boot("where.html")){
 const $ = id => document.getElementById(id);
@@ -94,11 +94,11 @@ $("checkin").onclick = () => checkIn(PLACES);
 function paintLists(){
   const ls = live();
   $("people").innerHTML = ls.length ? ls.map(s => { const p = nearPlace(s), d = metres(CAMP, s);
-      return `<div class="lrow">${badge(s.id)}<div class="nm"><b>${esc(pname(s.id))}</b><small>${p ? "At " + esc(p.name) : d < 300 ? "At camp" : howFar(d) + " from camp"}</small></div>
+      return `<div class="lrow">${badge(s.id)}<div class="nm"><b>${tapName(s.id)}</b><small>${p ? "At " + esc(p.name) : d < 300 ? "At camp" : howFar(d) + " from camp"}</small></div>
         <span class="tm">${ago(s.at)}</span><button class="chip find" data-find="${s.id}">Find</button></div>`; }).join("")
     : `<div class="empty">Nobody's sharing right now. Switch on "Share my location" above to be first.</div>`;
   const cs = shownChecks();
-  $("feed").innerHTML = cs.length ? cs.slice(0, 40).map(c => `<div class="lrow">${badge(c.who)}<div class="nm"><b>${esc(pname(c.who))} · ${esc(c.place)}</b>
+  $("feed").innerHTML = cs.length ? cs.slice(0, 40).map(c => `<div class="lrow">${badge(c.who)}<div class="nm"><b>${tapName(c.who)} · ${esc(c.place)}</b>
       <small>${new Date(c.at).toLocaleString("en-NZ", { weekday:"short", hour:"numeric", minute:"2-digit" })}${c.lat == null ? " · not on the map" : ""}</small></div>
       <span class="tm">${ago(c.at)}</span>${c.lat != null ? `<button class="chip find" data-findc="${c.id}">Map</button>` : ""}${c.who === me.id ? `<button class="chip" data-del="${c.id}" aria-label="Delete">✕</button>` : ""}</div>`).join("")
     : `<div class="empty">${range === "today" ? "No check-ins yet today." : "No check-ins yet."} Tap "Check in where I am" to add one.</div>`;
@@ -124,12 +124,12 @@ function paintMap(){
   shownChecks().filter(c => c.lat != null).forEach(c => {
     const col_ = (person(c.who) || {}).colour || "#D8352A";
     L.marker([c.lat, c.lng], { icon: L.divIcon({ className:"", html:`<div class="ci-pin" style="border-color:${col_}"><span class="d" style="background:${col_}"></span>${esc(person(c.who).name)} · ${esc(c.place)}</div>`, iconSize:null }) })
-      .bindPopup(`<b>${esc(pname(c.who))}</b> checked in at <b>${esc(c.place)}</b><br>${esc(ago(c.at))}`).addTo(layer);
+      .bindPopup(`<b>${tapName(c.who)}</b> checked in at <b>${esc(c.place)}</b><br>${esc(ago(c.at))}`).addTo(layer);
   });
   live().forEach(s => {
     const p = person(s.id), old = Date.now() - s.at > 3 * 3600000;
     L.marker([s.lat, s.lng], { zIndexOffset: 500, icon: L.divIcon({ className:"", html:`<div class="who-pin${old ? " old" : ""}" style="background:${p.colour}">${esc(initials(p.name))}</div>`, iconSize:[36, 36], iconAnchor:[18, 18] }) })
-      .bindPopup(`<b>${esc(pname(s.id))}</b><br>${esc(ago(s.at))}${s.acc > 150 ? ` · rough spot (±${howFar(s.acc)})` : ""}`).addTo(layer);
+      .bindPopup(`<b>${tapName(s.id)}</b><br>${esc(ago(s.at))}${s.acc > 150 ? ` · rough spot (±${howFar(s.acc)})` : ""}`).addTo(layer);
   });
   if(first){ first = false; fitAll(); }
 }

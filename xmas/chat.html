@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12303B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Family Xmas">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Chat — Christmas at Bateau Bay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+<style>
+.rooms{display:flex;gap:7px;overflow-x:auto;padding:2px 2px 12px;margin:0 -2px;scrollbar-width:none}
+.rooms::-webkit-scrollbar{display:none}
+.rooms .chip{flex:none;padding:8px 13px;font-size:14px;font-family:inherit;position:relative}
+.rooms .chip .n{background:var(--red);color:#fff;border-radius:999px;font-size:11px;font-weight:700;padding:0 6px;line-height:17px}
+.rooms .chip.on .n{background:#fff;color:var(--red)}
+.rooms .chip.new{border-style:dashed;color:var(--red);font-weight:600}
+.room h2.sec{display:flex;align-items:center;gap:6px}
+.log{min-height:30vh;padding-bottom:6px}
+.chatbar{position:fixed;left:0;right:0;z-index:41;background:rgba(255,247,234,.97);border-top:1px solid var(--line);padding:8px 12px;
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.chatbar .composer{max-width:780px;margin:0 auto}
+main{padding-bottom:84px}
+.pick .hhl{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin:12px 0 5px}
+.pick .chip{margin:0 5px 6px 0;padding:7px 12px;font-size:14px}
+.pick .chip .n{background:var(--red);color:#fff;border-radius:999px;font-size:11px;font-weight:700;padding:0 6px}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="back" href="home.html">← Home</a>
+  <p class="eyebrow">Talk to the family</p>
+  <h1 class="wordmark">Chat</h1>
+  <p class="sub" id="sub">&nbsp;</p>
+</header>
+
+<main>
+  <div class="rooms" id="rooms"></div>
+  <div class="room"><h2 class="sec" id="title">Everyone</h2>
+  <div class="log" id="log"><div class="empty">Loading…</div></div></div>
+  <p class="buildstamp">build x37</p>
+</main>
+<div class="chatbar" id="bar"><form class="composer" id="form"><textarea class="in" id="text" rows="1" maxlength="1000" placeholder="Message everyone…"></textarea>
+  <button class="btn red">Send</button></form></div>
+
+<script type="module">
+import { boot, me, onPeople, onChat, chatRows, chatUnread, chatSeen, chatViewing, chatBubbles, chatForm, deleteChat, dmRoom, dmOther,
+         CHAT_ALL, households, person, pname, badge, esc, toast, openSheet, closeSheet } from "./app.js";
+
+if(boot("chat.html")){
+const $ = id => document.getElementById(id);
+const want = new URLSearchParams(location.search).get("with");
+let room = want && want !== me.id ? dmRoom(me.id, want) : CHAT_ALL, painted = "";
+
+/* the message box sits just above the bottom nav, whatever height that is on this phone */
+const fit = () => { const nav = document.querySelector(".nav"); $("bar").style.bottom = (nav ? nav.offsetHeight : 58) + "px"; };
+fit(); addEventListener("resize", fit);
+
+const roomName = r => r === CHAT_ALL ? "👨‍👩‍👧‍👦 Everyone" : pname(dmOther(r));
+function go(r){
+  room = r; painted = "";
+  history.replaceState(null, "", r === CHAT_ALL ? "chat.html" : "chat.html?with=" + encodeURIComponent(dmOther(r)));
+  paint();
+}
+
+function paint(){
+  chatViewing(room);
+  const rows = chatRows();
+  // direct chats I'm in, newest first (plus the one on screen, even before anyone's said anything)
+  const last = {}; rows.forEach(m => { if(m.room !== CHAT_ALL) last[m.room] = Math.max(last[m.room] || 0, m.createdAt || 0); });
+  if(room !== CHAT_ALL && !(room in last)) last[room] = Date.now();
+  const dms = Object.keys(last).sort((a, b) => last[b] - last[a]);
+  const n = r => { const u = r === room ? 0 : chatUnread(r); return u ? ` <span class="n">${u}</span>` : ""; };
+  $("rooms").innerHTML = [CHAT_ALL, ...dms].map(r => `<button class="chip${r === room ? " on" : ""}" data-room="${esc(r)}">${r === CHAT_ALL ? "" : badge(dmOther(r))}${esc(roomName(r))}${n(r)}</button>`).join("")
+    + `<button class="chip new" id="new">✉️ New message</button>`;
+  const other = dmOther(room);
+  $("title").innerHTML = room === CHAT_ALL ? "Everyone · the whole family" : `${badge(other)} Just you &amp; ${esc(pname(other))}`;
+  $("text").placeholder = room === CHAT_ALL ? "Message everyone…" : `Message ${person(other).name}…`;
+  const count = rows.filter(m => m.room === CHAT_ALL).length;
+  $("sub").textContent = count ? `${count} message${count === 1 ? "" : "s"} in the family chat` : "Say g'day to everyone";
+  // stay at the bottom if you were already there, or it's a different chat, or you just sent one
+  const nearBottom = innerHeight + scrollY > document.body.scrollHeight - 160;
+  const mineLast = rows.filter(m => m.room === room).slice(-1)[0];
+  const jump = painted !== room || nearBottom || (mineLast && mineLast.by === me.id && Date.now() - mineLast.createdAt < 5000);
+  $("log").innerHTML = chatBubbles(room, room === CHAT_ALL);
+  painted = room;
+  if(!document.hidden) chatSeen(room);
+  if(jump){ const ms = $("log").querySelectorAll(".msg"); if(ms.length) ms[ms.length - 1].scrollIntoView({ block:"end" }); }
+}
+
+$("rooms").addEventListener("click", e => {
+  const b = e.target.closest("[data-room]"); if(b){ go(b.dataset.room); return; }
+  if(e.target.closest("#new")) pickPerson();
+});
+/* tap your own message to take it back */
+$("log").addEventListener("click", e => {
+  const b = e.target.closest(".msg.me"); if(!b) return;
+  const m = chatRows().find(x => x.id === b.dataset.msg); if(!m) return;
+  const sh = openSheet(`<h3>Your message</h3><p class="muted">“${esc(m.text)}”</p>
+    <div class="acts"><button class="btn ghost" id="no">Keep it</button><button class="btn red" id="del">Delete it</button></div>`);
+  sh.el.querySelector("#no").onclick = closeSheet;
+  sh.el.querySelector("#del").onclick = async () => { closeSheet(); try{ await deleteChat(m.id); }catch(err){ toast("Couldn't delete it — " + err.message); } };
+});
+
+function pickPerson(){
+  const sh = openSheet(`<h3>Message someone</h3><p class="muted small">Just the two of you. You can also tap anyone's name anywhere in the app.</p>
+    <input class="in" id="q" placeholder="Search a name…" autocomplete="off"><div class="pick" id="list"></div>`);
+  const q = s => sh.el.querySelector(s);
+  const list = () => { const f = q("#q").value.trim().toLowerCase();
+    q("#list").innerHTML = households().map(h => { const ms = h.members.filter(p => p.id !== me.id && (!f || p.label.toLowerCase().includes(f)));
+      return ms.length ? `<div class="hhl">${badge(h.id)} ${esc(h.name)}</div>` + ms.map(p => { const u = chatUnread(dmRoom(me.id, p.id));
+        return `<button class="chip" data-to="${esc(p.id)}">${esc(p.label)}${u ? ` <span class="n">${u}</span>` : ""}</button>`; }).join("") : ""; }).join("")
+      || `<div class="empty">Nobody by that name</div>`; };
+  list();
+  q("#q").addEventListener("input", list);
+  q("#list").addEventListener("click", e => { const b = e.target.closest("[data-to]"); if(!b) return; closeSheet(); go(dmRoom(me.id, b.dataset.to)); });
+}
+
+chatForm($("form"), $("text"), () => room);
+document.addEventListener("visibilitychange", () => { if(!document.hidden) paint(); });
+onPeople(() => { if(painted) paint(); });
+onChat(paint);
+}
+</script>
+</body>
+</html>
