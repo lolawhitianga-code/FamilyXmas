@@ -60,10 +60,10 @@
     <h2 class="sec">Latest visits</h2><div class="card" id="recent"></div>
     <p class="small muted" style="margin-top:12px">Time is how long the site was actually on screen, counted in 15-second steps, so very quick looks show as under a minute. A visit ends after 30 minutes away. Counting started when this version of the site went up, and the casino games aren't counted.</p>
   </div>
-  <p class="buildstamp">build x35</p>
+  <p class="buildstamp">build x36</p>
 </main>
 <script type="module">
-import { boot, col, heroFromWall, esc, askPin, people, households, household, pname, onPeople, badge, fmtDay, isoDate, fromIso } from "./app.js";
+import { boot, col, heroFromWall, esc, askPin, people, households, household, pname, onPeople, badge, fmtDay, isoDate, fromIso, tapName } from "./app.js";
 if(boot("traffic.html")){
 const $ = id => document.getElementById(id);
 heroFromWall();
@@ -99,7 +99,7 @@ function paint(){
   const by = {}; known.forEach(v => { const p = by[v.who] = by[v.who] || { n:0, secs:0, last:0, devs:new Set(), kinds:new Set(), app:false, views:0 };
     p.n++; p.secs += v.secs || 0; p.last = Math.max(p.last, v.last || v.start); p.devs.add(v.dev); p.kinds.add(v.kind); p.app = p.app || v.app; p.views += v.views || 0; });
   const list = Object.entries(by).sort((a, b) => b[1].last - a[1].last);
-  $("people").innerHTML = list.length ? list.map(([id, p]) => `<div class="pr">${badge(id)}<div class="nm"><b>${esc(pname(id))}${now - p.last < 120000 ? '<span class="nowdot" title="on now"></span>' : ""}</b>
+  $("people").innerHTML = list.length ? list.map(([id, p]) => `<div class="pr">${badge(id)}<div class="nm"><b>${tapName(id)}${now - p.last < 120000 ? '<span class="nowdot" title="on now"></span>' : ""}</b>
       <small>${p.n} visit${p.n === 1 ? "" : "s"} · ${p.views} pages · ${[...p.kinds].join(", ")}${p.app ? " · on home screen" : ""}</small></div>
       <div class="tt">${dur(p.secs)}<small>${ago(p.last)}</small></div></div>`).join("") : `<div class="empty">Nobody in this period</div>`;
   const everIn = new Set(rows.filter(v => v.who).map(v => v.who));

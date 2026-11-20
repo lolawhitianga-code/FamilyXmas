@@ -73,11 +73,11 @@
   <div class="card earn" id="earn"></div>
 
   <div class="foot"><button class="chip" id="mute"></button></div>
-  <p class="buildstamp">build x35</p>
+  <p class="buildstamp">build x36</p>
 </main>
 
 <script type="module">
-import { boot, me, col, STAR, esc, people, households, person, pname, badge, onPeople, heroFromWall, isMuted, setMuted } from "./app.js";
+import { boot, me, col, STAR, esc, people, households, person, pname, badge, onPeople, heroFromWall, isMuted, setMuted, tapName } from "./app.js";
 
 if(boot("stars.html")){
 const $ = id => document.getElementById(id);
@@ -107,12 +107,12 @@ function paintBoard(){
       return `<button class="rk ${r.hh.id === mine ? "me" : ""}" data-hh="${esc(r.hh.id)}" aria-expanded="${ex}"><span class="pos">${r.pts > 0 && i === 0 ? "👑" : i + 1}</span>
         <span class="mid"><span class="nm">${badge(r.hh.id)} ${esc(r.hh.name)}</span><span class="tr"><i style="width:${Math.round(r.pts / max * 100)}%;background:${r.hh.colour}"></i></span></span>
         <span class="pts">${r.pts} ⭐</span></button>` +
-        (ex ? `<div class="mem">${r.hh.members.slice().sort((a, b) => total(b.id) - total(a.id)).map(p => `<div><span>${esc(p.label)}</span><span class="mono">${total(p.id)} ⭐</span></div>`).join("")}</div>` : "");
+        (ex ? `<div class="mem">${r.hh.members.slice().sort((a, b) => total(b.id) - total(a.id)).map(p => `<div><span>${tapName(p.id)}</span><span class="mono">${total(p.id)} ⭐</span></div>`).join("")}</div>` : "");
     }).join("");
   } else {
     const all = people().map(p => ({ p, pts: total(p.id) })).sort((a, b) => b.pts - a.pts || a.p.label.localeCompare(b.p.label));
     const row = (r, i) => `<div class="rk ${r.p.id === me.id ? "me" : ""}"><span class="pos">${r.pts > 0 && i === 0 ? "👑" : i + 1}</span>
-      <span class="mid"><span class="nm">${badge(r.p.id)} ${esc(r.p.label)}${r.p.id === me.id ? " (you)" : ""}</span></span><span class="pts">${r.pts} ⭐</span></div>`;
+      <span class="mid"><span class="nm">${badge(r.p.id)} ${tapName(r.p.id)}${r.p.id === me.id ? " (you)" : ""}</span></span><span class="pts">${r.pts} ⭐</span></div>`;
     const top = all.slice(0, 15);
     h = top.map(row).join("");
     const mi = all.findIndex(r => r.p.id === me.id);
@@ -132,7 +132,7 @@ function paintMine(){
 function paintFeed(){
   const rows = log.slice().sort((a, b) => (b.at || 0) - (a.at || 0)).slice(0, 40);
   if(!rows.length) return;
-  $("feed").innerHTML = rows.map(r => `<div><span class="t"><b>${esc(pname(r.who))}</b> · ${esc(STAR[r.kind] ? STAR[r.kind][1] : r.kind)}</span><span class="pl">+${r.pts}</span><span class="ago muted">${ago(r.at)}</span></div>`).join("");
+  $("feed").innerHTML = rows.map(r => `<div><span class="t"><b>${tapName(r.who)}</b> · ${esc(STAR[r.kind] ? STAR[r.kind][1] : r.kind)}</span><span class="pl">+${r.pts}</span><span class="ago muted">${ago(r.at)}</span></div>`).join("");
 }
 
 $("earn").innerHTML = Object.values(STAR).map(a => a).map((a, i) => ({ pts:a[0], label:a[1], note:a[2] }))

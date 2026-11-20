@@ -73,14 +73,14 @@
   <h2 class="sec">Results</h2>
   <div id="done"></div>
 
-  <p class="buildstamp">build x35</p>
+  <p class="buildstamp">build x36</p>
 </main>
 <button class="fab" id="add" aria-label="Add event">+</button>
 
 <script type="module">
 import { boot, me, col, watchTrip, tripDays, fmtDay, fmtLong, fromIso, todayIso, heroFromWall,
          households, people, household, person, onPeople, pname, badge, esc, celebrate, toast,
-         openSheet, closeSheet } from "./app.js";
+         openSheet, closeSheet, tapName } from "./app.js";
 
 if(boot("games.html")){
 const $ = id => document.getElementById(id);
@@ -129,7 +129,7 @@ function paintLadder(){
   const max = rows.length ? rows[0].pts : 1;
   $("ladder").innerHTML = rows.length ? rows.map((r, i) => `<div class="lrow ${r.mine ? "me" : ""}"><div class="top2">
       <span class="pos">${i === 0 ? "👑" : i + 1}</span><span class="dot" style="background:${r.c}"></span>
-      <span class="nm">${esc(r.nm)}${r.mine ? " (you)" : ""}</span><span class="pt">${r.pts} pts</span></div>
+      <span class="nm">${isF ? esc(r.nm) : tapName(r.id, r.nm)}${r.mine ? " (you)" : ""}</span><span class="pt">${r.pts} pts</span></div>
       <div class="bar"><i style="width:${Math.max(4, r.pts / max * 100)}%;background:${r.c}"></i></div></div>`).join("")
     : `<div class="empty">Nobody's on the board yet. Log a result and the ladder starts.</div>`;
   document.querySelectorAll("#tog .chip").forEach(b => { const on = b.dataset.v === view; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });

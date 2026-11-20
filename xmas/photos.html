@@ -51,12 +51,12 @@
   <div id="body"><div class="empty">Loading…</div></div>
   <input type="file" id="file" class="vh-file" accept="image/*" multiple>
   <label class="fab" id="add" for="file" aria-label="Add photos">📸</label>
-  <p class="buildstamp">build x35</p>
+  <p class="buildstamp">build x36</p>
 </main>
 
 <script type="module">
 import { boot, me, col, watchTrip, heroFromWall, tripDays, fmtDay, fmtLong, fromIso, todayIso, onPeople,
-         pname, esc, celebrate, toast, openSheet, closeSheet, lightbox, compressImage, askPin } from "./app.js";
+         pname, esc, celebrate, toast, openSheet, closeSheet, lightbox, compressImage, askPin, tapName } from "./app.js";
 
 if(boot("photos.html")){
 const $ = id => document.getElementById(id);
@@ -144,7 +144,7 @@ function editSheet(r){
     <label class="f" for="ec">Caption</label><input class="in" id="ec" maxlength="100" value="${esc(r.caption || "")}">
     <label class="f" for="ed">Day</label><input class="in" id="ed" type="date" value="${esc(r.day || defDay())}">
     <label class="chk"><input type="checkbox" id="eb" ${r.bg !== false ? "checked" : ""}> Use as a header background</label>
-    <p class="muted small" style="margin:2px 0 0">Put up by ${esc(pname(r.who))}</p>
+    <p class="muted small" style="margin:2px 0 0">Put up by ${tapName(r.who)}</p>
     <div class="acts"><button class="btn red" id="del">Delete</button><button class="btn green" id="ok">Save</button></div>`);
   const q = s => sh.el.querySelector(s); let armed = false;
   q("#ok").onclick = async () => {

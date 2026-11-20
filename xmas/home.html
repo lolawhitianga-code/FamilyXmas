@@ -82,6 +82,15 @@ body.mine #full, body.mine .pokiebar, body.mine .pokiefloat, body.mine #quiet{di
 .mrow .tm{flex:none;font-family:'DM Mono',monospace;font-size:12px;color:var(--ink-soft);padding-top:3px;min-width:42px;text-align:right}
 .mday{font-family:'Fraunces',serif;font-weight:700;font-size:17px;margin:16px 0 2px}
 .mday.today{color:var(--red)}
+/* 💬 the family chat, up top */
+.chatcard{display:flex;align-items:center;gap:12px;text-decoration:none;color:#fff;margin:0 0 16px;padding:13px 15px;border-radius:16px;
+  background:linear-gradient(110deg,#14583C,#1F8A5B 60%,#1AA5B8);box-shadow:0 10px 26px -12px rgba(18,80,60,.7)}
+.chatcard .g{flex:none;font-size:32px;line-height:1}
+.chatcard .t{flex:1;min-width:0}
+.chatcard .t b{display:block;font-family:'Fraunces',serif;font-weight:900;font-size:19px;line-height:1.15}
+.chatcard .t span{display:block;font-size:13.5px;opacity:.92;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.chatcard .n{flex:none;background:var(--red);color:#fff;font-weight:700;font-size:13px;border-radius:999px;padding:3px 9px;box-shadow:0 0 0 2px #fff}
+.chatcard .go{flex:none;background:#fff;color:var(--green);font-weight:700;font-size:13px;border-radius:999px;padding:7px 12px}
 .mcard{background:#fff;border:1px solid var(--line);border-radius:16px;padding:2px 14px;box-shadow:var(--shadow)}
 </style>
 </head>
@@ -102,6 +111,8 @@ body.mine #full, body.mine .pokiebar, body.mine .pokiefloat, body.mine #quiet{di
       <input type="file" id="kayFile" class="vh-file" accept="image/*" multiple></label>
     <a class="btn ghost wide" href="babies.html" style="margin-top:8px">See the photos, answers &amp; guesses →</a>
   </div>
+  <a class="chatcard keep-top" href="chat.html" id="chatCard"><span class="g">💬</span><span class="t"><b>Family chat</b><span id="chatLast">Talk to everyone, or tap any name to message them</span></span>
+    <span class="n hide" id="chatN"></span><span class="go">Open →</span></a>
   <button class="mineswitch" id="mineSwitch" role="switch" aria-checked="false"><i></i><span>Just show me my stuff</span></button>
   <div id="mine" class="hide"></div>
   <div id="full">
@@ -116,6 +127,7 @@ body.mine #full, body.mine .pokiebar, body.mine .pokiefloat, body.mine #quiet{di
 
   <h2 class="sec">Everything</h2>
   <div class="tiles">
+    <a href="chat.html" class="comp"><b>💬</b><span>Family chat</span></a>
     <a href="crew.html"><b>👨‍👩‍👧‍👦</b><span>Who's coming</span></a>
     <a href="planner.html"><b>🗓️</b><span>Planner</span></a>
     <a href="signup.html"><b>✋</b><span>Sign-up sheet</span></a>
@@ -147,17 +159,23 @@ body.mine #full, body.mine .pokiebar, body.mine .pokiefloat, body.mine #quiet{di
     <a class="chip" href="traffic.html">📈 Who's been on (organisers)</a>
   </div>
 
-  <p class="buildstamp">build x35</p>
+  <p class="buildstamp">build x36</p>
 </main>
 
 <script type="module">
 import { boot, me, SLOTS, col, watchTrip, heroFromWall, tripDayToday, dayDate, fmtLong, isoDate, todayIso, XMAS_DAY,
-         households, people, household, onPeople, hereOn, pname, esc, isMuted, setMuted, badge, noPokies, noPokiesFixed, setNoPokies, toast, settings, aud, fmtDay, fromIso, installCard, addToHomeScreen, onHomeScreen, isKay, addBabyPhotos, sosWatch } from "./app.js";
+         households, people, household, onPeople, hereOn, pname, esc, isMuted, setMuted, badge, noPokies, noPokiesFixed, setNoPokies, toast, settings, aud, fmtDay, fromIso, installCard, addToHomeScreen, onHomeScreen, isKay, addBabyPhotos, sosWatch,
+         onChat, chatRows, chatUnreadAll, dmOther, CHAT_ALL } from "./app.js";
 
 if(boot("home.html")){
 const $ = id => document.getElementById(id);
 heroFromWall();
 sosWatch($("flares"));      // 🆘 "I need a drink ASAP" flares from Report-a-trauma
+onChat(() => {              // 💬 the latest message and how many you haven't read
+  const rows = chatRows(), m = rows[rows.length - 1], n = chatUnreadAll();
+  $("chatN").textContent = n > 99 ? "99+" : n; $("chatN").classList.toggle("hide", !n);
+  if(m) $("chatLast").textContent = (m.by === me.id ? "You" : pname(m.by)) + (m.room === CHAT_ALL ? "" : m.by === me.id ? " → " + pname(dmOther(m.room)) : " → you") + ": " + m.text;
+});
 $("hi").textContent = `Merry Christmas, ${me.name}`;
 
 let trip = null, plan = [], meals = [], signups = [], scores = [];

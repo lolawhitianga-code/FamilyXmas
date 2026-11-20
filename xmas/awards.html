@@ -60,12 +60,12 @@
   <h2 class="sec">Hall of fame</h2>
   <div class="card" id="hall"><div class="empty">Winners will show up here once a day is done.</div></div>
   <p style="text-align:center"><button class="btn small ghost" id="edit">Organiser: edit categories</button></p>
-  <p class="buildstamp">build x35</p>
+  <p class="buildstamp">build x36</p>
 </main>
 
 <script type="module">
 import { boot, me, col, settings, celebrate, toast, openSheet, closeSheet, askPin, esc, watchTrip, tripDays, fmtLong,
-         todayIso, XMAS_DAY, people, households, hereOn, pname, badge, person, onPeople, heroFromWall } from "./app.js";
+         todayIso, XMAS_DAY, people, households, hereOn, pname, badge, person, onPeople, heroFromWall, tapName } from "./app.js";
 
 if(boot("awards.html")){
 const $ = id => document.getElementById(id);
@@ -104,15 +104,15 @@ function catCard(c, future, past){
   const mv = myVote(day, c.id);
   let h = `<div class="card cat"><h3><span class="e">${esc(c.emoji)}</span>${esc(c.name)}</h3>`;
   if(future) return h + `<div class="muted small">Opens on the day</div></div>`;
-  h += mv ? `<div class="mine"><span>Your pick: ${badge(mv.pick)} <b>${esc(pname(mv.pick))}</b></span><button class="btn small ghost" data-vote="${esc(c.id)}">Change</button></div>`
+  h += mv ? `<div class="mine"><span>Your pick: ${badge(mv.pick)} <b>${tapName(mv.pick)}</b></span><button class="btn small ghost" data-vote="${esc(c.id)}">Change</button></div>`
           : `<button class="btn red wide" data-vote="${esc(c.id)}" style="margin-bottom:10px">Vote</button>`;
   if(!t.length) return h + `<div class="muted small">No votes yet — be the first.</div></div>`;
   const max = t[0].n, top = t.slice(0, 3), rest = t.length - top.length;
-  h += top.map(x => `<div class="bar"><span class="nm">${lead.includes(x.id) ? "👑 " : ""}${esc(pname(x.id))}</span>
+  h += top.map(x => `<div class="bar"><span class="nm">${lead.includes(x.id) ? "👑 " : ""}${tapName(x.id)}</span>
       <span class="tr"><i style="width:${Math.round(x.n / max * 100)}%;background:${person(x.id).colour}"></i></span><span class="c">${x.n}</span></div>`).join("");
   if(rest > 0) h += `<div class="muted small">+ ${rest} other${rest === 1 ? "" : "s"} with votes</div>`;
   const whys = votes.filter(v => v.date === day && v.cat === c.id && v.why).slice(0, 8);
-  if(whys.length) h += `<div class="whys">${whys.map(v => `<p>“${esc(v.why)}” <span class="muted small">— for ${esc(pname(v.pick))}, from ${esc(pname(v.voter))}</span></p>`).join("")}</div>`;
+  if(whys.length) h += `<div class="whys">${whys.map(v => `<p>“${esc(v.why)}” <span class="muted small">— for ${tapName(v.pick)}, from ${tapName(v.voter)}</span></p>`).join("")}</div>`;
   return h + `</div>`;
 }
 
@@ -124,7 +124,7 @@ function paintDay(){
   if(past){
     const rows = cats.map(c => ({ c, w: winners(tally(day, c.id)) })).filter(r => r.w.length);
     h += `<div class="card podium"><h3>🏅 The podium</h3>` + (rows.length
-      ? rows.map(r => `<div class="w"><b>${esc(r.c.emoji)}</b><span>${esc(r.c.name)}: <b>${r.w.map(x => esc(pname(x.id))).join(" &amp; ")}</b> <span class="muted small">(${r.w[0].n})</span></span></div>`).join("")
+      ? rows.map(r => `<div class="w"><b>${esc(r.c.emoji)}</b><span>${esc(r.c.name)}: <b>${r.w.map(x => tapName(x.id)).join(" &amp; ")}</b> <span class="muted small">(${r.w[0].n})</span></span></div>`).join("")
       : `<div class="muted small">Nobody voted on this day.</div>`) + `</div>`;
   }
   h += cats.map(c => catCard(c, future, past)).join("");
@@ -142,7 +142,7 @@ function paintHall(){
   }).filter(r => r.top.length);
   if(!rows.length) return;
   $("hall").innerHTML = rows.map(r => `<div class="bar" style="margin:9px 0"><span style="font-size:22px">${esc(r.c.emoji)}</span>
-    <span style="flex:1;min-width:0"><b>${esc(r.c.name)}</b><br>${r.top.map(x => `${badge(x[0])} ${esc(pname(x[0]))}`).join(" · ")} <span class="muted small">${r.top[0][1]} day${r.top[0][1] === 1 ? "" : "s"}</span></span></div>`).join("");
+    <span style="flex:1;min-width:0"><b>${esc(r.c.name)}</b><br>${r.top.map(x => `${badge(x[0])} ${tapName(x[0])}`).join(" · ")} <span class="muted small">${r.top[0][1]} day${r.top[0][1] === 1 ? "" : "s"}</span></span></div>`).join("");
 }
 
 const paintAll = () => { paintDays(); paintDay(); paintHall(); };

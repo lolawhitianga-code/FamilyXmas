@@ -62,12 +62,12 @@
   </div>
   <div id="panel"></div>
   <button class="fab hide" id="add" aria-label="Add a dish">+</button>
-  <p class="buildstamp">build x35</p>
+  <p class="buildstamp">build x36</p>
 </main>
 
 <script type="module">
 import { boot, me, col, watchTrip, heroFromWall, tripDays, fmtDay, fmtLong, fromIso, todayIso, XMAS_DAY, uid,
-         households, household, onPeople, hereOn, pname, esc, badge, celebrate, openSheet, closeSheet, toast } from "./app.js";
+         households, household, onPeople, hereOn, pname, esc, badge, celebrate, openSheet, closeSheet, toast, tapName } from "./app.js";
 import { XMAS_FOOD } from "./people.js";
 
 if(boot("food.html")){
@@ -158,7 +158,7 @@ function dishRow(m){
   const nobody = !m.who && !m.claimedBy, who = m.claimedBy ? pname(m.claimedBy) : m.who;
   return `<div class="tag ${m.done ? "green" : ""}"><div class="dish${m.done ? " ok" : ""}"><div class="body" data-edit="${m.id}" role="button" tabindex="0">
     <div class="nm">${esc(m.dish)}</div>
-    ${nobody ? "" : `<div class="meta">${m.claimedBy ? badge(m.claimedBy) + " " : ""}${esc(who)}</div>`}
+    ${nobody ? "" : `<div class="meta">${m.claimedBy ? badge(m.claimedBy) + " " + tapName(m.claimedBy) : esc(who)}</div>`}
     ${m.note ? `<div class="meta">${esc(m.note)}</div>` : ""}
     ${nobody ? `<button class="claim" data-claim="${m.id}">Nobody yet \u2014 I\u2019ll bring it</button>` : ""}</div>
     <button class="sorted" data-sort="${m.id}" aria-pressed="${!!m.done}">${m.done ? "Sorted \u2713" : "Sorted?"}</button></div></div>`;

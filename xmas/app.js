@@ -9,7 +9,7 @@
    ============================================================ */
 import { HOUSEHOLDS as BASE_HH, HH_COLOURS } from "./people.js";
 
-export const BUILD = "x35";
+export const BUILD = "x36";
 
 export const FIREBASE = {
   apiKey: "AIzaSyB1NnJlvpL_dv7aPrAeFGtl5MM1oSa1YPk",
@@ -508,10 +508,143 @@ document.addEventListener("click", e => {
 }, true);
 
 /* ============================================================
+   💬 CHAT — one family group chat ("Everyone") and a direct
+   chat between any two people. Every message is one row in
+   xmas_chat: { room, text, by, createdAt, to }. room is "all"
+   for the group, or dmRoom(a, b) for two people (to = [a, b]).
+   Anywhere a page shows someone's name with tapName(id), tapping
+   it opens a direct chat with them in a sheet, right there.
+   What you've read is kept on this phone, per chat.
+   ============================================================ */
+export const CHAT_ALL = "all";
+export const dmRoom = (a, b) => "dm:" + [a, b].sort().join("|");
+/** The other person in a direct chat (or "" for the group). */
+export const dmOther = room => room.startsWith("dm:") ? (room.slice(3).split("|").find(id => !me || id !== me.id) || "") : "";
+/** A person's name that opens a direct chat when tapped. Use in place of esc(pname(id)) inside innerHTML. */
+export function tapName(id, label){
+  const txt = esc(label ?? pname(id));
+  if(!id || !me || id === me.id || !_people.some(p => p.id === id)) return txt;
+  return `<span class="dm" data-dm="${esc(id)}" role="button" tabindex="0" title="Message ${esc(pname(id))}">${txt}</span>`;
+}
+
+let _chat = [], _chatOn = false, _chatFirst = true;
+const _chatSubs = [], _chatKnown = new Set();
+const seenKey = room => "xmas_chat_seen_" + (me ? me.id : "") + "_" + room;
+export const chatSeenAt = room => +(localStorage.getItem(seenKey(room)) || 0);
+export function chatSeen(room){
+  const last = _chat.filter(m => m.room === room).reduce((t, m) => Math.max(t, m.createdAt || 0), Date.now());
+  try{ localStorage.setItem(seenKey(room), String(last)); }catch(e){}
+  paintChatBadge();
+}
+/** Is this message in a chat I'm part of? */
+export const chatMine = m => m.room === CHAT_ALL || (!!me && Array.isArray(m.to) && m.to.includes(me.id));
+/** Every message I can see, oldest first. */
+export const chatRows = () => _chat;
+export const chatUnread = room => _chat.filter(m => m.room === room && m.by !== (me && me.id) && (m.createdAt || 0) > chatSeenAt(room)).length;
+export function chatUnreadAll(){
+  const rooms = new Set(_chat.filter(chatMine).map(m => m.room));
+  let n = 0; rooms.forEach(r => { n += chatUnread(r); }); return n;
+}
+/** Call cb() now and whenever a message comes in or goes. */
+export function onChat(cb){ _chatSubs.push(cb); watchChat(); cb();
+  return () => { const i = _chatSubs.indexOf(cb); if(i >= 0) _chatSubs.splice(i, 1); }; }
+export async function sendChat(room, text){
+  text = String(text || "").trim().slice(0, 1000); if(!text || !me) return;
+  const row = { room, text };
+  if(room !== CHAT_ALL) row.to = room.slice(3).split("|");
+  await col("chat").add(row);
+  try{ localStorage.setItem(seenKey(room), String(Date.now())); }catch(e){}
+}
+export const deleteChat = id => col("chat").remove(id);
+let _openRoom = "";          // the chat on screen right now — it doesn't count as unread or pop up
+export const chatViewing = room => { _openRoom = room; };
+
+function watchChat(){
+  if(_chatOn) return; _chatOn = true;
+  col("chat").subscribe(rows => {
+    _chat = rows.filter(chatMine).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+    if(!_chatFirst){
+      // a new direct message for me, while I'm somewhere else — pop it up
+      const fresh = _chat.filter(m => !_chatKnown.has(m.id) && m.room !== CHAT_ALL && m.by !== (me && me.id) && m.room !== _openRoom
+                                     && Date.now() - (m.createdAt || 0) < 120000);
+      if(fresh.length) chatPop(fresh[fresh.length - 1]);
+    }
+    _chat.forEach(m => _chatKnown.add(m.id)); _chatFirst = false;
+    paintChatBadge();
+    _chatSubs.forEach(cb => cb());
+  });
+}
+function paintChatBadge(){
+  const n = chatUnreadAll();
+  document.querySelectorAll(".chatn").forEach(b => { b.textContent = n > 99 ? "99+" : String(n); b.classList.toggle("hide", !n); });
+}
+function chatPop(m){
+  document.getElementById("chatpop")?.remove();
+  const el = document.createElement("button"); el.id = "chatpop"; el.className = "chatpop";
+  el.innerHTML = `<b>💬 ${esc(pname(m.by))}</b><span>${esc(m.text)}</span>`;
+  el.onclick = () => { el.remove(); openDm(m.by); };
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 7000);
+}
+
+export const chatTime = t => { if(!t) return ""; const d = new Date(t), now = new Date();
+  const tm = d.toLocaleTimeString("en-NZ", { hour:"numeric", minute:"2-digit" });
+  return d.toDateString() === now.toDateString() ? tm : d.toLocaleDateString("en-NZ", { weekday:"short", day:"numeric", month:"short" }) + " " + tm; };
+/** The bubbles for one chat. names = show who sent each one (for the group). */
+export function chatBubbles(room, names){
+  const ms = _chat.filter(m => m.room === room);
+  if(!ms.length) return `<div class="empty">No messages yet — say g'day 👋</div>`;
+  let lastBy = null;
+  return ms.map(m => { const mine = me && m.by === me.id, showName = names && !mine && m.by !== lastBy; lastBy = m.by;
+    return `<div class="msg${mine ? " me" : ""}" data-msg="${esc(m.id)}">${showName ? `<div class="from">${badge(m.by)} ${tapName(m.by)}</div>` : ""}
+      <div class="bub">${esc(m.text)}</div><div class="at">${chatTime(m.createdAt)}</div></div>`; }).join("");
+}
+
+/** A direct chat with this person, in a sheet over whatever page you're on. */
+export function openDm(id){
+  if(!me || id === me.id) return;
+  const room = dmRoom(me.id, id), p = person(id);
+  const sh = openSheet(`<div class="dmhead">${badge(id)}<h3>${esc(p.label)}</h3><a class="chip" href="chat.html?with=${encodeURIComponent(id)}">Open in Chat →</a></div>
+    <div class="dmlog" id="dmLog"></div>
+    <form class="composer insheet" id="dmForm"><textarea class="in" id="dmText" rows="1" maxlength="1000" placeholder="Message ${esc(p.name)}…"></textarea>
+    <button class="btn red" aria-label="Send">Send</button></form>`, () => { stop(); if(_openRoom === room) _openRoom = ""; });
+  let stop = () => {};
+  const q = s => sh.el.querySelector(s);
+  const paint = () => { q("#dmLog").innerHTML = chatBubbles(room, false); q("#dmLog").scrollTop = 1e9; chatSeen(room); };
+  _openRoom = room;
+  stop = onChat(paint);
+  chatForm(q("#dmForm"), q("#dmText"), room);
+}
+/** Wire up a message box: Enter sends on a computer, the button sends anywhere. */
+export function chatForm(form, box, room){
+  const grow = () => { box.style.height = "auto"; box.style.height = Math.min(box.scrollHeight, 130) + "px"; };
+  box.addEventListener("input", grow);
+  box.addEventListener("keydown", e => { if(e.key === "Enter" && !e.shiftKey && !("ontouchstart" in window)){ e.preventDefault(); form.requestSubmit(); } });
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    const text = box.value.trim(); if(!text) return;
+    const r = typeof room === "function" ? room() : room;
+    box.value = ""; grow();
+    try{ await sendChat(r, text); }catch(err){ box.value = text; toast("Couldn't send it — " + err.message); }
+  });
+}
+// tap any name (tapName(id)) to message them — even inside a card that does something else when tapped
+document.addEventListener("click", e => {
+  const t = e.target.closest && e.target.closest("[data-dm]"); if(!t) return;
+  e.preventDefault(); e.stopPropagation(); openDm(t.dataset.dm);
+}, true);
+document.addEventListener("keydown", e => {
+  if(e.key !== "Enter" && e.key !== " ") return;
+  const t = e.target.closest && e.target.closest("[data-dm]"); if(!t) return;
+  e.preventDefault(); e.stopPropagation(); openDm(t.dataset.dm);
+}, true);
+
+/* ============================================================
    PAGE FURNITURE — nav, pokies, toast, banner, sheets, header
    ============================================================ */
 const NAV = [
   ["home.html",    "🏠", "Home"],
+  ["chat.html",    "💬", "Chat"],
   ["planner.html", "🗓️", "Plan"],
   ["food.html",    "🍤", "Food"],
   ["games.html",   "🏆", "Games"],
@@ -691,7 +824,7 @@ export function sosWatch(el){
     el.innerHTML = live.map(r => { const [g, what] = SOS[r.what] || SOS.drink, mine = me && r.by === me.id;
       return `<div class="tag red" style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
         <b style="font-size:26px">${g}</b>
-        <div style="flex:1;min-width:0"><b>${esc(mine ? "You need" : pname(r.by) + " needs")} ${esc(mine ? what.replace("their", "your") : what)} ASAP</b>
+        <div style="flex:1;min-width:0"><b>${mine ? "You need" : tapName(r.by) + " needs"} ${esc(mine ? what.replace("their", "your") : what)} ASAP</b>
           <div class="small muted">${ago(r.createdAt)}${r.helper ? ` · ${esc(me && r.helper === me.id ? "you're" : pname(r.helper) + " is")} on it` : ""}</div></div>
         ${mine ? `<button class="chip" data-sosdone="${r.id}">Sorted</button>`
                : r.helper ? "" : `<button class="chip" data-sosgo="${r.id}">I'm on it</button>`}</div>`; }).join("");
@@ -1157,8 +1290,9 @@ export function boot(page){
   const nav = document.createElement("nav"); nav.className = "nav";
   nav.innerHTML = NAV.filter(([href]) => !(quiet && href === "#game")).map(([href, g, l]) => href === "#game"
     ? `<a href="casino.html" data-game class="pokienav"><b>${g}</b>${l}</a>`
-    : `<a href="${href}"${href === page ? ' aria-current="page"' : ""}><b>${g}</b>${l}</a>`).join("");
+    : `<a href="${href}"${href === page ? ' aria-current="page"' : ""}><b>${g}${href === "chat.html" ? '<i class="chatn hide"></i>' : ""}</b>${l}</a>`).join("");
   document.body.appendChild(nav);
+  watchChat();                             // 💬 unread count on the nav, and a pop-up when someone messages you
   if(!quiet){ pokiesEverywhere(page); linkCasino(); } else _casinoReady = true;
   // the floating pokie machine steps aside while a big upload box is on screen
   setTimeout(() => { const zs = document.querySelectorAll(".dropzone, .pokiebar"); if(!zs.length || !("IntersectionObserver" in window)) return;

@@ -105,12 +105,12 @@
   <div class="card" id="contacts"><div class="empty">Loading…</div></div>
   <button class="btn red wide" id="addC">+ Add a phone number</button>
 
-  <p class="buildstamp">build x35</p>
+  <p class="buildstamp">build x36</p>
 </main>
 
 <script type="module">
 import { boot, me, col, settings, heroFromWall, households, household, people, person, pname, onPeople, badge, esc,
-         toast, openSheet, closeSheet, mapsLink } from "./app.js";
+         toast, openSheet, closeSheet, mapsLink, tapName } from "./app.js";
 import { CAMP, PLACES } from "./places.js";
 
 if(boot("help.html")){
@@ -169,7 +169,7 @@ function paintContacts(){
   if(!rows.length){ $("contacts").innerHTML = `<div class="empty">No numbers yet. Add yours, and anyone in your family who has a mobile.</div>`; return; }
   $("contacts").innerHTML = households().map(h => {
     const mine = rows.filter(r => person(r.person).hh === h.id); if(!mine.length) return "";
-    return `<div class="hh">${badge(h.id)} ${esc(h.name)}</div>` + mine.map(r => `<div class="cnt"><div class="t"><b>${esc(pname(r.person))}</b><span>${esc(r.phone)}</span></div>
+    return `<div class="hh">${badge(h.id)} ${esc(h.name)}</div>` + mine.map(r => `<div class="cnt"><div class="t"><b>${tapName(r.person)}</b><span>${esc(r.phone)}</span></div>
       <a class="chip" href="tel:${num(r.phone)}">📞 Call</a><a class="chip" href="sms:${num(r.phone)}">💬 Text</a><button class="ed" data-id="${esc(r.id)}">Edit</button></div>`).join("");
   }).join("");
 }

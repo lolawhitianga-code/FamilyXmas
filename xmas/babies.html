@@ -83,11 +83,11 @@
   </div>
 
   <div id="orgBar" style="text-align:center;margin-top:22px"></div>
-  <p class="buildstamp">build x35</p>
+  <p class="buildstamp">build x36</p>
 </main>
 <script type="module">
 import { boot, me, col, heroFromWall, esc, askPin, toast, lightbox, compressImage, pname, person, people, badge,
-         isKay, KAY, guessBaby, guessId, celebrate, addBabyPhotos } from "./app.js";
+         isKay, KAY, guessBaby, guessId, celebrate, addBabyPhotos, tapName } from "./app.js";
 if(boot("babies.html")){
 const $ = id => document.getElementById(id);
 heroFromWall();
@@ -123,7 +123,7 @@ function paintKay(){
   guesses.forEach(g => { const a = answers[g.photo]; if(!score[g.who]) score[g.who] = { right:0, made:0 }; score[g.who].made++; if(a && right(g.guess, a)) score[g.who].right++; });
   const rows = Object.entries(score).sort((a, b) => b[1].right - a[1].right || b[1].made - a[1].made);
   const answered = xs.filter(b => answers[b.id]).length;
-  $("board").innerHTML = rows.length ? rows.slice(0, 12).map(([id, s], i) => `<div class="lbrow"><span class="pos">${i + 1}</span>${badge(id)}<span class="nm">${esc(pname(id))}</span>
+  $("board").innerHTML = rows.length ? rows.slice(0, 12).map(([id, s], i) => `<div class="lbrow"><span class="pos">${i + 1}</span>${badge(id)}<span class="nm">${tapName(id)}</span>
       <span class="pts">${s.right} right · ${s.made} guessed</span></div>`).join("") +
       (answered < xs.length ? `<p class="small muted" style="margin:8px 0 2px">Fill in who ${xs.length - answered === 1 ? "1 baby is" : (xs.length - answered) + " babies are"} below and the scores update.</p>` : "")
     : `<div class="empty">No guesses yet.</div>`;
@@ -136,7 +136,7 @@ function paintKay(){
       <div class="body">
         <div class="ans"><input class="in" data-ans="${b.id}" value="${esc(a)}" placeholder="Who is it really?" maxlength="40"><button class="btn small" data-save="${b.id}">Save</button></div>
         <div class="small muted">${gs.length} guess${gs.length === 1 ? "" : "es"}${a ? ` · ${nRight} right` : ""}</div>
-        ${gs.length ? `<ul class="gs">${gs.map(g => `<li class="${a && right(g.guess, a) ? "right" : ""}">${badge(g.who)}<span class="nm">${esc(pname(g.who))}</span><span class="g">${esc(g.guess)}</span></li>`).join("")}</ul>` : ""}
+        ${gs.length ? `<ul class="gs">${gs.map(g => `<li class="${a && right(g.guess, a) ? "right" : ""}">${badge(g.who)}<span class="nm">${tapName(g.who)}</span><span class="g">${esc(g.guess)}</span></li>`).join("")}</ul>` : ""}
         <button class="chip" data-del="${b.id}" style="align-self:flex-start;margin-top:auto">${armed === b.id ? "Really delete this photo?" : "Delete photo"}</button>
       </div></div>`; }).join("")
     : `<div class="empty">${xs.length ? "Every photo has an answer." : "No photos yet — add the first one above."}</div>`;

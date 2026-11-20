@@ -59,11 +59,11 @@
   </div>
   <div id="days"><div class="empty">Loading…</div></div>
   <button class="fab" id="add" aria-label="Add">+</button>
-  <p class="buildstamp">build x35</p>
+  <p class="buildstamp">build x36</p>
 </main>
 <script type="module">
 import { boot, me, col, watchTrip, heroFromWall, tripDays, tripDayToday, fmtDay, todayIso, XMAS_DAY, SLOTS, households, household, onPeople,
-         hereOn, esc, badge, pname, openSheet, closeSheet, toast, celebrate, settings, jingle } from "./app.js";
+         hereOn, esc, badge, pname, openSheet, closeSheet, toast, celebrate, settings, jingle, tapName } from "./app.js";
 import { ITINERARY, ITIN_EVENTS, ITIN_DINNERS, ITIN_GEAR, ITIN_VERSION } from "./itinerary.js";
 
 if(boot("planner.html")){
@@ -93,7 +93,7 @@ function paint(){
       return `<div class="slot"><div class="sh"><span>${sl.glyph}</span><span>${sl.label}</span><button class="plus" data-d="${d.n}" data-s="${sl.key}" aria-label="Add to ${sl.label}, ${esc(dayLabel(d))}">+</button></div>` +
         (xs.length ? xs.map(i => `<button class="item" data-id="${i.id}"><div class="tx">${i.time ? `<span class="tm">${esc(i.time)}</span>` : ""}<span>${esc(i.text)}</span></div>
           ${i.link ? `<span class="chip" data-href="${esc(linkOf(i.link))}">🔗 ${esc(host(linkOf(i.link)))}</span>` : ""}
-          <div class="by">${i.src === "itinerary" ? "📋 Family itinerary" : i.by ? badge(i.by) + esc(pname(i.by)) : ""}</div></button>`).join("") : `<div class="none">Nothing yet</div>`) + `</div>`;
+          <div class="by">${i.src === "itinerary" ? "📋 Family itinerary" : i.by ? badge(i.by) + tapName(i.by) : ""}</div></button>`).join("") : `<div class="none">Nothing yet</div>`) + `</div>`;
     }).join("");
     const dinner = meals.filter(m => m.kind === "dinner" && m.date === d.iso).map(m => `<a href="food.html">🍽️ Dinner: ${esc(m.what || "Dinner")} <span>— ${esc(hhName(m))}</span></a>`);
     const happy = meals.filter(m => m.kind === "happy" && m.date === d.iso).map(m => `<a href="food.html#happy">🍹 Happy hour: ${esc(hhName(m))}${m.time ? " " + esc(m.time) : ""}</a>`);

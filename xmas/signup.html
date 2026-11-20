@@ -47,14 +47,14 @@
 <main>
   <div class="days" id="days"></div>
   <div id="list"></div>
-  <p class="buildstamp">build x35</p>
+  <p class="buildstamp">build x36</p>
 </main>
 <button class="fab" id="add" aria-label="Add an activity">+</button>
 
 <script type="module">
 import { boot, me, col, watchTrip, tripDays, fmtDay, fmtLong, fromIso, XMAS_DAY, heroFromWall,
          households, household, person, onPeople, pname, badge, esc, celebrate, toast,
-         openSheet, closeSheet, askPin } from "./app.js";
+         openSheet, closeSheet, askPin, tapName } from "./app.js";
 
 if(boot("signup.html")){
 const $ = id => document.getElementById(id);
@@ -91,7 +91,7 @@ function card(a){
   return `<div class="tag ${full ? "red" : "green"} act" data-id="${a.id}">
     <h3>${esc(a.emoji || "✋")} ${esc(a.title)}<span class="pill ${full ? "red" : "green"} sp">${spotsTxt(a)}</span></h3>
     <div class="l">📅 ${when || "Day to be decided"}</div>
-    <div class="l">Run by <b>${esc(pname(a.host))}</b></div>
+    <div class="l">Run by <b>${tapName(a.host)}</b></div>
     ${a.cost ? `<div class="l">💲 ${esc(a.cost)}</div>` : ""}${a.bring ? `<div class="l">🎒 Bring: ${esc(a.bring)}</div>` : ""}${a.note ? `<div class="l">${esc(a.note)}</div>` : ""}
     <button class="names" data-a="who">${inn.length ? `<b>${inn.length} in:</b> ${esc(shown)}` : `<span class="muted">Nobody yet. Be the first.</span>`}</button>
     <div class="acts2"><button class="btn imin" data-a="in" aria-pressed="${mine}" ${full && !mine ? "disabled" : ""}>${mine ? "✓ I'm in" : full ? "Full" : "I'm in"}</button>
@@ -147,7 +147,7 @@ function whoSheet(id){
     const a = live(id); if(!a) return closeSheet();
     const inn = a.in || [];
     q("#wt").textContent = `${a.emoji || "✋"} ${a.title}`;
-    q("#wl").innerHTML = (inn.length ? inn.map(pid => `<div class="who">${badge(pid)}<span>${esc(pname(pid))}</span><button class="btn small ghost" data-r="${pid}">${pid === me.id ? "Leave" : "Remove"}</button></div>`).join("")
+    q("#wl").innerHTML = (inn.length ? inn.map(pid => `<div class="who">${badge(pid)}<span>${tapName(pid)}</span><button class="btn small ghost" data-r="${pid}">${pid === me.id ? "Leave" : "Remove"}</button></div>`).join("")
       : `<div class="empty">Nobody yet</div>`) + (canRemove || inn.every(p => p === me.id) ? "" : `<p class="muted small">Only the host or an organiser can remove other people.</p>`);
     q("#wp").innerHTML = households().map(h => { const rest = h.members.filter(p => !inn.includes(p.id));
       return rest.length ? `<div class="hhl">${badge(h.id)} ${esc(h.name)}</div>` + rest.map(p => `<button class="chip pk" data-p="${p.id}">+ ${esc(p.label)}</button>`).join("") : ""; }).join("") || `<div class="empty">Everyone's in!</div>`;

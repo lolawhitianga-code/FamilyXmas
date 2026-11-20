@@ -78,12 +78,12 @@
 
 <main>
   <div id="app"><div class="empty">Loading…</div></div>
-  <p class="buildstamp">build x35</p>
+  <p class="buildstamp">build x36</p>
 </main>
 
 <script type="module">
 import { boot, me, settings, celebrate, jingle, toast, openSheet, closeSheet, askPin, esc, uid,
-         people, households, household, person, pname, badge, onPeople, heroFromWall } from "./app.js";
+         people, households, household, person, pname, badge, onPeople, heroFromWall, tapName } from "./app.js";
 
 /* ============================================================
    SECRET SANTA (steal & grab) — everyone brings one wrapped gift that isn't for
@@ -317,7 +317,7 @@ function giftTile(g){
   const cls = ["g", can ? "can" : "", lk ? "lock" : "", g.holder === me.id ? "mine" : "", back ? "back" : ""].filter(Boolean).join(" ");
   const tag = can ? "button" : "div";
   return `<${tag} class="${cls}"${can ? ` data-steal="${esc(g.id)}"` : ""}><span class="w">${esc(giftName(g))}</span>
-    <span class="h">${badge(g.holder)} ${esc(pname(g.holder))}</span>
+    <span class="h">${badge(g.holder)} ${tapName(g.holder)}</span>
     <span class="s">${lk ? "Locked" : back ? "Can't steal straight back" : "Steals " + steals(g)}</span></${tag}>`;
 }
 
@@ -340,7 +340,7 @@ function orderCard(){
   const upAt = S.order.indexOf(S.up);
   return `<div class="card"><ol class="order">${S.order.map((id, i) => {
     const g = giftOf(id), cls = id === S.up ? "up" : (S.state === "done" || i < S.next) ? "done" : "";
-    return `<li class="${cls}"><span class="num">${i + 1}</span>${badge(id)}<span class="nm">${esc(pname(id))}${id === me.id ? " (you)" : ""}</span>
+    return `<li class="${cls}"><span class="num">${i + 1}</span>${badge(id)}<span class="nm">${tapName(id)}${id === me.id ? " (you)" : ""}</span>
       <span class="has">${g ? esc(giftName(g)) : id === S.up ? "up now" : i < S.next ? "—" : "waiting"}</span></li>`;
   }).join("")}</ol></div>`;
 }

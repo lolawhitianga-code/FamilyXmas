@@ -62,11 +62,11 @@ body.big .case .st{font-size:24px} body.big .case .who{font-size:26px}
     <div class="acts2" id="filter"></div>
     <div id="list"></div>
   </div>
-  <p class="buildstamp">build x35</p>
+  <p class="buildstamp">build x36</p>
 </main>
 <script type="module">
 import { boot, col, heroFromWall, esc, askPin, toast, reportTrauma, needHelp, sosWatch, TRAUMA_SCALE, KRISTY,
-         traumaOff, setTraumaOff, pname, onPeople } from "./app.js";
+         traumaOff, setTraumaOff, pname, onPeople, tapName } from "./app.js";
 if(boot("trauma.html")){
 const $ = id => document.getElementById(id);
 heroFromWall();
@@ -86,7 +86,7 @@ function paint(){
   const tally = {}; rows.forEach(r => tally[r.culprit] = (tally[r.culprit] || 0) + 1);
   const top = Object.entries(tally).sort((a, b) => b[1] - a[1]), max = top.length ? top[0][1] : 1;
   $("board").innerHTML = top.length ? top.map(([id, c], i) => `<div class="r"><span style="width:22px">${["🥇","🥈","🥉"][i] || ""}</span>
-      <span style="min-width:96px">${esc(pname(id))}</span><span class="bar"><i style="width:${c / max * 100}%"></i></span><b>${c}</b></div>`).join("")
+      <span style="min-width:96px">${tapName(id)}</span><span class="bar"><i style="width:${c / max * 100}%"></i></span><b>${c}</b></div>`).join("")
     : `<div class="empty">Nobody accused yet.</div>`;
   if(only && !tally[only]) only = "";
   $("filter").innerHTML = top.length > 1 ? `<button class="chip${only ? "" : " on"}" data-only="">Everyone</button>` +
@@ -95,7 +95,7 @@ function paint(){
   const xs = rows.filter(r => !only || r.culprit === only).sort((a, b) => (a.n || 0) - (b.n || 0));
   $("list").innerHTML = xs.length ? xs.map((r, i) => `<div class="tag red case">
       <div class="no">CASE FILE ${String(i + 1).padStart(3, "0")}</div>
-      <div class="who">The accused: ${esc(pname(r.culprit))}</div>
+      <div class="who">The accused: ${tapName(r.culprit)}</div>
       <div class="st">${esc(r.story)}</div>
       <div class="meta">${r.when ? `<span class="pill">${esc(r.when)}</span>` : ""}<span class="pill gold">${esc(TRAUMA_SCALE[r.sev] || "")}</span>
         <button class="chip" data-del="${r.src}:${r.id}" style="margin-left:auto">${armed === r.src + ":" + r.id ? "Really remove?" : "Remove"}</button></div></div>`).join("")

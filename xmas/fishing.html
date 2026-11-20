@@ -80,13 +80,13 @@
   <h2 class="sec">Tackle shops</h2>
   <div class="card" id="shops"></div>
 
-  <p class="buildstamp">build x35</p>
+  <p class="buildstamp">build x36</p>
 </main>
 <button class="fab" id="add" aria-label="Log a catch">+</button>
 
 <script type="module">
 import { boot, me, col, settings, heroFromWall, households, people, household, person, onPeople, pname, badge, esc,
-         celebrate, toast, openSheet, closeSheet, askPin, compressImage, lightbox, mapsLink, fmtDay, fromIso, todayIso } from "./app.js";
+         celebrate, toast, openSheet, closeSheet, askPin, compressImage, lightbox, mapsLink, fmtDay, fromIso, todayIso, tapName } from "./app.js";
 import { PLACES } from "./places.js";
 
 if(boot("fishing.html")){
@@ -109,17 +109,17 @@ function paint(){
   const big = [...ok].sort((a, b) => b.cm - a.cm)[0];
   $("hero").innerHTML = big ? `<div class="card hero" data-id="${big.id}">${big.photo ? `<img src="${big.photo}" alt="" data-lb="${big.id}">` : ""}
     <div class="in2"><div class="crown">👑 Biggest so far</div><div class="big">${cmTxt(big.cm)}<small> cm</small></div>
-    <div class="sp">${esc(big.species)}${big.released ? " · let go" : ""}</div><div class="who">${badge(big.who)} ${esc(pname(big.who))}${big.where ? " · " + esc(big.where) : ""}</div></div></div>`
+    <div class="sp">${esc(big.species)}${big.released ? " · let go" : ""}</div><div class="who">${badge(big.who)} ${tapName(big.who)}${big.where ? " · " + esc(big.where) : ""}</div></div></div>`
     : `<div class="empty card">Nothing caught yet. Tap + to log the first one.</div>`;
 
   let b = "";
   if(ok.length){
     const bySp = {}; ok.forEach(f => { const k = f.species; if(!bySp[k] || f.cm > bySp[k].cm) bySp[k] = f; });
     const sp = Object.values(bySp).sort((a, b) => b.cm - a.cm);
-    b += `<h2 class="sec">Biggest by species</h2><div class="card">` + sp.map(f => `<div class="lr"><span class="nm"><b>${esc(f.species)}</b><small>${badge(f.who)} ${esc(pname(f.who))}</small></span><span class="v">${cmTxt(f.cm)} cm</span></div>`).join("") + `</div>`;
+    b += `<h2 class="sec">Biggest by species</h2><div class="card">` + sp.map(f => `<div class="lr"><span class="nm"><b>${esc(f.species)}</b><small>${badge(f.who)} ${tapName(f.who)}</small></span><span class="v">${cmTxt(f.cm)} cm</span></div>`).join("") + `</div>`;
     const byP = {}; ok.forEach(f => { byP[f.who] = (byP[f.who] || 0) + 1; });
     const pp = Object.entries(byP).sort((a, b) => b[1] - a[1]).slice(0, 8);
-    b += `<h2 class="sec">Most fish</h2><div class="card">` + pp.map(([id, n], i) => `<div class="lr"><span class="pos">${i === 0 ? "👑" : i + 1}</span><span class="nm">${badge(id)} ${esc(pname(id))}</span><span class="v">${n} fish</span></div>`).join("") + `</div>`;
+    b += `<h2 class="sec">Most fish</h2><div class="card">` + pp.map(([id, n], i) => `<div class="lr"><span class="pos">${i === 0 ? "👑" : i + 1}</span><span class="nm">${badge(id)} ${tapName(id)}</span><span class="v">${n} fish</span></div>`).join("") + `</div>`;
     const byH = {}; ok.forEach(f => { const h = person(f.who).hh; if(h) byH[h] = (byH[h] || 0) + 1; });
     const hh = Object.entries(byH).sort((a, b) => b[1] - a[1]);
     b += `<h2 class="sec">Family tally</h2><div class="card">` + hh.map(([id, n], i) => `<div class="lr"><span class="pos">${i === 0 ? "👑" : i + 1}</span><span class="nm">${badge(id)} ${esc(household(id).name)}</span><span class="v">${n} fish</span></div>`).join("") + `</div>`;
@@ -127,7 +127,7 @@ function paint(){
   $("boards").innerHTML = b;
   $("list").innerHTML = fish.length ? [...fish].sort(newest).map(f => `<div class="tag card-ish cat" data-id="${f.id}">
       ${f.photo ? `<img class="th" src="${f.photo}" alt="" data-lb="${f.id}">` : `<span class="th">🐟</span>`}
-      <div class="tx"><b>${esc(f.species)}</b>${f.released ? ` <span class="pill green">let go</span>` : ""}<small>${badge(f.who)} ${esc(pname(f.who))} · ${f.date ? esc(fmtDay(fromIso(f.date))) : ""}</small>
+      <div class="tx"><b>${esc(f.species)}</b>${f.released ? ` <span class="pill green">let go</span>` : ""}<small>${badge(f.who)} ${tapName(f.who)} · ${f.date ? esc(fmtDay(fromIso(f.date))) : ""}</small>
       ${f.where || f.bait ? `<small>${esc([f.where, f.bait].filter(Boolean).join(" · "))}</small>` : ""}</div><span class="cm">${cmTxt(f.cm)}<small style="font-size:12px"> cm</small></span></div>`).join("")
     : `<div class="empty">Catches show up here.</div>`;
   $("rulesTxt").innerHTML = `<p>${esc((rules && rules.text) || DEFAULT_RULES).replace(/\n/g, "<br>")}</p>`;
