@@ -9,7 +9,7 @@
    ============================================================ */
 import { HOUSEHOLDS as BASE_HH, HH_COLOURS } from "./people.js";
 
-export const BUILD = "x43";
+export const BUILD = "x44";
 
 export const FIREBASE = {
   apiKey: "AIzaSyB1NnJlvpL_dv7aPrAeFGtl5MM1oSa1YPk",
@@ -642,7 +642,7 @@ document.addEventListener("keydown", e => {
 }, true);
 
 /* ============================================================
-   PAGE FURNITURE — nav, pokies, toast, banner, sheets, header
+   PAGE FURNITURE — nav, showcase, toast, banner, sheets, header
    ============================================================ */
 const NAV = [
   ["home.html",    "🏠", "Home"],
@@ -650,9 +650,8 @@ const NAV = [
   ["planner.html", "🗓️", "Plan"],
   ["food.html",    "🍤", "Food"],
   ["fun.html",     "🏆", "Games"],
-  ["photos.html",  "📸", "Photos"],
-  ["#game",        "🎰", "Pokies"]
-];
+  ["photos.html",  "📸", "Photos"]
+];   // the last slot is the showcase — see THE SHOWCASE below
 
 /* ---------- no pokies, thanks ----------
    Some people would rather not see the casino at all. For them nothing pokie-shaped is put on any page:
@@ -673,11 +672,13 @@ export async function setNoPokies(on){
   if(!me) return;
   localStorage.setItem("xmas_nopokies_" + me.id, on ? "1" : "0"); _quiet[me.id] = !!on;
   document.body.classList.toggle("nopokies", !!on);
+  dispatchEvent(new Event("xmas-showcase"));   // if today's showcase is the pokies, swap to the next app for them
   await settings("quiet").save({ [me.id]: !!on });
 }
 settings("quiet").subscribe(q => {
   _quiet = q ? Object.fromEntries(Object.entries(q).filter(([k]) => k !== "id")) : {};
   if(me && me.id in _quiet){ localStorage.setItem("xmas_nopokies_" + me.id, _quiet[me.id] ? "1" : "0"); document.body.classList.toggle("nopokies", !!_quiet[me.id]); }
+  dispatchEvent(new Event("xmas-showcase"));
 });
 
 /* ============================================================
@@ -1285,22 +1286,17 @@ export function boot(page){
   if(quiet && page === "casino.html"){ location.replace("home.html"); return false; }
   {   // one rule hides anything pokie-shaped the moment someone opts out
     const st = document.createElement("style");
-    st.textContent = "body.nopokies .pokiebar, body.nopokies .pokiefloat, body.nopokies .pokienav, body.nopokies [data-casino]{display:none !important}";
+    st.textContent = "body.nopokies .show-casino, body.nopokies [data-casino]{display:none !important}";
     document.head.appendChild(st);
     document.body.classList.toggle("nopokies", quiet);
   }
   const nav = document.createElement("nav"); nav.className = "nav";
-  nav.innerHTML = NAV.filter(([href]) => !(quiet && href === "#game")).map(([href, g, l]) => href === "#game"
-    ? `<a href="casino.html" data-game class="pokienav"><b>${g}</b>${l}</a>`
-    : `<a href="${href}"${href === page ? ' aria-current="page"' : ""}><b>${g}${href === "chat.html" ? '<i class="chatn hide"></i>' : ""}</b>${l}</a>`).join("");
+  nav.innerHTML = NAV.map(([href, g, l]) =>
+    `<a href="${href}"${href === page ? ' aria-current="page"' : ""}><b>${g}${href === "chat.html" ? '<i class="chatn hide"></i>' : ""}</b>${l}</a>`).join("");
   document.body.appendChild(nav);
   watchChat();                             // 💬 unread count on the nav, and a pop-up when someone messages you
-  if(!quiet){ pokiesEverywhere(page); linkCasino(); } else _casinoReady = true;
-  // the floating pokie machine steps aside while a big upload box is on screen
-  setTimeout(() => { const zs = document.querySelectorAll(".dropzone, .pokiebar"); if(!zs.length || !("IntersectionObserver" in window)) return;
-    const seen = new Set(); const io = new IntersectionObserver(es => { es.forEach(e => e.isIntersecting ? seen.add(e.target) : seen.delete(e.target));
-      document.body.classList.toggle("dz-in-view", seen.size > 0); });
-    zs.forEach(z => io.observe(z)); }, 0);
+  startShowcase(page);                     // today's app: strips, floating button and the last nav slot
+  if(!quiet) linkCasino(); else _casinoReady = true;
   promptWatch(page);
   if(page !== "traffic.html") track(page);
   if(page !== "music.html") musicButton();   // no carols over the Spotify player
@@ -1310,15 +1306,91 @@ export function boot(page){
   return true;
 }
 
-function pokieCSS(){
+/* ============================================================
+   THE SHOWCASE — one app gets the big treatment each day: a strip
+   near the top and the bottom of every page, the floating button on
+   the right and the last slot of the nav. It used to always be the
+   pokies. Now it changes by itself every day — the same app for
+   everyone, going by the date at camp (Sydney) — and an organiser can
+   pick one from the home page, for today or until they change it.
+   Saved in settings "showcase": { app, mode:"today"|"keep", day, off:[ids left out of the daily mix] }.
+   ============================================================ */
+const SYMS = ["🎄","🎅","🦐","🍒","7️⃣","🔔","⭐","🎁"];
+const reelStrip = (syms = SYMS) => { const a = [...syms].sort(() => Math.random() - .5); return [...a, ...a].map(x => `<b>${x}</b>`).join(""); };
+
+/* colours for the strip, the floating button and the nav word */
+const SHOW_THEMES = {
+  casino:  { bg:"linear-gradient(100deg,#0E3B2A,#14583C 55%,#7A1E1A)", ring:"#E2A93B", hi:"#FFD166", ink:"#FFE9B0", go:"#E2A93B", goink:"#12303B", gosh:"#9C6C14", fl:"linear-gradient(180deg,#D8352A,#8E1F18)", nav:"#D8352A" },
+  pink:    { bg:"linear-gradient(100deg,#6E2450,#B0447A 55%,#E0789C)", ring:"#FFC2DA", hi:"#FFE0EE", ink:"#FFF0F6", go:"#FFC2DA", goink:"#5A1F40", gosh:"#B9708F", fl:"linear-gradient(180deg,#D9558F,#8E2A5A)", nav:"#C23B78" },
+  sea:     { bg:"linear-gradient(100deg,#0F3B57,#1C6E8C 55%,#2A9D8F)", ring:"#7FD6E8", hi:"#BDEFF7", ink:"#E6FAFF", go:"#7FD6E8", goink:"#0F3B57", gosh:"#3E8FA3", fl:"linear-gradient(180deg,#2A9DB8,#14587A)", nav:"#1C7A99" },
+  festive: { bg:"linear-gradient(100deg,#7A1E1A,#B3261E 55%,#14583C)", ring:"#F4D58D", hi:"#FFE9A8", ink:"#FFF4DA", go:"#F4D58D", goink:"#5A1712", gosh:"#B08A3A", fl:"linear-gradient(180deg,#14803F,#0E4A2A)", nav:"#B3261E" },
+  gold:    { bg:"linear-gradient(100deg,#4A3510,#8A6418 55%,#C99A2E)", ring:"#FFE08A", hi:"#FFEDB3", ink:"#FFF7DE", go:"#FFE08A", goink:"#4A3510", gosh:"#B38F2E", fl:"linear-gradient(180deg,#D9A62E,#8A6418)", nav:"#A87A14" },
+  tunes:   { bg:"linear-gradient(100deg,#0F2E1C,#146C3A 55%,#1DB954)", ring:"#B8F5CF", hi:"#D6FAE3", ink:"#F0FFF5", go:"#B8F5CF", goink:"#0F2E1C", gosh:"#5FAF7E", fl:"linear-gradient(180deg,#1DB954,#0F6B32)", nav:"#178A43" },
+  siren:   { bg:"linear-gradient(100deg,#2B1A4A,#5A1E6E 55%,#B3261E)", ring:"#FF9C8F", hi:"#FFC9C1", ink:"#FFF0EE", go:"#FF9C8F", goink:"#3A1020", gosh:"#B5584C", fl:"linear-gradient(180deg,#3D5AFE,#B3261E)", nav:"#B3261E" }
+};
+
+/** Every app that can be showcased, in the order the daily mix goes through them.
+ *  (Home, Chat, Plan, Food, Games and Photos already have their own nav buttons, so they're not on the list.) */
+export const SHOWCASE = [
+  { id:"pokies", page:"casino.html", icon:"🎰", nav:"Pokies", lbl:"POKIES", name:"The casino", tag:"Pokies, cards and a bit of fun.", go:"Spin →", theme:"casino", syms:SYMS,
+    leads:["🎰 Pokie break", "🎰 Feeling lucky?", "🎰 One more spin", "🎰 Santa's little flutter", "🎰 While the prawns thaw"] },
+  { id:"babies", page:"babies.html", icon:"👶", nav:"Baby?", lbl:"BABY?", name:"Guess the Baby", tag:"Kay's comp — who grew up to be this lot?", go:"Guess →", theme:"pink",
+    syms:["👶","🍼","🧸","🎀","🐣","🧷","🎈","🍭"], leads:["👶 Who's that baby?", "👶 Kay's comp", "🍼 Spot the family", "🧸 Get your guess in"] },
+  { id:"sally", page:"where.html", icon:"🔎", nav:"Sally?", lbl:"SALLY?", name:"Where's Sally?", tag:"Who's where, and where everyone's checked in.", go:"Find her →", theme:"sea", pic:"sally.jpg",
+    syms:["🔎","📍","🗺️","👀","🏖️","🚗","⛺","❓"], leads:["🔎 Where's Sally?", "📍 Who's where", "👀 Spot the family", "🗺️ Check in"] },
+  { id:"santa", page:"santa.html", icon:"🎁", nav:"Santa", lbl:"SANTA", name:"Secret Santa", tag:"Steal & grab style — who'll end up with what?", go:"Open →", theme:"festive",
+    syms:["🎁","🎅","🎄","🦌","⭐","🔔","🍪","❄️"], leads:["🎁 Secret Santa", "🎅 Steal or keep?", "🎄 Santa's sack", "🎁 What's in the box?"] },
+  { id:"fishing", page:"fishing.html", icon:"🎣", nav:"Fishing", lbl:"FISH", name:"Fishing comp", tag:"Biggest catch of the week — get your photo in.", go:"Cast →", theme:"sea",
+    syms:["🎣","🐟","🐠","🦈","🦀","🌊","🪝","🐙"], leads:["🎣 Fishing comp", "🐟 Biggest catch?", "🌊 Gone fishing", "🦀 What's biting?"] },
+  { id:"tunes", page:"music.html", icon:"🎵", nav:"Tunes", lbl:"TUNES", name:"Camp tunes", tag:"One big playlist — add your songs for the week.", go:"Play →", theme:"tunes",
+    syms:["🎵","🎶","🎸","🎤","🥁","🎹","🎧","📻"], leads:["🎵 Camp tunes", "🎶 Add a song", "🎧 What's playing?", "🎤 Request one"] },
+  { id:"trauma", page:"trauma.html", icon:"🚨", nav:"Trauma", lbl:"REPORT", name:"Report-a-trauma", tag:"Strictly confidential — sealed until the big reveal.", go:"Report →", theme:"siren",
+    syms:["🚨","🤐","📝","🙈","😱","🔒","👀","📣"], leads:["🚨 Report-a-trauma", "🤐 Get it off your chest", "📝 Strictly confidential", "🙈 Who did what?"] },
+  { id:"awards", page:"awards.html", icon:"🏅", nav:"Awards", lbl:"AWARDS", name:"Daily awards", tag:"Nominations are open — who deserved it today?", go:"Vote →", theme:"gold",
+    syms:["🏅","🏆","🥇","🎖️","👏","⭐","🎉","👑"], leads:["🏅 Daily awards", "🏆 Who deserved it?", "👑 Nominate someone", "🎉 Today's winners"] },
+  { id:"stars", page:"stars.html", icon:"⭐", nav:"Stars", lbl:"STARS", name:"Gold stars", tag:"Who's winning? Hand out a gold star.", go:"See →", theme:"gold",
+    syms:["⭐","🌟","✨","🏆","👏","💫","🥇","🎉"], leads:["⭐ Gold stars", "🌟 Who's winning?", "✨ Give a star", "🏆 The ladder"] },
+  { id:"comps", page:"games.html", icon:"🏆", nav:"Comps", lbl:"COMPS", name:"Tournaments", tag:"Bragging rights — draws, scores and who's through.", go:"Play →", theme:"festive",
+    syms:["🏆","🏓","🎯","🃏","🏏","🎲","⚽","🥇"], leads:["🏆 Tournaments", "🎯 Bragging rights", "🏓 Who's up next?", "🎲 Game on"] },
+  { id:"outings", page:"places.html", icon:"🏖️", nav:"Outings", lbl:"OUT", name:"Things to do", tag:"Around Bateau Bay — beaches, walks and day trips.", go:"Go →", theme:"sea",
+    syms:["🏖️","🌊","🥾","🍦","🐨","☀️","🚤","🏄"], leads:["🏖️ Things to do", "🌊 Day out?", "🍦 Around the bay", "🥾 Go for a walk"] }
+];
+export const showcaseApp = id => SHOWCASE.find(a => a.id === id) || null;
+
+/* the date at camp, so everyone (Sydney or back in NZ) gets the same app on the same day */
+export function campDay(at = new Date()){
+  try{ return new Intl.DateTimeFormat("en-CA", { timeZone:"Australia/Sydney", year:"numeric", month:"2-digit", day:"2-digit" }).format(at); }
+  catch(e){ return isoDate(at); }
+}
+let _show = (() => { try{ return JSON.parse(localStorage.getItem("xmas_showcase") || "null") || {}; }catch(e){ return {}; } })();
+/** The saved showcase settings: { app, mode, day, off } */
+export const showcaseSettings = () => ({ app:"", mode:"", day:"", off:[], ..._show });
+export const saveShowcase = v => settings("showcase").save(v);
+
+/** Can this person be shown this app? (no pokies for those who've asked; no trauma pop-ins for those who've turned it off) */
+const canSee = a => a.id === "pokies" ? !noPokies() : a.id === "trauma" ? !traumaOff() : true;
+
+/** The app showcased on a day ("YYYY-MM-DD", default today at camp). everyone=true ignores this person's own opt-outs.
+ *  Returns { ...app, why:"organiser"|"mix" } */
+export function showcaseOn(day = campDay(), everyone = false){
+  const ok = a => everyone || canSee(a), s = showcaseSettings();
+  const pinned = s.app && (s.mode === "keep" || s.day === day) ? showcaseApp(s.app) : null;
+  if(pinned && ok(pinned)) return { ...pinned, why:"organiser" };
+  let pool = SHOWCASE.filter(a => !(s.off || []).includes(a.id)); if(!pool.length) pool = SHOWCASE;
+  const [y, m, d] = day.split("-").map(Number), n = Math.round((Date.UTC(y, m - 1, d) - Date.UTC(2026, 0, 1)) / 864e5);
+  for(let k = 0; k < pool.length; k++){ const a = pool[(((n + k) % pool.length) + pool.length) % pool.length]; if(ok(a)) return { ...a, why:"mix" }; }
+  const any = SHOWCASE.find(ok); return any ? { ...any, why:"mix" } : null;
+}
+
+function showCSS(){
   if(document.getElementById("xmas-pokie-css")) return;
   const st = document.createElement("style"); st.id = "xmas-pokie-css";
   st.textContent = `
-.pokiebar{display:flex;align-items:center;gap:12px;text-decoration:none;color:#FFE9B0;position:relative;overflow:hidden;
- background:linear-gradient(100deg,#0E3B2A,#14583C 55%,#7A1E1A);border-radius:16px;padding:12px 14px;margin:0 0 16px;
- box-shadow:0 0 0 2px #E2A93B, 0 10px 26px -12px rgba(60,10,60,.7)}
+.pokiebar{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--sb-ink,#FFE9B0);position:relative;overflow:hidden;
+ background:var(--sb-bg,linear-gradient(100deg,#0E3B2A,#14583C 55%,#7A1E1A));border-radius:16px;padding:12px 14px;margin:0 0 16px;
+ box-shadow:0 0 0 2px var(--sb-ring,#E2A93B), 0 10px 26px -12px rgba(60,10,60,.7)}
 .pokiebar::before{content:'';position:absolute;inset:3px;border-radius:13px;pointer-events:none;
- background:radial-gradient(circle,#FFD166 1.6px,transparent 2.2px) 0 0/14px 14px;opacity:.55;
+ background:radial-gradient(circle,var(--sb-hi,#FFD166) 1.6px,transparent 2.2px) 0 0/14px 14px;opacity:.55;
  -webkit-mask:linear-gradient(#000 0 0) top/100% 4px no-repeat,linear-gradient(#000 0 0) bottom/100% 4px no-repeat;
          mask:linear-gradient(#000 0 0) top/100% 4px no-repeat,linear-gradient(#000 0 0) bottom/100% 4px no-repeat;
  animation:xmas-bulbs 1s steps(2) infinite}
@@ -1328,63 +1400,115 @@ function pokieCSS(){
 .pokiebar .reel span{display:flex;flex-direction:column;font-size:19px;line-height:30px;text-align:center;animation:xmas-spin var(--d,1.4s) cubic-bezier(.5,0,.5,1) infinite}
 @keyframes xmas-spin{0%{transform:translateY(0)}100%{transform:translateY(-240px)}}
 .pokiebar .tx{flex:1;min-width:0}
-.pokiebar .tx small{display:block;font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:#FFD166;opacity:.85}
+.pokiebar .tx small{display:block;font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--sb-hi,#FFD166);opacity:.85}
 .pokiebar .tx b{display:block;font-family:'Fraunces',serif;font-weight:900;font-size:17px;line-height:1.15;color:#fff;margin-top:2px}
 .pokiebar .tx em{display:block;font-style:normal;font-size:12.5px;opacity:.8;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pokiebar .go{flex:none;background:#E2A93B;color:#12303B;font-weight:700;border-radius:999px;padding:8px 13px;font-size:13px;box-shadow:0 3px 0 #9C6C14}
+.pokiebar .go{flex:none;background:var(--sb-go,#E2A93B);color:var(--sb-goink,#12303B);font-weight:700;border-radius:999px;padding:8px 13px;font-size:13px;box-shadow:0 3px 0 var(--sb-gosh,#9C6C14)}
 .pokiefloat{position:fixed;right:17px;bottom:calc(158px + env(safe-area-inset-bottom));z-index:44;width:54px;height:60px;border:0;padding:0;
- border-radius:14px 14px 10px 10px;background:linear-gradient(180deg,#D8352A,#8E1F18);box-shadow:0 0 0 2px #E2A93B,0 10px 22px -8px rgba(80,20,10,.75);
+ border-radius:14px 14px 10px 10px;background:var(--sb-fl,linear-gradient(180deg,#D8352A,#8E1F18));box-shadow:0 0 0 2px var(--sb-ring,#E2A93B),0 10px 22px -8px rgba(80,20,10,.75);
  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;animation:xmas-wobble 6s ease-in-out infinite}
-.pokiefloat::after{content:'';position:absolute;left:-7px;top:12px;width:5px;height:24px;border-radius:3px;background:#3E5A63;box-shadow:0 -6px 0 3px #E2A93B}
+.pokiefloat.lever::after{content:'';position:absolute;left:-7px;top:12px;width:5px;height:24px;border-radius:3px;background:#3E5A63;box-shadow:0 -6px 0 3px #E2A93B}
 .pokiefloat .win{display:flex;gap:2px;background:#0E0818;border-radius:6px;padding:3px}
 .pokiefloat .win i{width:13px;height:18px;overflow:hidden;background:#FFF8E6;border-radius:3px;font-style:normal}
 .pokiefloat .win i span{display:flex;flex-direction:column;font-size:11px;line-height:18px;text-align:center;animation:xmas-spin2 var(--d,1s) linear infinite}
+.pokiefloat .pic{width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid #fff;display:block}
 @keyframes xmas-spin2{100%{transform:translateY(-144px)}}
-.pokiefloat .lbl{font-family:'DM Mono',monospace;font-size:8.5px;letter-spacing:.14em;color:#FFE9B0;font-weight:500}
+.pokiefloat .lbl{font-family:'DM Mono',monospace;font-size:8.5px;letter-spacing:.14em;color:var(--sb-ink,#FFE9B0);font-weight:500}
 @keyframes xmas-wobble{0%,90%,100%{transform:rotate(0)}92%{transform:rotate(-6deg)}94%{transform:rotate(5deg)}96%{transform:rotate(-3deg)}}
-.nav .pokienav{color:#D8352A;font-weight:600}
+.nav .pokienav{color:var(--sb-nav,#D8352A);font-weight:600}
 .nav .pokienav b{animation:xmas-wobble 4s ease-in-out infinite}
 @media (prefers-reduced-motion:reduce){.pokiebar .reel span,.pokiefloat .win i span,.pokiefloat,.nav .pokienav b,.pokiebar::before{animation:none !important}}`;
   document.head.appendChild(st);
 }
-const SYMS = ["🎄","🎅","🦐","🍒","7️⃣","🔔","⭐","🎁"];
-const reelStrip = () => { const a = [...SYMS].sort(() => Math.random() - .5); return [...a, ...a].map(x => `<b>${x}</b>`).join(""); };
+const themeVars = a => Object.entries(SHOW_THEMES[a.theme] || SHOW_THEMES.casino).map(([k, v]) => `--sb-${k}:${v}`).join(";");
+const reels = (a, open, close, d0, dd) => [0,1,2].map(i => `${open}<span style="--d:${d0 + i*dd}s">${reelStrip(a.syms)}</span>${close}`).join("");
 
-function pokieBar(lead, game){
-  /* the bar names a game, so tapping it must open THAT game (it used to pick a fresh random one on the tap) */
-  const g = game || randomGame(true);
-  const a = document.createElement("a");
-  a.className = "pokiebar"; a.href = gameUrl(g); a.dataset.file = g.file;
-  a.addEventListener("click", () => { a.href = gameUrl(g); }, true);
-  a.innerHTML = `<span class="reels">${[0,1,2].map(i => `<span class="reel"><span style="--d:${1.1 + i*.35}s">${reelStrip()}</span></span>`).join("")}</span>
-    <span class="tx"><small>${esc(lead)}</small><b>${esc(g.name)}</b><em>${esc(g.tag)}</em></span><span class="go">Spin →</span>`;
-  return a;
+/** One strip. For the pokies it names a game and opens THAT game; for any other app it opens the app's page. */
+function showBar(a, lead, game){
+  const el = document.createElement("a");
+  el.className = "pokiebar showbit" + (a.id === "pokies" ? " show-casino" : ""); el.style.cssText = themeVars(a);
+  let name = a.name, tag = a.tag, go = a.go;
+  if(a.id === "pokies"){
+    const g = game || randomGame(true);
+    el.href = gameUrl(g); el.dataset.file = g.file; name = g.name; tag = g.tag;
+    el.addEventListener("click", () => { el.href = gameUrl(g); }, true);
+  } else el.href = a.page;
+  el.innerHTML = `<span class="reels">${reels(a, '<span class="reel">', '</span>', 1.1, .35)}</span>
+    <span class="tx"><small>${esc(lead)}</small><b>${esc(name)}</b><em>${esc(tag)}</em></span><span class="go">${esc(go)}</span>`;
+  return el;
 }
 
-function pokiesEverywhere(page){
-  pokieCSS();
+let _showPage = null, _shown = null, _dzSeen = new Set(), _dzIO = null;
+/* the floating button steps aside while a big upload box (or one of the strips) is on screen */
+function watchDropzones(){
+  if(!("IntersectionObserver" in window)) return;
+  _dzSeen.forEach(el => { if(!el.isConnected) _dzSeen.delete(el); });
+  if(!_dzIO) _dzIO = new IntersectionObserver(es => { es.forEach(e => e.isIntersecting ? _dzSeen.add(e.target) : _dzSeen.delete(e.target));
+    document.body.classList.toggle("dz-in-view", _dzSeen.size > 0); });
+  document.querySelectorAll(".dropzone, .pokiebar").forEach(z => { if(!z._dzWatched){ z._dzWatched = true; _dzIO.observe(z); } });
+  document.body.classList.toggle("dz-in-view", _dzSeen.size > 0);
+}
+
+/** Put today's showcase on the page (or swap it if the pick has changed). */
+function paintShowcase(force = false){
+  const page = _showPage; if(!page) return;
+  const a = showcaseOn();
+  if(!force && _shown && a && _shown.id === a.id) return;
+  _shown = a;
+  document.querySelectorAll(".showbit").forEach(el => el.remove());
+  const nav = document.querySelector("nav.nav");
+  if(!a){ watchDropzones(); return; }
+  showCSS();
+  const own = page === a.page;
+  // the nav slot
+  if(nav){
+    const n = document.createElement("a");
+    n.className = "pokienav showbit" + (a.id === "pokies" ? " show-casino" : ""); n.href = a.page; n.style.cssText = themeVars(a);
+    if(a.id === "pokies") n.dataset.game = "";
+    if(own) n.setAttribute("aria-current", "page");
+    n.innerHTML = `<b>${a.icon}</b>${esc(a.nav)}`;
+    nav.appendChild(n);
+  }
   const main = document.querySelector("main");
-  if(main && page !== "casino.html"){
-    const leads = ["🎰 Pokie break", "🎰 Feeling lucky?", "🎰 One more spin", "🎰 Santa's little flutter", "🎰 While the prawns thaw"];
-    const pick = () => leads[Math.floor(Math.random() * leads.length)];
-    // the family machine up top; a lucky dip at the bottom
-    const top = pokieBar("🎰 The family machine", LUCKY_LAUREN), first = main.firstElementChild;
+  if(main && !own){
+    const pick = () => a.leads[Math.floor(Math.random() * a.leads.length)];
+    // the headline strip up top (for the pokies: the family machine); a second one at the bottom
+    const top = a.id === "pokies" ? showBar(a, "🎰 The family machine", LUCKY_LAUREN) : showBar(a, `${a.icon} Today's pick`), first = main.firstElementChild;
     // things marked keep-top (Kay's upload box) stay above the strip
     let after = null; for(const el of main.children){ if(el.classList.contains("keep-top")) after = el; else break; }
     if(after) after.after(top);
     else if(first && parseFloat(getComputedStyle(first).marginTop) < 0) first.after(top); else main.prepend(top);
-    const stamp = main.querySelector(".buildstamp"), low = pokieBar(pick());
+    const stamp = main.querySelector(".buildstamp"), low = showBar(a, pick());
     if(stamp) main.insertBefore(low, stamp); else main.appendChild(low);
   }
-  const f = document.createElement("a");
-  f.className = "pokiefloat"; f.href = "casino.html"; f.dataset.game = ""; f.setAttribute("aria-label", "Play a random casino game");
-  f.innerHTML = `<span class="win">${[0,1,2].map(i => `<i><span style="--d:${.7 + i*.25}s">${reelStrip()}</span></i>`).join("")}</span><span class="lbl">POKIES</span>`;
-  document.body.appendChild(f);
-  // every [data-game] link picks a fresh random game at the moment you tap it
+  // the floating button — the pokie machine stays on the casino page (it spins up a random game); other apps leave it off their own page
+  if(!own || a.id === "pokies"){
+    const f = document.createElement("a");
+    f.className = "pokiefloat showbit" + (a.id === "pokies" ? " show-casino lever" : ""); f.href = a.page; f.style.cssText = themeVars(a);
+    if(a.id === "pokies"){ f.dataset.game = ""; f.setAttribute("aria-label", "Play a random casino game"); }
+    else f.setAttribute("aria-label", "Open " + a.name);
+    f.innerHTML = (a.pic ? `<img class="pic" src="${a.pic}" alt="">` : `<span class="win">${reels(a, "<i>", "</i>", .7, .25)}</span>`) + `<span class="lbl">${esc(a.lbl)}</span>`;
+    document.body.appendChild(f);
+  }
+  watchDropzones();
+}
+
+function startShowcase(page){
+  _showPage = page;
+  paintShowcase(true);
+  // every [data-game] link picks a fresh random pokie machine at the moment you tap it
   document.addEventListener("click", e => {
     const a = e.target.closest("[data-game]"); if(!a) return;
-    a.href = randomGame(true).url;   // the 🎰 POKIES buttons go to a pokie machine, not cards
+    a.href = randomGame(true).url;
   }, true);
+  settings("showcase").subscribe(s => {
+    _show = s ? Object.fromEntries(Object.entries(s).filter(([k]) => k !== "id")) : {};
+    try{ localStorage.setItem("xmas_showcase", JSON.stringify(_show)); }catch(e){}
+    paintShowcase();
+  });
+  // someone hides the pokies or the trauma bits for themselves, or the day ticks over while the page is open
+  ["xmas-showcase", "xmas-traumaoff"].forEach(ev => addEventListener(ev, () => paintShowcase()));
+  document.addEventListener("visibilitychange", () => { if(!document.hidden) paintShowcase(); });
 }
 
 let _toastT = null;

@@ -54,6 +54,14 @@
 .ladder .nm{flex:1;min-width:0;font-weight:500;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ladder .pts{font-family:'DM Mono',monospace;font-size:13px}
 
+.scpick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.scpick button{display:flex;align-items:center;gap:7px;text-align:left;font:inherit;font-size:13.5px;padding:9px 10px;border-radius:11px;
+  border:1.5px solid var(--line);background:#fff;color:var(--ink);cursor:pointer}
+.scpick button b{font-size:18px;font-weight:400}
+.scpick button.on{border-color:var(--red);background:#FFF3F0;font-weight:600}
+.scpick.mix button.out{opacity:.45;text-decoration:line-through}
+.sclen{display:flex;gap:6px;flex-wrap:wrap}
+.scnext{font-size:13px;line-height:1.6}
 .tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
 .tiles a{background:#fff;border:1px solid var(--line);border-radius:15px;padding:13px 6px 11px;text-align:center;text-decoration:none;
   box-shadow:0 1px 0 rgba(18,48,59,.06);transition:transform .12s ease}
@@ -149,15 +157,17 @@ body.mine #full, body.mine .pokiebar, body.mine .pokiefloat, body.mine #quiet{di
     <button class="chip" id="homeScreen">📲 Add to home screen</button>
     <button class="chip" id="share">📤 Share the link</button>
     <a class="chip" href="traffic.html">📈 Who's been on (organisers)</a>
+    <button class="chip" id="showPick">✨ Today's showcase (organisers)</button>
   </div>
 
-  <p class="buildstamp">build x43</p>
+  <p class="buildstamp">build x44</p>
 </main>
 
 <script type="module">
 import { boot, me, SLOTS, col, watchTrip, heroFromWall, tripDayToday, dayDate, fmtLong, isoDate, todayIso, XMAS_DAY,
          households, people, household, onPeople, hereOn, pname, esc, isMuted, setMuted, badge, noPokies, noPokiesFixed, setNoPokies, toast, settings, aud, fmtDay, fromIso, installCard, addToHomeScreen, onHomeScreen, isKay, addBabyPhotos, sosWatch,
-         onChat, chatRows, chatUnreadAll, dmOther, CHAT_ALL } from "./app.js";
+         onChat, chatRows, chatUnreadAll, dmOther, CHAT_ALL,
+         SHOWCASE, showcaseApp, showcaseOn, showcaseSettings, saveShowcase, campDay, askPin, openSheet, closeSheet } from "./app.js";
 
 if(boot("home.html")){
 const $ = id => document.getElementById(id);
@@ -371,6 +381,47 @@ $("share").addEventListener("click", async () => {
 const paintMute = () => $("mute").textContent = isMuted() ? "🔇 Music & sound off" : "🎵 Music & sound on";
 paintMute();
 $("mute").addEventListener("click", () => { setMuted(!isMuted()); paintMute(); });
+
+/* ✨ the showcase — which app gets the strips, the floating button and the nav slot.
+   It changes by itself every day; an organiser can pick one here, for today or until they change it,
+   and choose which apps are in the daily mix. */
+$("showPick").addEventListener("click", async () => {
+  if(!(await askPin("Picking the showcase is for the organisers."))) return;
+  const today = campDay(), s = showcaseSettings(), now = showcaseOn(today, true);
+  let pick = now ? now.id : SHOWCASE[0].id, keep = s.mode === "keep" && !!s.app, off = new Set(s.off || []);
+  const nextDays = () => { const d0 = fromIso(today); return [1,2,3,4,5,6].map(k => { const d = new Date(d0); d.setDate(d.getDate() + k);
+    const a = showcaseOn(isoDate(d), true); return a ? `${fmtDay(d)} ${a.icon}` : ""; }).join(" · "); };
+  const sh = openSheet(`<h3>Today's showcase</h3>
+    <p class="muted small" style="margin:0">${now ? `Today it's <b>${now.icon} ${esc(now.name)}</b> — ${now.why === "organiser" ? (s.mode === "keep" ? "picked by an organiser, until changed" : "picked by an organiser for today") : "picked by the daily mix"}.` : ""}
+      It shows on every page: the strips, the floating button and the end of the bottom bar.</p>
+    <label class="f">Show this app</label>
+    <div class="scpick" id="scApps">${SHOWCASE.map(a => `<button data-id="${a.id}"><b>${a.icon}</b>${esc(a.name)}</button>`).join("")}</div>
+    <label class="f">For how long</label>
+    <div class="sclen"><button class="chip" id="scToday">Just today</button><button class="chip" id="scKeep">Until I change it</button></div>
+    <div class="acts"><button class="btn ghost" id="scAuto">Back to the daily mix</button><button class="btn red" id="scGo">Show it</button></div>
+    <label class="f" style="margin-top:18px">In the daily mix (tap to leave one out)</label>
+    <div class="scpick mix" id="scMix">${SHOWCASE.map(a => `<button data-id="${a.id}"><b>${a.icon}</b>${esc(a.name)}</button>`).join("")}</div>
+    <div class="acts"><button class="btn ghost" id="scMixSave">Save the mix</button></div>
+    <p class="muted small scnext" id="scNext"></p>`);
+  const el = sh.el, q = sel => el.querySelector(sel);
+  const paint = () => {
+    el.querySelectorAll("#scApps button").forEach(b => b.classList.toggle("on", b.dataset.id === pick));
+    el.querySelectorAll("#scMix button").forEach(b => b.classList.toggle("out", off.has(b.dataset.id)));
+    q("#scToday").classList.toggle("on", !keep); q("#scKeep").classList.toggle("on", keep);
+    q("#scNext").textContent = "Coming up: " + nextDays();
+  };
+  paint();
+  q("#scApps").addEventListener("click", e => { const b = e.target.closest("button"); if(b){ pick = b.dataset.id; paint(); } });
+  q("#scMix").addEventListener("click", e => { const b = e.target.closest("button"); if(!b) return;
+    const id = b.dataset.id; if(off.has(id)) off.delete(id); else if(off.size < SHOWCASE.length - 1) off.add(id); else toast("Leave at least one in the mix"); paint(); });
+  q("#scToday").onclick = () => { keep = false; paint(); };
+  q("#scKeep").onclick = () => { keep = true; paint(); };
+  const save = async (v, msg) => { try{ await saveShowcase({ ...v, by: me.id, at: Date.now() }); closeSheet(); toast(msg); }catch(e){ toast("Couldn't save — " + e.message); } };
+  q("#scGo").onclick = () => { const a = showcaseApp(pick);
+    save({ app: pick, mode: keep ? "keep" : "today", day: today }, `${a.icon} ${a.name} is on show ${keep ? "until you change it" : "today"}`); };
+  q("#scAuto").onclick = () => save({ app: "", mode: "", day: "" }, "Back to the daily mix");
+  q("#scMixSave").onclick = () => save({ off: [...off] }, "Daily mix saved");
+});
 
 /* your own switch for the casino bits — not shown to anyone who's on the built-in "none for me" list */
 if(!noPokiesFixed()){
