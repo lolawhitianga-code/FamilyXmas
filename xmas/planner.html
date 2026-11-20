@@ -59,7 +59,7 @@
   </div>
   <div id="days"><div class="empty">Loading…</div></div>
   <button class="fab" id="add" aria-label="Add">+</button>
-  <p class="buildstamp">build x34</p>
+  <p class="buildstamp">build x35</p>
 </main>
 <script type="module">
 import { boot, me, col, watchTrip, heroFromWall, tripDays, tripDayToday, fmtDay, todayIso, XMAS_DAY, SLOTS, households, household, onPeople,
@@ -182,8 +182,9 @@ $("itinGo").onclick = async () => {
     const row = rows.find(r => r.id === x.id);
     if(upgrade && x.was){
       if(!row) return;                                                   // someone deleted it — leave it gone
-      if(Object.keys(x.was).every(k => (row[k] || "") === x.was[k])){ await col(name).update(x.id, patch); changed++; }
-      else if(!Object.keys(x.was).every(k => (row[k] || "") === (patch[k] || ""))) kept++;   // already up to date doesn't count
+      const olds = [].concat(x.was);                                     // one earlier wording, or a list of them
+      if(olds.some(w => Object.keys(w).every(k => (row[k] || "") === w[k]))){ await col(name).update(x.id, patch); changed++; }
+      else if(!Object.keys(olds[0]).every(k => (row[k] || "") === (patch[k] || ""))) kept++;   // already up to date doesn't count
       return;
     }
     if(!row){ await col(name).set(x.id, makeNew); added++; }

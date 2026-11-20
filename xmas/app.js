@@ -9,7 +9,7 @@
    ============================================================ */
 import { HOUSEHOLDS as BASE_HH, HH_COLOURS } from "./people.js";
 
-export const BUILD = "x34";
+export const BUILD = "x35";
 
 export const FIREBASE = {
   apiKey: "AIzaSyB1NnJlvpL_dv7aPrAeFGtl5MM1oSa1YPk",
@@ -236,7 +236,7 @@ export const saveHousehold = (hhId, v) => settings("roster").save({ [hhId]: { ..
 
 /* ============================================================
    ORGANISER PIN — for the few things only an organiser should do
-   (starting the Steal & Grab, clearing a comp). Default 2512.
+   (starting the Secret Santa, clearing a comp). Default 2512.
    ============================================================ */
 let _pin = "2512";
 settings("admin").subscribe(a => { if(a && a.pin) _pin = String(a.pin); });
@@ -266,7 +266,7 @@ export const setPin = pin => settings("admin").save({ pin:String(pin) });
 export const STAR = {
   alldone:  [50, "That's the lot",       "nothing left on the list"],
   champion: [30, "Tournament winner",    "bragging rights secured"],
-  santa:    [20, "In the steal & grab",  "wrap it well"],
+  santa:    [20, "In the Secret Santa",  "wrap it well"],
   cook:     [20, "On the roster",        "the family thanks you"],
   catch:    [20, "Fish on the board",    "that's a keeper"],
   host:     [15, "Happy hour hosted",    "cheers"],

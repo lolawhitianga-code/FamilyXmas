@@ -147,7 +147,7 @@ body.mine #full, body.mine .pokiebar, body.mine .pokiefloat, body.mine #quiet{di
     <a class="chip" href="traffic.html">📈 Who's been on (organisers)</a>
   </div>
 
-  <p class="buildstamp">build x34</p>
+  <p class="buildstamp">build x35</p>
 </main>
 
 <script type="module">
@@ -308,7 +308,7 @@ function paintMine(){
   if(santa){ const inn = santa.in && santa.in[me.id];
     const sg = santa.state === "playing" ? "on" : santa.state === "done" ? "done" : "open";
     const got = sg === "done" && Array.isArray(santa.gifts) && santa.gifts.find(g => g.holder === me.id);
-    famRows.push({ g:"🎁", text: sg === "on" ? "Steal & Grab is on now" : sg === "done" ? "Steal & Grab: that's a wrap" : (inn ? "Steal & Grab: you're in — bring a wrapped gift" : "Steal & Grab: you haven't joined yet"),
+    famRows.push({ g:"🎁", text: sg === "on" ? "Secret Santa is on now" : sg === "done" ? "Secret Santa: that's a wrap" : (inn ? "Secret Santa: you're in — bring a wrapped gift" : "Secret Santa: you haven't joined yet"),
       sub: sg === "on" ? "Tap to watch live" : sg === "done" ? (got ? "You took home: " + (got.what || "a mystery gift") : "See who got what") : "Funny, homemade or free — just wrap it", href:"santa.html" }); }
   const myStars = (scores.find(s => s.id === me.id) || {}).total || 0;
   if(myStars) famRows.push({ g:"⭐", text: `${myStars} gold stars`, sub:"", href:"stars.html" });

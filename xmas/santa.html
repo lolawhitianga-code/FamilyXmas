@@ -12,7 +12,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
-<title>Steal &amp; Grab · Christmas at Bateau Bay</title>
+<title>Secret Santa · Christmas at Bateau Bay</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -71,14 +71,14 @@
 <body>
 <header class="top">
   <a class="back" href="home.html">← Home</a>
-  <p class="eyebrow">Secret Santa, family style</p>
-  <h1 class="wordmark">Steal &amp; Grab</h1>
+  <p class="eyebrow">Steal &amp; grab style</p>
+  <h1 class="wordmark">Secret Santa</h1>
   <p class="sub" id="sub">&nbsp;</p>
 </header>
 
 <main>
   <div id="app"><div class="empty">Loading…</div></div>
-  <p class="buildstamp">build x34</p>
+  <p class="buildstamp">build x35</p>
 </main>
 
 <script type="module">
@@ -86,7 +86,7 @@ import { boot, me, settings, celebrate, jingle, toast, openSheet, closeSheet, as
          people, households, household, person, pname, badge, onPeople, heroFromWall } from "./app.js";
 
 /* ============================================================
-   STEAL & GRAB — everyone brings one wrapped gift that isn't for
+   SECRET SANTA (steal & grab) — everyone brings one wrapped gift that isn't for
    anyone in particular. The app draws the order and keeps score
    on the day: who has what, how many times each gift has been
    stolen, and whose turn it is. Everything lives in the one
@@ -268,7 +268,7 @@ function skip(){
 /* ---------- rules ---------- */
 async function editRules(){
   if(!(await askPin("Only organisers change the rules."))) return;
-  const sh = openSheet(`<h3>Steal &amp; Grab rules</h3>
+  const sh = openSheet(`<h3>Secret Santa rules</h3>
     <label class="f" for="b">Spend (if you buy something)</label><input class="in" id="b" value="${esc(S.budget)}">
     <label class="f" for="w">When do we play?</label><input class="in" id="w" value="${esc(S.swapWhen)}">
     <label class="f" for="m">A gift locks after this many steals</label><input class="in" id="m" type="number" min="1" max="9" inputmode="numeric" value="${esc(S.maxSteals || 3)}">
