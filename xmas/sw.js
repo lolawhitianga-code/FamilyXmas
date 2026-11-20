@@ -6,7 +6,7 @@ const CACHE = "xmas-x32";
 const SHELL = [
   "./", "./index.html", "./home.html", "./crew.html", "./planner.html", "./places.html", "./food.html", "./shopping.html",
   "./santa.html", "./awards.html", "./stars.html", "./games.html", "./fishing.html", "./signup.html", "./money.html",
-  "./photos.html", "./casino.html", "./help.html", "./kristy.html", "./babies.html", "./where.html", "./traffic.html", "./app.js", "./app.css", "./people.js", "./places.js", "./itinerary.js", "./manifest.json",
+  "./photos.html", "./casino.html", "./help.html", "./kristy.html", "./trauma.html", "./babies.html", "./where.html", "./traffic.html", "./app.js", "./app.css", "./people.js", "./places.js", "./itinerary.js", "./manifest.json",
   "./icon-192.png", "./icon-512.png", "./logo-clear.webp"
 ];
 

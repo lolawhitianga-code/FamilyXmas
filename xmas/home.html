@@ -94,6 +94,7 @@ body.mine #full, body.mine .pokiebar, body.mine .pokiefloat, body.mine #quiet{di
 </header>
 
 <main>
+  <div class="keep-top hide" id="flares" style="margin-bottom:12px"></div>
   <div class="keep-top hide" id="kayBox" style="margin-bottom:16px">
     <label class="dropzone" id="kayPick"><span class="big">👶📷</span><b>Kay — add your baby photos</b>
       <small id="kayStats">For your Guess the Baby comp</small>
@@ -132,7 +133,7 @@ body.mine #full, body.mine .pokiebar, body.mine .pokiefloat, body.mine #quiet{di
     <a href="casino.html" data-casino><b>🎰</b><span>The casino</span></a>
     <a href="babies.html" class="festive"><b>👶</b><span>Guess the baby</span></a>
     <a href="where.html" class="comp"><b>🔍</b><span>Where's Wally?</span></a>
-    <a href="kristy.html" class="festive hide" id="kTile"><b>🚨</b><span>The Kristy Files</span></a>
+    <a href="trauma.html" class="festive" id="kTile"><b>🚨</b><span>Report-a-trauma</span></a>
     <a href="help.html"><b>🆘</b><span>If it goes wrong</span></a>
   </div>
 
@@ -146,16 +147,17 @@ body.mine #full, body.mine .pokiebar, body.mine .pokiefloat, body.mine #quiet{di
     <a class="chip" href="traffic.html">📈 Who's been on (organisers)</a>
   </div>
 
-  <p class="buildstamp">build x31</p>
+  <p class="buildstamp">build x32</p>
 </main>
 
 <script type="module">
 import { boot, me, SLOTS, col, watchTrip, heroFromWall, tripDayToday, dayDate, fmtLong, isoDate, todayIso, XMAS_DAY,
-         households, people, household, onPeople, hereOn, pname, esc, isMuted, setMuted, badge, noPokies, noPokiesFixed, setNoPokies, toast, settings, aud, fmtDay, fromIso, installCard, addToHomeScreen, onHomeScreen, isKay, addBabyPhotos } from "./app.js";
+         households, people, household, onPeople, hereOn, pname, esc, isMuted, setMuted, badge, noPokies, noPokiesFixed, setNoPokies, toast, settings, aud, fmtDay, fromIso, installCard, addToHomeScreen, onHomeScreen, isKay, addBabyPhotos, sosWatch } from "./app.js";
 
 if(boot("home.html")){
 const $ = id => document.getElementById(id);
 heroFromWall();
+sosWatch($("flares"));      // 🆘 "I need a drink ASAP" flares from Report-a-trauma
 $("hi").textContent = `Merry Christmas, ${me.name}`;
 
 let trip = null, plan = [], meals = [], signups = [], scores = [];
@@ -345,7 +347,6 @@ col("expenses").subscribe(r => { expenses = r; paintMine(); });
 settings("santa").subscribe(s => { santa = s; paintMine(); });
 setMine(localStorage.getItem("xmas_mine_" + me.id) === "1");
 
-if(me.id !== "h09-kristy" && me.id !== "h07-kay") $("kTile").classList.remove("hide");   // everyone but Kristy and Kay
 /* Kay's Guess the Baby box, top of the page, only for Kay */
 if(isKay()){
   $("kayBox").classList.remove("hide");

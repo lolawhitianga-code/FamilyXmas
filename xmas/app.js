@@ -9,7 +9,7 @@
    ============================================================ */
 import { HOUSEHOLDS as BASE_HH, HH_COLOURS } from "./people.js";
 
-export const BUILD = "x31";
+export const BUILD = "x32";
 
 export const FIREBASE = {
   apiKey: "AIzaSyB1NnJlvpL_dv7aPrAeFGtl5MM1oSa1YPk",
@@ -546,37 +546,42 @@ settings("quiet").subscribe(q => {
 });
 
 /* ============================================================
-   THE KRISTY FILES — a family in-joke. Every so often a pop-up
-   asks whoever's signed in (never Kristy) to anonymously report
-   a past "traumatic event" caused by Kristy. Reports are saved
-   with no name on them and stay sealed on kristy.html until an
-   organiser unlocks them with the PIN for the big reveal at camp.
+   REPORT-A-TRAUMA — a family in-joke (it started life as the
+   Kristy Files). Every so often a pop-up asks whoever's signed in
+   to anonymously report a past "traumatic event" caused by any
+   other family member. Reports are saved with the culprit but no
+   reporter name, and stay sealed on trauma.html until an organiser
+   unlocks them with the PIN for the big reveal at camp.
    Nothing here earns gold stars — the stars feed has names on it.
+   Reports filed back when it was the Kristy Files live in "kristy"
+   and are shown with Kristy as the culprit.
    ============================================================ */
 export const KRISTY = "h09-kristy";
-export const isKristy = () => !!me && me.id === KRISTY;
 /* "Don't show me this again": a person's choice is saved on the shared site, so it follows them to any phone.
-   They still get the baby-photo pop-ups. They can turn it back on from the Kristy Files page. */
-let _kristyOff = {};
-settings("nokristy").subscribe(d => { _kristyOff = d ? Object.fromEntries(Object.entries(d).filter(([k]) => k !== "id")) : {}; dispatchEvent(new Event("xmas-kristyoff")); });
-export const kristyOff = (id = me && me.id) => !!id && (id in _kristyOff ? !!_kristyOff[id] : localStorage.getItem("xmas_nokristy_" + id) === "1");
-export async function setKristyOff(on){
+   They still get the baby-photo pop-ups. They can turn it back on from the Report-a-trauma page.
+   (Saved under the old "nokristy" name so earlier choices carry over.) */
+let _traumaOff = {};
+settings("nokristy").subscribe(d => { _traumaOff = d ? Object.fromEntries(Object.entries(d).filter(([k]) => k !== "id")) : {}; dispatchEvent(new Event("xmas-traumaoff")); });
+export const traumaOff = (id = me && me.id) => !!id && (id in _traumaOff ? !!_traumaOff[id] : localStorage.getItem("xmas_nokristy_" + id) === "1");
+export async function setTraumaOff(on){
   if(!me) return;
   try{ localStorage.setItem("xmas_nokristy_" + me.id, on ? "1" : "0"); }catch(e){}
-  _kristyOff[me.id] = !!on; dispatchEvent(new Event("xmas-kristyoff"));
+  _traumaOff[me.id] = !!on; dispatchEvent(new Event("xmas-traumaoff"));
   await settings("nokristy").save({ [me.id]: !!on });
 }
-export const KRISTY_SCALE = ["Mildly scarred", "Still not over it", "Brought up at every Christmas", "Family legend"];
-const KRISTY_LINES = [
-  ["Have you been affected by Kristy?", "You are not alone. Our records suggest most of the family has."],
-  ["Kristy Incident Hotline", "A trained listener (this form) is standing by."],
-  ["It's time to talk about what Kristy did", "Healing starts with paperwork."],
-  ["Compensation may be available*", "*It isn't. But we'd still like to hear what Kristy did."],
-  ["We noticed you've met Kristy", "Would you like to report an incident?"],
-  ["Urgent: unreported Kristy incident on file", "Our system shows you are holding one back."]
+export const TRAUMA_SCALE = ["Mildly scarred", "Still not over it", "Brought up at every Christmas", "Family legend"];
+/* {n} is swapped for a name. Pop-ups suggest someone at random; the person can change it. */
+const TRAUMA_LINES = [
+  ["Have you been affected by {n}?", "You are not alone. Our records suggest most of the family has."],
+  ["Family Trauma Hotline", "A trained listener (this form) is standing by."],
+  ["It's time to talk about what {n} did", "Healing starts with paperwork."],
+  ["Compensation may be available*", "*It isn't. But we'd still like to hear what {n} did."],
+  ["We noticed you've met {n}", "Would you like to report an incident?"],
+  ["Urgent: unreported incident on file", "Our system shows you are holding one back about {n}."]
 ];
-const KRISTY_DODGES = ["Not now", "I'm not ready to talk", "It's still too raw", "I've blocked it out", "Ask me after a drink"];
-/** Open the report form. Called by the random pop-up and by the button on the Kristy Files page. */
+const TRAUMA_DODGES = ["Not now", "I'm not ready to talk", "It's still too raw", "I've blocked it out", "Ask me after a drink"];
+/** Everyone except me, A–Z. */
+export const otherPeople = () => people().filter(p => !me || p.id !== me.id).sort((a, b) => a.label.localeCompare(b.label));
 function popupCSS(){
   if(!document.getElementById("kfile-css")){
     const st = document.createElement("style"); st.id = "kfile-css";
@@ -593,6 +598,7 @@ function popupCSS(){
 #kfile .anon{font-size:12px;background:#EEF7F2;border:1px solid #B5DDC5;border-radius:10px;padding:7px 9px;color:#1F5A45}
 #kfile .sev{display:flex;flex-wrap:wrap;gap:6px}
 #kfile .acts{display:flex;gap:8px;margin-top:14px}#kfile .acts .btn{flex:1}
+#kfile .sosbtn{display:block;width:100%;margin-top:10px;padding:10px 12px;border-radius:12px;border:2px dashed #D8352A;background:#FFF1EE;color:#B0251C;font-weight:600;font-size:14px}
 #kfile.baby .box{border-color:#1AA5B8}
 #kfile.baby h3{color:#0E7C86}
 #kfile.baby .tape{background:repeating-linear-gradient(-45deg,#FFC6D9 0 14px,#fff 14px 16px,#BFE9F0 16px 30px)}
@@ -601,41 +607,104 @@ function popupCSS(){
     document.head.appendChild(st);
   }
 }
-export function reportKristy(){
-  if(isKristy() || document.getElementById("kfile")) return;
+/** Open the report form. suggest = true from the random pop-up (picks a culprit at random), or a person id. */
+export function reportTrauma(suggest){
+  if(!me || document.getElementById("kfile")) return;
   popupCSS();
-  const [head, sub] = KRISTY_LINES[Math.floor(Math.random() * KRISTY_LINES.length)];
+  const others = otherPeople();
+  let pick = typeof suggest === "string" ? suggest : suggest === true && others.length ? others[Math.floor(Math.random() * others.length)].id : "";
+  const nameOf = () => pick ? pname(pick) : "a family member";
+  const [head, sub] = TRAUMA_LINES[Math.floor(Math.random() * TRAUMA_LINES.length)];
   const el = document.createElement("div"); el.id = "kfile"; el.setAttribute("role", "dialog");
-  el.innerHTML = `<div class="box"><div class="tape"><span>🚨 ANONYMOUS REPORT 🚨</span></div>
-    <h3>${esc(head)}</h3><p>${esc(sub)}</p>
-    <label class="f" for="kfStory">What did Kristy do? (the past incident, in your own words)</label>
+  el.innerHTML = `<div class="box"><div class="tape"><span>🚨 REPORT-A-TRAUMA 🚨</span></div>
+    <h3 id="kfHead"></h3><p id="kfSub"></p>
+    <label class="f" for="kfWho">Who did it?</label>
+    <select class="in" id="kfWho"><option value="">Choose the culprit…</option>${others.map(p => `<option value="${esc(p.id)}"${p.id === pick ? " selected" : ""}>${esc(p.label)}</option>`).join("")}</select>
+    <label class="f" for="kfStory">What did they do? (the past incident, in your own words)</label>
     <textarea class="in" id="kfStory" maxlength="600" placeholder="It was Christmas, 1998. I had just been handed the trifle…"></textarea>
     <label class="f" for="kfWhen">Roughly when?</label>
     <input class="in" id="kfWhen" maxlength="40" placeholder="e.g. 2009, or 'the Coffs Harbour trip'">
     <label class="f">How are you coping?</label>
-    <div class="sev">${KRISTY_SCALE.map((x, i) => `<button type="button" class="chip${i === 1 ? " on" : ""}" data-sev="${i}">${x}</button>`).join("")}</div>
-    <p class="anon" style="margin-top:12px">🔒 Truly anonymous — your name is not saved with this. Reports stay sealed until the organisers open the Kristy Files at camp. Keep it kind: she'll hear every one.</p>
-    <div class="acts"><button class="btn ghost" id="kfNo">${KRISTY_DODGES[Math.floor(Math.random() * KRISTY_DODGES.length)]}</button><button class="btn red" id="kfGo">Submit report</button></div>
+    <div class="sev">${TRAUMA_SCALE.map((x, i) => `<button type="button" class="chip${i === 1 ? " on" : ""}" data-sev="${i}">${x}</button>`).join("")}</div>
+    <button type="button" class="sosbtn" id="kfSos">🆘 I need a counsellor / drink / my medication ASAP</button>
+    <p class="anon" style="margin-top:12px">🔒 Truly anonymous — your name is not saved with this. Reports stay sealed until the organisers open them at camp. Keep it kind: the culprit will hear every one.</p>
+    <div class="acts"><button class="btn ghost" id="kfNo">${TRAUMA_DODGES[Math.floor(Math.random() * TRAUMA_DODGES.length)]}</button><button class="btn red" id="kfGo">Submit report</button></div>
     <button type="button" id="kfNever" style="display:block;margin:12px auto 0;background:none;border:0;color:#3E5A63;font-size:13px;text-decoration:underline;text-underline-offset:3px">Don't show me this again</button></div>`;
   document.body.appendChild(el);
+  const paintHead = () => { el.querySelector("#kfHead").textContent = head.replace("{n}", nameOf()); el.querySelector("#kfSub").textContent = sub.replace("{n}", nameOf()); };
+  paintHead();
+  el.querySelector("#kfWho").onchange = e => { pick = e.target.value; paintHead(); };
   let sev = 1;
   el.querySelector(".sev").addEventListener("click", e => { const b = e.target.closest("[data-sev]"); if(!b) return;
     sev = +b.dataset.sev; el.querySelectorAll("[data-sev]").forEach(x => x.classList.toggle("on", x === b)); });
   const close = () => el.remove();
   el.querySelector("#kfNo").onclick = close;
+  el.querySelector("#kfSos").onclick = () => needHelp();
   el.querySelector("#kfNever").onclick = async () => {
-    close(); toast("Done — no more Kristy reports for you. You can turn them back on from the Kristy Files page.", 4500);
-    try{ await setKristyOff(true); }catch(e){ toast("Saved on this phone only — " + e.message); }
+    close(); toast("Done — no more trauma pop-ups for you. You can turn them back on from the Report-a-trauma page.", 4500);
+    try{ await setTraumaOff(true); }catch(e){ toast("Saved on this phone only — " + e.message); }
   };
   el.querySelector("#kfGo").onclick = async () => {
+    if(!pick){ toast("Who did it? Pick the culprit."); return; }
     const story = el.querySelector("#kfStory").value.trim();
-    if(story.length < 5){ toast("Take your time. Tell us what Kristy did."); return; }
+    if(story.length < 5){ toast("Take your time. Tell us what " + nameOf() + " did."); return; }
     const when = el.querySelector("#kfWhen").value.trim();
     close(); jingle(); toast("Report filed. Thank you for your bravery.", 3600);
     // set() with our own id rather than add(): add() would stamp the reporter's name on it
-    try{ await col("kristy").set(uid(), { story, when, sev, n: Math.random() }); }
+    try{ await col("trauma").set(uid(), { culprit: pick, story, when, sev, n: Math.random() }); }
     catch(e){ toast("Couldn't file it — " + e.message); }
   };
+}
+
+/* ============================================================
+   🆘 I NEED A COUNSELLOR / DRINK / MY MEDICATION ASAP
+   Sends a "flare" with your name on it. Flares show on the home
+   page and the Report-a-trauma page for 3 hours, until someone
+   taps "I'm on it" and the sender taps "Sorted".
+   ============================================================ */
+export const SOS = { counsellor:["🛋️", "a counsellor"], drink:["🍷", "a drink"], meds:["💊", "their medication"] };
+export const SOS_FOR = 3 * 3600000;
+export function needHelp(){
+  if(!me) return;
+  const sh = openSheet(`<h3 style="font-family:'Fraunces',serif;font-weight:900;font-size:24px;margin:4px 0 2px;color:var(--red)">🆘 What do you need, ASAP?</h3>
+    <p class="small muted" style="margin:0 0 12px">Sends a flare to the family with your name on it. Someone will be along shortly (probably).</p>
+    <div style="display:grid;gap:8px">
+      <button class="btn wide" data-sos="counsellor" style="font-size:17px;padding:14px">🛋️ A counsellor</button>
+      <button class="btn wide" data-sos="drink" style="font-size:17px;padding:14px">🍷 A drink</button>
+      <button class="btn wide" data-sos="meds" style="font-size:17px;padding:14px">💊 My medication</button>
+    </div>
+    <p class="small muted" style="text-align:center;margin:14px 0 0">Actually not okay? Lifeline is 13 11 14, any time.</p>`);
+  // sit above the report pop-up when it's opened from there, so what they've typed isn't lost
+  sh.el.style.zIndex = 74; const scrim = document.getElementById("xmas-scrim"); if(scrim) scrim.style.zIndex = 73;
+  sh.el.addEventListener("click", async e => { const b = e.target.closest("[data-sos]"); if(!b) return;
+    sh.close(); jingle(); toast(`Flare sent. Hold on — ${SOS[b.dataset.sos][1].replace("their", "your")} is on the way.`, 3600);
+    try{ await col("sos").add({ what: b.dataset.sos }); }catch(err){ toast("Couldn't send it — " + err.message); } });
+}
+/** Show the live flares in this element (hidden when there are none). */
+export function sosWatch(el){
+  if(!el) return;
+  let rows = [];
+  const ago = t => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? "just now" : m < 60 ? m + " min ago" : Math.floor(m / 60) + " h ago"; };
+  const paint = () => {
+    const live = rows.filter(r => r.createdAt && Date.now() - r.createdAt < SOS_FOR && !r.done).sort((a, b) => b.createdAt - a.createdAt);
+    el.classList.toggle("hide", !live.length);
+    el.innerHTML = live.map(r => { const [g, what] = SOS[r.what] || SOS.drink, mine = me && r.by === me.id;
+      return `<div class="tag red" style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
+        <b style="font-size:26px">${g}</b>
+        <div style="flex:1;min-width:0"><b>${esc(mine ? "You need" : pname(r.by) + " needs")} ${esc(mine ? what.replace("their", "your") : what)} ASAP</b>
+          <div class="small muted">${ago(r.createdAt)}${r.helper ? ` · ${esc(me && r.helper === me.id ? "you're" : pname(r.helper) + " is")} on it` : ""}</div></div>
+        ${mine ? `<button class="chip" data-sosdone="${r.id}">Sorted</button>`
+               : r.helper ? "" : `<button class="chip" data-sosgo="${r.id}">I'm on it</button>`}</div>`; }).join("");
+  };
+  col("sos").subscribe(r => { rows = r; paint(); });
+  setInterval(paint, 60000);
+  el.addEventListener("click", async e => {
+    const go = e.target.closest("[data-sosgo]"), done = e.target.closest("[data-sosdone]");
+    try{
+      if(go){ await col("sos").update(go.dataset.sosgo, { helper: me.id }); toast("Go on then — they're waiting"); }
+      if(done){ await col("sos").update(done.dataset.sosdone, { done: true }); toast("Glad you're sorted"); }
+    }catch(err){ toast("Couldn't save that — " + err.message); }
+  });
 }
 /* ============================================================
    WHO'S THE BABY — Kay's competition. Kay (or an organiser with
@@ -754,11 +823,11 @@ export function askBabyNames(list){
 }
 
 /* the random pop-up: about every third page, never twice within 45 seconds, never over another sheet.
-   Four times in five it's a baby photo to guess, once in five it's the Kristy report. If there's no baby
-   photo left for this person (or they're Kay) it falls back to Kristy, and Kristy herself only gets babies. */
+   Four times in five it's a baby photo to guess, once in five it's Report-a-trauma. If there's no baby
+   photo left for this person it falls back to the trauma report (unless they've switched it off). */
 function promptWatch(page){
-  if(["kristy.html", "babies.html", "traffic.html", "where.html"].includes(page)) return;
-  if(isKay()) return;          // Kay runs the baby comp and doesn't want the Kristy one either — no pop-ups for her
+  if(["kristy.html", "trauma.html", "babies.html", "traffic.html", "where.html"].includes(page)) return;
+  if(isKay()) return;          // Kay runs the baby comp and doesn't want the trauma one either — no pop-ups for her
   watchBabies();
   const last = +(sessionStorage.getItem("xmas_kfile_at") || 0);
   if(Date.now() - last < 45000 || Math.random() > 0.36) return;
@@ -767,7 +836,7 @@ function promptWatch(page){
     sessionStorage.setItem("xmas_kfile_at", String(Date.now()));
     const wantBaby = Math.random() < 0.8;
     if(wantBaby && await guessBaby()) return;
-    if(!isKristy() && !kristyOff()) reportKristy();
+    if(!traumaOff()) reportTrauma(true);
     else if(!wantBaby) await guessBaby();
   }, 2500 + Math.random() * 3500);
 }

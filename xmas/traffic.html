@@ -60,7 +60,7 @@
     <h2 class="sec">Latest visits</h2><div class="card" id="recent"></div>
     <p class="small muted" style="margin-top:12px">Time is how long the site was actually on screen, counted in 15-second steps, so very quick looks show as under a minute. A visit ends after 30 minutes away. Counting started when this version of the site went up, and the casino games aren't counted.</p>
   </div>
-  <p class="buildstamp">build x31</p>
+  <p class="buildstamp">build x32</p>
 </main>
 <script type="module">
 import { boot, col, heroFromWall, esc, askPin, people, households, household, pname, onPeople, badge, fmtDay, isoDate, fromIso } from "./app.js";
@@ -71,7 +71,7 @@ let rows = [], unlocked = false, range = "all";
 const dur = s => s < 60 ? "under 1 min" : s < 3600 ? Math.round(s / 60) + " min" : Math.floor(s / 3600) + " h " + Math.round(s % 3600 / 60) + " min";
 const ago = t => { const m = Math.round((Date.now() - t) / 60000); return m < 2 ? "just now" : m < 60 ? m + " min ago" : m < 1440 ? Math.round(m / 60) + " h ago" : Math.round(m / 1440) + " d ago"; };
 const NAMES = { front:"Front page", home:"Home", planner:"Planner", food:"Meals", games:"Tournaments", photos:"Photos", crew:"Who's coming", signup:"Sign-ups", santa:"Steal & Grab",
-  awards:"Awards", stars:"Gold stars", fishing:"Fishing", money:"Money", shopping:"Shopping", places:"Things to do", casino:"Casino page", help:"Help", kristy:"Kristy Files" };
+  awards:"Awards", stars:"Gold stars", fishing:"Fishing", money:"Money", shopping:"Shopping", places:"Things to do", casino:"Casino page", help:"Help", kristy:"Kristy Files (old)", trauma:"Report-a-trauma" };
 
 function paint(){
   if(!unlocked) return;

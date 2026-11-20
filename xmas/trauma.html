@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12303B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Family Xmas">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Report-a-trauma</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+<style>
+.count{text-align:center;padding:18px 14px}
+.count .n{font-family:'Fraunces',serif;font-weight:900;font-size:64px;line-height:.9;color:var(--red)}
+.count .l{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-soft);margin-top:6px}
+.sealed{text-align:center;border:2px dashed var(--line);border-radius:16px;padding:22px 14px;background:repeating-linear-gradient(-45deg,#fff 0 18px,#FFF7EA 18px 36px)}
+.sealed b{display:block;font-family:'Fraunces',serif;font-size:22px;margin-bottom:4px}
+.sos{display:block;width:100%;margin:10px 0 0;padding:14px;border-radius:14px;border:2.5px dashed var(--red);background:#FFF1EE;color:#B0251C;font-weight:600;font-size:16px}
+.case .no{font-family:'DM Mono',monospace;font-size:10.5px;letter-spacing:.16em;color:var(--red)}
+.case .who{font-family:'Fraunces',serif;font-weight:900;font-size:19px;margin-top:2px}
+.case .st{font-size:17px;line-height:1.4;margin:6px 0 8px;white-space:pre-wrap;overflow-wrap:anywhere}
+.case .meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.board{display:grid;gap:6px;margin:0 0 14px}
+.board .r{display:flex;align-items:center;gap:8px;font-size:15px}
+.board .r .bar{flex:1;height:10px;border-radius:6px;background:var(--line);overflow:hidden}
+.board .r .bar i{display:block;height:100%;background:var(--red)}
+.acts2{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+body.big .case .st{font-size:24px} body.big .case .who{font-size:26px}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="back" href="home.html">← Home</a>
+  <p class="eyebrow">Strictly confidential</p>
+  <h1 class="wordmark">Report-a-trauma</h1>
+  <p class="sub" id="sub">Sealed until the big reveal</p>
+</header>
+<main>
+  <div id="flares" class="hide"></div>
+  <div class="card count"><div class="n" id="n">0</div><div class="l" id="nl">anonymous reports filed</div></div>
+  <button class="btn red wide" id="file">🚨 Report a trauma</button>
+  <button class="sos" id="sos">🆘 I need a counsellor / drink / my medication ASAP</button>
+  <p class="small muted" style="text-align:center;margin:10px 0 6px">Reports are anonymous — no reporter name is saved. Pick anyone in the family as the culprit.</p>
+  <p style="text-align:center;margin:0 0 18px"><button class="chip" id="popToggle"></button></p>
+
+  <div id="sealed" class="sealed"><b>🔒 Sealed</b>
+    <span class="muted small">The reports stay locked until the organisers open them at camp, with the accused in the room.</span>
+    <p style="margin:12px 0 0"><button class="btn" id="open">Open the files (organiser PIN)</button></p></div>
+
+  <div id="opened" class="hide">
+    <div class="acts2"><button class="chip" id="big">🔎 Bigger text for reading out</button><button class="chip" id="seal">🔒 Seal them again</button></div>
+    <h3 style="font-family:'Fraunces',serif;margin:6px 0 8px">🏆 Most traumatising</h3>
+    <div class="board" id="board"></div>
+    <div class="acts2" id="filter"></div>
+    <div id="list"></div>
+  </div>
+  <p class="buildstamp">build x32</p>
+</main>
+<script type="module">
+import { boot, col, heroFromWall, esc, askPin, toast, reportTrauma, needHelp, sosWatch, TRAUMA_SCALE, KRISTY,
+         traumaOff, setTraumaOff, pname, onPeople } from "./app.js";
+if(boot("trauma.html")){
+const $ = id => document.getElementById(id);
+heroFromWall();
+sosWatch($("flares"));
+let fresh = [], old = [], open = false, armed = null, only = "";
+// rows from the old Kristy Files are kept and shown with Kristy as the culprit
+const all = () => [...fresh.map(r => ({ ...r, src:"trauma" })), ...old.map(r => ({ ...r, culprit: KRISTY, src:"kristy" }))];
+
+function paint(){
+  const rows = all().filter(r => r.culprit);
+  const named = new Set(rows.map(r => r.culprit)).size;
+  $("n").textContent = rows.length;
+  $("nl").textContent = rows.length ? `anonymous reports · ${named} ${named === 1 ? "person" : "people"} accused` : "anonymous reports filed";
+  $("sealed").classList.toggle("hide", open); $("opened").classList.toggle("hide", !open);
+  $("sub").textContent = open ? "Opened for the reveal" : "Sealed until the big reveal";
+  if(!open){ $("list").innerHTML = $("board").innerHTML = $("filter").innerHTML = ""; return; }      // nothing readable while sealed
+  const tally = {}; rows.forEach(r => tally[r.culprit] = (tally[r.culprit] || 0) + 1);
+  const top = Object.entries(tally).sort((a, b) => b[1] - a[1]), max = top.length ? top[0][1] : 1;
+  $("board").innerHTML = top.length ? top.map(([id, c], i) => `<div class="r"><span style="width:22px">${["🥇","🥈","🥉"][i] || ""}</span>
+      <span style="min-width:96px">${esc(pname(id))}</span><span class="bar"><i style="width:${c / max * 100}%"></i></span><b>${c}</b></div>`).join("")
+    : `<div class="empty">Nobody accused yet.</div>`;
+  if(only && !tally[only]) only = "";
+  $("filter").innerHTML = top.length > 1 ? `<button class="chip${only ? "" : " on"}" data-only="">Everyone</button>` +
+    top.map(([id]) => `<button class="chip${only === id ? " on" : ""}" data-only="${esc(id)}">${esc(pname(id))}</button>`).join("") : "";
+  // shuffled by a random number saved with each report, so the order says nothing about who filed when
+  const xs = rows.filter(r => !only || r.culprit === only).sort((a, b) => (a.n || 0) - (b.n || 0));
+  $("list").innerHTML = xs.length ? xs.map((r, i) => `<div class="tag red case">
+      <div class="no">CASE FILE ${String(i + 1).padStart(3, "0")}</div>
+      <div class="who">The accused: ${esc(pname(r.culprit))}</div>
+      <div class="st">${esc(r.story)}</div>
+      <div class="meta">${r.when ? `<span class="pill">${esc(r.when)}</span>` : ""}<span class="pill gold">${esc(TRAUMA_SCALE[r.sev] || "")}</span>
+        <button class="chip" data-del="${r.src}:${r.id}" style="margin-left:auto">${armed === r.src + ":" + r.id ? "Really remove?" : "Remove"}</button></div></div>`).join("")
+    : `<div class="empty">No reports yet. Either the family is innocent, or everyone is still too scared.</div>`;
+}
+col("trauma").subscribe(r => { fresh = r; paint(); });
+col("kristy").subscribe(r => { old = r; paint(); });
+onPeople(paint);
+
+$("file").onclick = () => reportTrauma();
+$("sos").onclick = needHelp;
+const paintToggle = () => $("popToggle").textContent = traumaOff() ? "🔔 Turn the trauma pop-ups back on for me" : "🔕 Stop the trauma pop-ups for me";
+paintToggle(); addEventListener("xmas-traumaoff", paintToggle);      // and again whenever the choice changes or loads
+$("popToggle").onclick = async () => { const off = !traumaOff();
+  try{ await setTraumaOff(off); }catch(e){ toast("Saved on this phone only — " + e.message); }
+  paintToggle(); toast(off ? "No more trauma pop-ups for you" : "Trauma pop-ups are back on"); };
+$("open").onclick = async () => { if(await askPin("Opening the files is for the big reveal — make sure the accused are there to defend themselves.")){ open = true; paint(); } };
+$("seal").onclick = () => { open = false; paint(); };
+$("big").onclick = () => document.body.classList.toggle("big");
+$("filter").addEventListener("click", e => { const b = e.target.closest("[data-only]"); if(!b) return; only = b.dataset.only; paint(); });
+$("list").addEventListener("click", async e => {
+  const b = e.target.closest("[data-del]"); if(!b) return;
+  if(armed !== b.dataset.del){ armed = b.dataset.del; paint(); return; }
+  armed = null; const [src, id] = b.dataset.del.split(":");
+  try{ await col(src).remove(id); toast("Removed"); }catch(err){ toast("Couldn't remove — " + err.message); }
+});
+}
+</script>
+</body>
+</html>
