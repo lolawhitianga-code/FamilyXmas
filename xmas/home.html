@@ -120,7 +120,7 @@ body.mine #full, body.mine .pokiebar, body.mine .pokiefloat, body.mine #quiet{di
     <a href="signup.html"><b>✋</b><span>Sign-up sheet</span></a>
     <a href="food.html" class="festive"><b>🍤</b><span>Meals &amp; Christmas lunch</span></a>
     <a href="food.html#happy" class="festive"><b>🍹</b><span>Happy hour</span></a>
-    <a href="santa.html" class="festive"><b>🎅</b><span>Secret Santa</span></a>
+    <a href="santa.html" class="festive"><b>🎁</b><span>Steal &amp; Grab</span></a>
     <a href="games.html" class="comp"><b>🏆</b><span>Tournaments</span></a>
     <a href="fishing.html" class="comp"><b>🎣</b><span>Fishing comp</span></a>
     <a href="awards.html" class="comp"><b>🏅</b><span>Daily awards</span></a>
@@ -146,7 +146,7 @@ body.mine #full, body.mine .pokiebar, body.mine .pokiefloat, body.mine #quiet{di
     <a class="chip" href="traffic.html">📈 Who's been on (organisers)</a>
   </div>
 
-  <p class="buildstamp">build x30</p>
+  <p class="buildstamp">build x31</p>
 </main>
 
 <script type="module">
@@ -304,8 +304,10 @@ function paintMine(){
   const bal = Math.round((paid - share) * 100) / 100;
   if(expenses.length) famRows.push({ g:"💸", text: bal > 0.004 ? `Your family is owed ${aud(bal)}` : bal < -0.004 ? `Your family owes ${aud(-bal)}` : "All square on money", sub: `Paid ${aud(paid)} · share ${aud(share)}`, href:"money.html" });
   if(santa){ const inn = santa.in && santa.in[me.id];
-    famRows.push({ g:"🎅", text: santa.state === "drawn" ? (inn ? "Secret Santa: names are drawn" : "Secret Santa: you're not in the draw") : (inn ? "Secret Santa: you're in" : "Secret Santa: you haven't joined yet"),
-      sub: santa.state === "drawn" && inn ? "Tap to peek at who you're buying for" : (santa.budget ? "Spend " + santa.budget : ""), href:"santa.html" }); }
+    const sg = santa.state === "playing" ? "on" : santa.state === "done" ? "done" : "open";
+    const got = sg === "done" && Array.isArray(santa.gifts) && santa.gifts.find(g => g.holder === me.id);
+    famRows.push({ g:"🎁", text: sg === "on" ? "Steal & Grab is on now" : sg === "done" ? "Steal & Grab: that's a wrap" : (inn ? "Steal & Grab: you're in — bring a wrapped gift" : "Steal & Grab: you haven't joined yet"),
+      sub: sg === "on" ? "Tap to watch live" : sg === "done" ? (got ? "You took home: " + (got.what || "a mystery gift") : "See who got what") : "Funny, homemade or free — just wrap it", href:"santa.html" }); }
   const myStars = (scores.find(s => s.id === me.id) || {}).total || 0;
   if(myStars) famRows.push({ g:"⭐", text: `${myStars} gold stars`, sub:"", href:"stars.html" });
 

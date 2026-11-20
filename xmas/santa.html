@@ -12,20 +12,25 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
-<title>Secret Santa · Christmas at Bateau Bay</title>
+<title>Steal &amp; Grab · Christmas at Bateau Bay</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="app.css">
 <style>
 .big{text-align:center;padding:22px 16px;background:linear-gradient(160deg,#FFF3F0,#FFE1DC);border-color:#F3B9B2}
-.big h2{font-family:'Fraunces',serif;font-weight:900;font-size:30px;margin:0 0 4px}
+.big h2{font-family:'Fraunces',serif;font-weight:900;font-size:30px;margin:0 0 4px;line-height:1.1}
 .big .n{font-family:'DM Mono',monospace;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 14px}
+.big p{margin:0 0 12px}
 .bigbtn{width:100%;border:2px solid var(--line);background:#fff;border-radius:16px;padding:16px;font-size:19px;font-weight:600}
 .bigbtn[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:#fff}
+.bigbtn.red{background:var(--red);border-color:var(--red);color:#fff}
 .facts{display:grid;gap:6px;font-size:15px}
 .facts div{display:flex;gap:10px}
 .facts small{flex:none;width:76px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);padding-top:4px}
+.rules{margin:0;padding-left:20px;font-size:15px;line-height:1.45}
+.rules li{margin-bottom:6px}
+.rules b{font-weight:600}
 .hhhead{display:flex;align-items:center;gap:8px;margin-bottom:8px}
 .hhhead b{flex:1;min-width:0;font-size:14.5px}
 .hhhead .btn{flex:none}
@@ -33,24 +38,32 @@
 .who{border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:10px 13px;font-size:15px;min-height:44px}
 .who[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:#fff;font-weight:600}
 .who[aria-pressed="true"]::before{content:'✓ '}
-.gift{display:block;width:100%;border:0;border-radius:20px;text-align:center;padding:26px 16px;margin-bottom:12px;color:#fff;cursor:pointer;
-  background:
-   linear-gradient(90deg,transparent 43%,var(--gold) 43%,var(--gold) 57%,transparent 57%),
-   linear-gradient(0deg,transparent 40%,var(--gold) 40%,var(--gold) 52%,transparent 52%),
-   linear-gradient(160deg,#E4473B,#A8231A);
-  box-shadow:0 14px 30px -14px rgba(150,30,20,.8)}
-.gift .t{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;display:block;background:rgba(168,35,26,.92);border-radius:8px;padding:4px 8px;width:max-content;max-width:100%;margin:0 auto 6px}
-.gift .e{font-size:54px;line-height:1.1;display:block}
-.gift .p{display:inline-block;margin-top:8px;background:#fff;color:var(--red);font-weight:700;font-size:17px;border-radius:999px;padding:10px 22px}
-.gift.open{background:linear-gradient(160deg,#fff,#F1FAF4);color:var(--ink);border:2px solid var(--green);text-align:left;padding:18px 16px}
-.gift.open .t{background:none;color:var(--ink-soft);padding:0;margin:0 0 4px}
-.gift.open .nm{font-family:'Fraunces',serif;font-weight:900;font-size:34px;line-height:1;display:block;margin:2px 0 6px}
-.gift.open .fam{font-size:14px;color:var(--ink-soft);display:block;margin-bottom:10px}
-.gift.open .wl{border-top:1px dashed var(--line);padding-top:10px;font-size:15px;white-space:pre-wrap}
-.gift.open .wl small{display:block;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);margin-top:8px}
-.gift.open .hint{display:block;text-align:center;margin-top:12px;font-size:12.5px;color:var(--ink-soft)}
-.wl{font-size:15px;white-space:pre-wrap;margin-top:6px}
-.wl small{display:block;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);margin-top:8px}
+.idea{font-family:'Fraunces',serif;font-weight:700;font-size:21px;line-height:1.25;margin:4px 0 12px;min-height:52px}
+.pile{display:flex;align-items:center;gap:12px;font-size:15px}
+.pile .e{font-size:40px;line-height:1}
+.pile b{font-family:'Fraunces',serif;font-size:26px}
+.gifts{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.g{position:relative;text-align:left;border:2px solid var(--line);background:#fff;border-radius:14px;padding:12px;font-size:14px;min-height:96px;color:var(--ink)}
+.g .w{display:block;font-family:'Fraunces',serif;font-weight:700;font-size:17px;line-height:1.2;margin-bottom:6px}
+.g .h{display:flex;align-items:center;gap:6px;color:var(--ink-soft)}
+.g .s{display:block;margin-top:8px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.08em;color:var(--ink-soft)}
+.g.can{border-color:var(--red);box-shadow:0 8px 18px -10px rgba(150,30,20,.7);cursor:pointer}
+.g.can::after{content:'Steal';position:absolute;top:8px;right:8px;background:var(--red);color:#fff;font-size:11px;font-weight:600;border-radius:999px;padding:2px 8px}
+.g.lock{background:#F4F1EA;opacity:.85}
+.g.lock::after{content:'🔒';position:absolute;top:8px;right:8px}
+.g.mine{border-color:var(--green)}
+.g.back{opacity:.6}
+.order{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.order li{display:flex;align-items:center;gap:10px;font-size:15px;padding:6px 4px;border-radius:10px}
+.order li .num{flex:none;width:26px;text-align:right;font-family:'DM Mono',monospace;font-size:13px;color:var(--ink-soft)}
+.order li .nm{flex:1;min-width:0}
+.order li .has{font-size:13px;color:var(--ink-soft);text-align:right}
+.order li.up{background:#FFE1DC;font-weight:600}
+.order li.done .nm{color:var(--ink-soft)}
+.log{margin:0;padding:0;list-style:none;font-size:14px}
+.log li{padding:6px 0;border-bottom:1px dashed var(--line)}
+.log li:last-child{border-bottom:0}
+.took{font-family:'Fraunces',serif;font-weight:900;font-size:28px;line-height:1.15;margin:4px 0 0}
 .chk{display:flex;gap:10px;align-items:center;margin:14px 0 2px;font-size:15px}
 .chk input{width:22px;height:22px}
 </style>
@@ -58,215 +71,360 @@
 <body>
 <header class="top">
   <a class="back" href="home.html">← Home</a>
-  <p class="eyebrow">Shh</p>
-  <h1 class="wordmark">Secret Santa</h1>
+  <p class="eyebrow">Secret Santa, family style</p>
+  <h1 class="wordmark">Steal &amp; Grab</h1>
   <p class="sub" id="sub">&nbsp;</p>
 </header>
 
 <main>
   <div id="app"><div class="empty">Loading…</div></div>
-  <p class="buildstamp">build x30</p>
+  <p class="buildstamp">build x31</p>
 </main>
 
 <script type="module">
-import { boot, me, col, settings, celebrate, jingle, toast, openSheet, closeSheet, askPin, esc,
+import { boot, me, settings, celebrate, jingle, toast, openSheet, closeSheet, askPin, esc, uid,
          people, households, household, person, pname, badge, onPeople, heroFromWall } from "./app.js";
 
-/* The pairs are lightly scrambled so they can't be read at a glance in the database. */
-const scramble = (giver, receiver) => btoa([...(giver + "|" + receiver)].reverse().join(""));
-const unscramble = v => {
-  try{ const s = [...atob(v)].reverse().join(""), i = s.indexOf("|");
-    return i < 0 ? null : { giver:s.slice(0, i), receiver:s.slice(i + 1) }; }catch(e){ return null; }
-};
+/* ============================================================
+   STEAL & GRAB — everyone brings one wrapped gift that isn't for
+   anyone in particular. The app draws the order and keeps score
+   on the day: who has what, how many times each gift has been
+   stolen, and whose turn it is. Everything lives in the one
+   settings("santa") document. Lists are kept as arrays so a save
+   replaces them whole (a merge would keep old map keys).
+   ============================================================ */
 
 if(boot("santa.html")){
 const $ = id => document.getElementById(id);
 heroFromWall();
 
-const DEFAULTS = { state:"open", budget:"$20–25", rules:"", swapWhen:"11am Christmas Day", in:{}, noSameFamily:true, pairs:{} };
-let S = { ...DEFAULTS }, wishes = [], loaded = false;
-let showMine = false, famPeek = null, famOpen = false;   // who's revealed right now (a giver id), never stored
+const DEFAULT_BUDGET = "Up to $25";
+const DEFAULTS = { state:"open", budget:DEFAULT_BUDGET, swapWhen:"11am Christmas Day", maxSteals:3, finalSwap:true,
+                   in:{}, order:[], gifts:[], up:"", next:0, noBack:"", final:false, log:[], hist:[] };
+let S = { ...DEFAULTS }, loaded = false, idea = -1;
 
-const wishOf = id => wishes.find(w => w.id === id);
-const playing = () => people().filter(p => S.in && S.in[p.id]);
-const receiverOf = giver => {
-  const v = S.pairs && S.pairs[giver]; if(!v) return null;
-  const u = unscramble(v); return u && u.giver === giver ? u.receiver : null;
-};
-const save = v => settings("santa").save(v).catch(e => toast("Couldn't save — " + e.message));
+const IDEAS = [
+  "Homemade fudge, rocky road or shortbread in a jar",
+  "A voucher for one night off the dishes",
+  "A jar of homemade chutney, relish or chilli oil",
+  "Silly sunnies and a daft hat for the beach",
+  "A pool noodle with a big bow on it",
+  "A handful of scratchies",
+  "A cutting or a pot plant from your garden",
+  "A bag of servo lollies, the good ones",
+  "A blow-up flamingo for the pool",
+  "A 'luxury' toilet roll hamper",
+  "A hangover kit: Hydralyte, Panadol, lollies, sunscreen",
+  "A pair of stubby holders",
+  "A water pistol, loaded and ready",
+  "A hot sauce you'd be scared to try",
+  "A book you loved, passed on",
+  "Socks with something ridiculous on them",
+  "A homemade candle or bar of soap",
+  "Bubble mix and a giant bubble wand",
+  "A voucher: I'll cook you dinner one night",
+  "An op-shop trophy for the World's Okayest Fisherman",
+  "A pack of cards and the rules to a new game",
+  "Fishing lures, hooks and a bit of burley",
+  "A framed embarrassing family photo, funny whoever gets it",
+  "A regift from the back of the cupboard, wrapped like it's new"
+];
 
-/* ---------- the draw ---------- */
-const shuffle = a => { a = [...a]; for(let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
-function makePairs(ids, noFam){
-  for(let t = 0; t < 500; t++){
-    const r = shuffle(ids);
-    if(r.every((x, i) => x !== ids[i] && (!noFam || person(x).hh !== person(ids[i]).hh)))
-      return Object.fromEntries(ids.map((g, i) => [g, r[i]]));
-  }
-  return null;
+const players  = () => people().filter(p => S.in && S.in[p.id]);
+const giftOf   = pid => S.gifts.find(g => g.holder === pid);
+const giftName = g => g.what ? g.what : "A mystery gift";
+const locked   = g => g.steals >= (S.maxSteals || 3);
+const wrapped  = () => Math.max(0, S.order.length - S.gifts.length);
+const save     = v => settings("santa").save(v).catch(e => toast("Couldn't save — " + e.message));
+const shuffle  = a => { a = [...a]; for(let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+/* What the person who's up may steal right now */
+function canSteal(g){
+  if(S.state !== "playing" || !S.up || g.holder === S.up || locked(g)) return false;
+  if(S.final) return !!giftOf(S.up);
+  return !giftOf(S.up) && g.id !== S.noBack;
 }
-async function runDraw(noFam){
-  const ids = playing().map(p => p.id);
-  if(ids.length < 3) return toast("Need at least 3 people playing");
-  const m = makePairs(ids, noFam);
-  if(!m){
-    toast("Couldn't keep everyone off their own family — one family is more than half the players.", 5000);
-    const sh = openSheet(`<h3>That rule won't fit</h3><p class="muted small">One family is too big to keep everyone away from their own people. You can draw without that rule instead.</p>
-      <div class="acts"><button class="btn ghost" id="no">Cancel</button><button class="btn red" id="go">Draw without it</button></div>`);
-    sh.el.querySelector("#no").onclick = () => closeSheet();
-    sh.el.querySelector("#go").onclick = () => { closeSheet(); runDraw(false); };
-    return;
-  }
-  const pairs = Object.fromEntries(Object.keys(S.pairs || {}).map(k => [k, ""]));   // wipe any old ones
-  ids.forEach(g => { pairs[g] = scramble(g, m[g]); });
-  jingle(); showMine = false; famPeek = null; famOpen = false;
-  await save({ state:"drawn", pairs, noSameFamily:noFam });
-  toast("Names drawn! Have a peek 🎅");
+
+/* ---------- every turn goes through here, so it can be undone ---------- */
+const snap = () => ({ order:S.order, gifts:S.gifts, up:S.up, next:S.next, noBack:S.noBack, final:S.final, state:S.state });
+function move(patch, line){
+  const hist = [...(S.hist || []), snap()].slice(-20);
+  const log  = [...(S.log || []), { at:Date.now(), text:line }].slice(-80);
+  return save({ ...patch, hist, log });
 }
-async function drawClick(again){
-  if(!(await askPin(again ? "Drawing again changes everyone's person." : "Only an organiser can draw the names."))) return;
-  if(!again) return runDraw(S.noSameFamily !== false);
-  const sh = openSheet(`<h3>Draw again?</h3><p class="muted small">Everyone gets a <b>new person</b>. Anyone who has already peeked will have the wrong one, so tell the family.</p>
-    <div class="acts"><button class="btn ghost" id="no">Keep as is</button><button class="btn red" id="go">Draw again</button></div>`);
-  sh.el.querySelector("#no").onclick = () => closeSheet();
-  sh.el.querySelector("#go").onclick = () => { closeSheet(); runDraw(S.noSameFamily !== false); };
+/* After a gift is opened (or someone is skipped), the next person in the order is up — or the game ends. */
+function nextUp(order, next, gifts){
+  if(next < order.length) return { up:order[next], next:next + 1, noBack:"", final:false };
+  const first = order[0];
+  const swappable = S.finalSwap !== false && order.length > 1 &&
+    gifts.some(g => g.holder !== first && g.steals < (S.maxSteals || 3));
+  if(swappable) return { up:first, next, noBack:"", final:true };
+  return { up:"", next, noBack:"", final:false, state:"done" };
 }
-async function backToSignup(){
-  if(!(await askPin("This clears everyone's person."))) return;
-  const sh = openSheet(`<h3>Back to sign-up?</h3><p class="muted small">This <b>throws away the draw</b>. You can draw fresh once everyone's in.</p>
+
+/* ---------- organiser: start, redraw, reset ---------- */
+async function start(){
+  if(!(await askPin("Only an organiser starts the game."))) return;
+  const ids = players().map(p => p.id);
+  if(ids.length < 3) return toast("Need at least 3 people in");
+  const order = shuffle(ids);
+  jingle();
+  await save({ state:"playing", order, gifts:[], up:order[0], next:1, noBack:"", final:false, hist:[],
+    log:[{ at:Date.now(), text:`Game on! ${ids.length} gifts on the pile. ${pname(order[0])} goes first.` }] });
+}
+async function redraw(){
+  if(!(await askPin("Only an organiser redraws the order."))) return;
+  const order = shuffle(S.order); jingle();
+  await save({ order, up:order[0], next:1, noBack:"", final:false, hist:[],
+    log:[{ at:Date.now(), text:`New order drawn. ${pname(order[0])} goes first.` }] });
+}
+async function reset(){
+  if(!(await askPin("This clears the game."))) return;
+  const sh = openSheet(`<h3>Back to sign-up?</h3><p class="muted small">This <b>throws away the game</b> — the order and who has what. Who's in stays as it is.</p>
     <div class="acts"><button class="btn ghost" id="no">Cancel</button><button class="btn red" id="go">Back to sign-up</button></div>`);
   sh.el.querySelector("#no").onclick = () => closeSheet();
-  sh.el.querySelector("#go").onclick = async () => {
-    closeSheet(); showMine = false; famPeek = null; famOpen = false;
-    await save({ state:"open", pairs:Object.fromEntries(Object.keys(S.pairs || {}).map(k => [k, ""])) });
+  sh.el.querySelector("#go").onclick = () => { closeSheet();
+    save({ state:"open", order:[], gifts:[], up:"", next:0, noBack:"", final:false, log:[], hist:[] }); };
+}
+function undo(){
+  const h = S.hist || []; if(!h.length) return toast("Nothing to undo");
+  const last = h[h.length - 1];
+  const sh = openSheet(`<h3>Undo the last move?</h3><p class="muted small">${esc((S.log || []).slice(-1)[0]?.text || "")}</p>
+    <div class="acts"><button class="btn ghost" id="no">Cancel</button><button class="btn red" id="go">Undo it</button></div>`);
+  sh.el.querySelector("#no").onclick = () => closeSheet();
+  sh.el.querySelector("#go").onclick = () => { closeSheet();
+    save({ ...last, hist:h.slice(0, -1), log:[...(S.log || []), { at:Date.now(), text:"↩️ Last move undone" }].slice(-80) }); };
+}
+function addLate(){
+  const out = people().filter(p => !S.order.includes(p.id));
+  if(!out.length) return toast("Everyone's already in");
+  const sh = openSheet(`<h3>Someone's late?</h3><p class="muted small">They go on the end of the order. Put their gift on the pile.</p>
+    <div class="whos">${out.map(p => `<button class="who" data-id="${esc(p.id)}">${esc(p.label)}</button>`).join("")}</div>
+    <div class="acts"><button class="btn ghost" id="no">Done</button></div>`);
+  sh.el.querySelector("#no").onclick = () => closeSheet();
+  sh.el.querySelectorAll("[data-id]").forEach(b => b.onclick = () => {
+    const id = b.dataset.id; closeSheet();
+    move({ order:[...S.order, id], in:{ ...(S.in || {}), [id]:true } }, `${pname(id)} joined late — on the end of the order.`);
+  });
+}
+
+/* ---------- turns ---------- */
+function openGift(){
+  const who = S.up;
+  const sh = openSheet(`<h3>${esc(pname(who))} opens a gift 🎁</h3><p class="muted small">What was in it? Type it so everyone can see it on their phone. Leave it blank if you're in a rush.</p>
+    <label class="f" for="w">What is it?</label><input class="in" id="w" maxlength="60" placeholder="e.g. Blow-up flamingo">
+    <div class="acts"><button class="btn ghost" id="no">Cancel</button><button class="btn green" id="go">Opened it</button></div>`);
+  const q = s => sh.el.querySelector(s);
+  q("#no").onclick = () => closeSheet();
+  const go = () => {
+    if(S.up !== who || giftOf(who)) return closeSheet();          // someone else moved first
+    const what = q("#w").value.trim();
+    const gifts = [...S.gifts, { id:"g" + uid(), holder:who, what, steals:0 }];
+    closeSheet(); jingle();
+    move({ gifts, ...nextUp(S.order, S.next, gifts) }, `🎁 ${pname(who)} opened ${what ? `— ${what}` : "a gift"}.`);
+  };
+  q("#go").onclick = go;
+  q("#w").addEventListener("keydown", e => { if(e.key === "Enter") go(); });
+}
+function steal(id){
+  const g = S.gifts.find(x => x.id === id); if(!g || !canSteal(g)) return;
+  const who = S.up, from = g.holder, n = g.steals + 1, max = S.maxSteals || 3;
+  const swap = S.final, mine = giftOf(who);
+  const sh = openSheet(swap
+    ? `<h3>Swap?</h3><p>${esc(pname(who))} swaps their <b>${esc(giftName(mine))}</b> for ${esc(pname(from))}'s <b>${esc(giftName(g))}</b>. That ends the game.</p>
+       <div class="acts"><button class="btn ghost" id="no">Cancel</button><button class="btn red" id="go">Swap</button></div>`
+    : `<h3>Steal it?</h3><p>${esc(pname(who))} steals the <b>${esc(giftName(g))}</b> from ${esc(pname(from))}.</p>
+       <p class="muted small">${n >= max ? "That's its last steal — it's locked after this." : `Steal ${n} of ${max}.`} ${esc(pname(from))} goes next.</p>
+       <div class="acts"><button class="btn ghost" id="no">Cancel</button><button class="btn red" id="go">Steal it</button></div>`);
+  sh.el.querySelector("#no").onclick = () => closeSheet();
+  sh.el.querySelector("#go").onclick = () => {
+    closeSheet();
+    if(S.up !== who) return;
+    jingle();
+    if(swap){
+      const gifts = S.gifts.map(x => x.id === g.id ? { ...x, holder:who, steals:x.steals + 1 } : x.id === mine.id ? { ...x, holder:from } : x);
+      return move({ gifts, up:"", final:false, state:"done" }, `🔁 Last swap: ${pname(who)} took the ${giftName(g)} and gave ${pname(from)} the ${giftName(mine)}. That's a wrap!`);
+    }
+    const gifts = S.gifts.map(x => x.id === g.id ? { ...x, holder:who, steals:n } : x);
+    move({ gifts, up:from, noBack:g.id },
+      `😈 ${pname(who)} stole the ${giftName(g)} from ${pname(from)}.${n >= max ? " 🔒 It's locked now." : ""} ${pname(from)} goes again.`);
+  };
+}
+function keepMine(){
+  move({ up:"", final:false, state:"done" }, `${pname(S.up)} kept the ${giftName(giftOf(S.up))}. That's a wrap!`);
+}
+function skip(){
+  const who = S.up;
+  const sh = openSheet(`<h3>Skip ${esc(pname(who))}?</h3><p class="muted small">For someone who isn't here. They come out of the order. If their gift is on the pile it stays there for someone else to open.</p>
+    <div class="acts"><button class="btn ghost" id="no">Cancel</button><button class="btn red" id="go">Skip them</button></div>`);
+  sh.el.querySelector("#no").onclick = () => closeSheet();
+  sh.el.querySelector("#go").onclick = () => {
+    closeSheet(); if(S.up !== who) return;
+    const i = S.order.indexOf(who), order = S.order.filter(x => x !== who);
+    move({ order, ...nextUp(order, i, S.gifts) }, `${pname(who)} skipped — not here.`);
   };
 }
 
-/* ---------- who's playing ---------- */
-const setIn = (ids, val) => save({ in:{ ...(S.in || {}), ...Object.fromEntries(ids.map(i => [i, val])) } });
-
-/* ---------- sheets: rules and wish list ---------- */
+/* ---------- rules ---------- */
 async function editRules(){
   if(!(await askPin("Only organisers change the rules."))) return;
-  const open = S.state !== "drawn";
-  const sh = openSheet(`<h3>Santa rules</h3>
-    <label class="f" for="b">Spending limit</label><input class="in" id="b" value="${esc(S.budget)}">
-    <label class="f" for="r">Rules (optional)</label><input class="in" id="r" value="${esc(S.rules)}" placeholder="e.g. Something for the beach">
-    <label class="f" for="w">When do we swap?</label><input class="in" id="w" value="${esc(S.swapWhen)}">
-    ${open ? `<label class="chk"><input type="checkbox" id="nf" ${S.noSameFamily !== false ? "checked" : ""}> Nobody gets someone from their own family</label>` : ""}
+  const sh = openSheet(`<h3>Steal &amp; Grab rules</h3>
+    <label class="f" for="b">Spend (if you buy something)</label><input class="in" id="b" value="${esc(S.budget)}">
+    <label class="f" for="w">When do we play?</label><input class="in" id="w" value="${esc(S.swapWhen)}">
+    <label class="f" for="m">A gift locks after this many steals</label><input class="in" id="m" type="number" min="1" max="9" inputmode="numeric" value="${esc(S.maxSteals || 3)}">
+    <label class="chk"><input type="checkbox" id="fs" ${S.finalSwap !== false ? "checked" : ""}> Number 1 gets one last swap at the end</label>
     <div class="acts"><button class="btn ghost" id="no">Cancel</button><button class="btn green" id="go">Save</button></div>`);
   const q = s => sh.el.querySelector(s);
   q("#no").onclick = () => closeSheet();
   q("#go").onclick = () => {
-    const v = { budget:q("#b").value.trim(), rules:q("#r").value.trim(), swapWhen:q("#w").value.trim() };
-    if(open) v.noSameFamily = q("#nf").checked;
-    closeSheet(); save(v);
-  };
-}
-function editWish(){
-  const w = wishOf(me.id) || {};
-  const sh = openSheet(`<h3>My wish list</h3><p class="muted small">Only your Santa sees this — well, anyone who's buying for you.</p>
-    <label class="f" for="t">Things I'd love</label><textarea class="in" id="t" placeholder="Beach towel, a good book, lollies…">${esc(w.text)}</textarea>
-    <label class="f" for="s">Sizes (if clothes)</label><input class="in" id="s" value="${esc(w.sizes)}">
-    <label class="f" for="n">Please no…</label><input class="in" id="n" value="${esc(w.no)}" placeholder="e.g. no chocolate, no candles">
-    <div class="acts"><button class="btn ghost" id="no">Cancel</button><button class="btn green" id="go">Save</button></div>`);
-  const q = s => sh.el.querySelector(s);
-  q("#no").onclick = () => closeSheet();
-  q("#go").onclick = async () => {
-    const v = { text:q("#t").value.trim(), sizes:q("#s").value.trim(), no:q("#n").value.trim() };
-    const first = !wishOf(me.id);
-    closeSheet(); if(first) celebrate("wish");
-    try{ await col("wishes").set(me.id, v); }catch(e){ toast("Couldn't save — " + e.message); }
+    const m = Math.max(1, Math.min(9, parseInt(q("#m").value, 10) || 3));
+    closeSheet();
+    save({ budget:q("#b").value.trim(), swapWhen:q("#w").value.trim(), maxSteals:m, finalSwap:q("#fs").checked });
   };
 }
 
 /* ---------- painting ---------- */
-const wishBlock = w => w && (w.text || w.sizes || w.no)
-  ? `<div class="wl">${esc(w.text || "No ideas yet")}${w.sizes ? `<small>Sizes</small>${esc(w.sizes)}` : ""}${w.no ? `<small>Please no</small>${esc(w.no)}` : ""}</div>`
-  : `<div class="wl muted">No wish list yet — keep it thoughtful, or ask them.</div>`;
+const rulesCard = () => `<div class="card">
+  <ol class="rules">
+    <li><b>Bring one wrapped gift.</b> It's not for anyone in particular — anyone could end up with it, so pick something most of the family would laugh at or use.</li>
+    <li><b>Funny, handy, homemade or free</b> all count. If you buy something, ${esc((S.budget || DEFAULT_BUDGET).replace(/^Up to/i, "keep it up to"))}.</li>
+    <li><b>It must be wrapped</b> so nobody can tell what it is. No names on it. Put it on the pile when you get there.</li>
+  </ol>
+  <h3 style="margin:14px 0 6px;font-size:15px">How it plays</h3>
+  <ol class="rules">
+    <li>The app draws the order.</li>
+    <li>Number 1 opens a gift from the pile.</li>
+    <li>Everyone after that either <b>opens a new gift</b> or <b>steals one that's already open</b>.</li>
+    <li>Had yours stolen? You go again — steal a different one or open a new one. No stealing straight back.</li>
+    <li>A gift is <b>locked after ${esc(S.maxSteals || 3)} steals</b> and stays where it is.</li>
+    ${S.finalSwap !== false ? `<li>Once everyone's had a go, number 1 gets one last swap.</li>` : ""}
+  </ol></div>`;
 
-function gift(key, giver, heading){
-  const on = key === "mine" ? showMine : famOpen && famPeek === giver;
-  if(!on) return `<button class="gift" data-gift="${esc(key)}" data-giver="${esc(giver)}" aria-label="Tap to peek"><span class="t">${esc(heading)}</span><span class="e">🎁</span><span class="p">Tap to peek</span></button>`;
-  const rid = receiverOf(giver), r = person(rid), h = household(r.hh);
-  return `<div class="gift open" role="button" tabindex="0" data-gift="${esc(key)}" data-giver="${esc(giver)}"><span class="t">${esc(heading)}</span>
-    <span class="nm">${esc(pname(rid))}</span><span class="fam">${badge(r.hh)} Family: ${esc(h.name)}</span>${wishBlock(wishOf(rid))}
-    <span class="hint">Tap to hide</span></div>`;
+const factsCard = () => `<div class="card"><div class="facts">
+    <div><small>Spend</small><span>${esc(S.budget || "—")} — free or homemade is fine</span></div>
+    <div><small>When</small><span>${esc(S.swapWhen || "—")}</span></div>
+    <div><small>Locks</small><span>After ${esc(S.maxSteals || 3)} steals</span></div></div>
+    <p style="margin:10px 0 0"><button class="btn small ghost" data-act="rules">Change (organiser)</button></p></div>`;
+
+const ideaCard = () => `<div class="card"><p class="muted small" style="margin:0">Stuck? Try…</p>
+    <p class="idea">${esc(IDEAS[idea < 0 ? 0 : idea])}</p>
+    <button class="btn small" data-act="idea">🎲 Another idea</button>
+    <p class="muted small" style="margin:12px 0 0">Wrap it in newspaper, a tea towel or a box inside a box — whatever keeps them guessing.</p></div>`;
+
+const steals = g => { const max = S.maxSteals || 3; return "●".repeat(Math.min(g.steals, max)) + "○".repeat(Math.max(0, max - g.steals)); };
+function giftTile(g){
+  const can = canSteal(g), lk = locked(g), back = S.state === "playing" && g.id === S.noBack && !S.final;
+  const cls = ["g", can ? "can" : "", lk ? "lock" : "", g.holder === me.id ? "mine" : "", back ? "back" : ""].filter(Boolean).join(" ");
+  const tag = can ? "button" : "div";
+  return `<${tag} class="${cls}"${can ? ` data-steal="${esc(g.id)}"` : ""}><span class="w">${esc(giftName(g))}</span>
+    <span class="h">${badge(g.holder)} ${esc(pname(g.holder))}</span>
+    <span class="s">${lk ? "Locked" : back ? "Can't steal straight back" : "Steals " + steals(g)}</span></${tag}>`;
 }
+
+function upCard(){
+  const who = S.up, name = esc(pname(who)), pos = S.order.indexOf(who) + 1;
+  if(S.final){
+    const mine = giftOf(who);
+    return `<div class="card big"><p class="n">Last swap · Number 1</p><h2>${name}</h2>
+      <p>You've got the <b>${esc(giftName(mine))}</b>. Keep it, or tap any gift that isn't locked to swap.</p>
+      <button class="bigbtn" data-act="keep">Keep mine</button></div>`;
+  }
+  const robbed = !!S.noBack, lost = robbed && S.gifts.find(g => g.id === S.noBack);
+  return `<div class="card big"><p class="n">${robbed ? "Stolen from — go again" : `Number ${pos} of ${S.order.length}`}</p><h2>${name}'s turn</h2>
+    ${robbed ? `<p>Lost the <b>${esc(giftName(lost))}</b>! Steal a different one, or open a new one.</p>` : `<p>Open a new gift, or tap an open gift below to steal it.</p>`}
+    <button class="bigbtn red" data-act="open">🎁 Open a wrapped gift</button>
+    ${robbed ? "" : `<p style="margin:12px 0 0"><button class="btn small ghost" data-act="skip">Not here? Skip ${name}</button></p>`}</div>`;
+}
+
+function orderCard(){
+  const upAt = S.order.indexOf(S.up);
+  return `<div class="card"><ol class="order">${S.order.map((id, i) => {
+    const g = giftOf(id), cls = id === S.up ? "up" : (S.state === "done" || i < S.next) ? "done" : "";
+    return `<li class="${cls}"><span class="num">${i + 1}</span>${badge(id)}<span class="nm">${esc(pname(id))}${id === me.id ? " (you)" : ""}</span>
+      <span class="has">${g ? esc(giftName(g)) : id === S.up ? "up now" : i < S.next ? "—" : "waiting"}</span></li>`;
+  }).join("")}</ol></div>`;
+}
+
+const logCard = () => (S.log || []).length
+  ? `<div class="card"><ul class="log">${[...S.log].reverse().slice(0, 12).map(l => `<li>${esc(l.text)}</li>`).join("")}</ul></div>` : "";
 
 function paint(){
   if(!loaded) return;
-  const drawn = S.state === "drawn", n = playing().length;
-  $("sub").textContent = drawn ? "The names are drawn" : `${n} playing`;
-  const facts = `<div class="card"><div class="facts">
-      <div><small>Spend</small><span>${esc(S.budget || "—")}</span></div>
-      ${S.rules ? `<div><small>Rules</small><span>${esc(S.rules)}</span></div>` : ""}
-      <div><small>Swap</small><span>${esc(S.swapWhen || "—")}</span></div></div>
-      <p style="margin:10px 0 0"><button class="btn small ghost" data-act="rules">Change (organiser)</button></p></div>`;
-  const w = wishOf(me.id);
-  const myWish = `<div class="card"><b>My wish list</b>${wishBlock(w)}<p style="margin:10px 0 0"><button class="btn small" data-act="wish">${w ? "Edit my wish list" : "Add my wish list"}</button></p></div>`;
+  const st = S.state === "playing" || S.state === "done" ? S.state : "open";
   let h = "";
-  if(!drawn){
-    const amIn = !!(S.in && S.in[me.id]);
-    h += `<div class="card big"><h2>Are you in?</h2><p class="n">${n} playing</p>
-      <button class="bigbtn" id="meToggle" aria-pressed="${amIn}" data-act="me">${amIn ? "I'm in 🎅 (tap to leave)" : "Count me in"}</button></div>`;
-    h += facts + `<h2 class="sec">My wish list</h2>` + myWish;
-    h += `<h2 class="sec">Who's playing</h2><p class="muted small" style="margin:-4px 2px 10px">Kids and grandparents not on the site? Tick them in here.</p>`;
+  if(st === "open"){
+    const n = players().length, amIn = !!(S.in && S.in[me.id]);
+    $("sub").textContent = `${n} bringing a gift`;
+    h += `<div class="card big"><h2>Are you in?</h2><p class="n">${n} bringing a gift</p>
+      <button class="bigbtn" aria-pressed="${amIn}" data-act="me">${amIn ? "I'm bringing a gift 🎁 (tap to leave)" : "Count me in"}</button></div>`;
+    h += `<h2 class="sec">How it works</h2>` + rulesCard() + factsCard();
+    h += `<h2 class="sec">Gift ideas</h2>` + ideaCard();
+    h += `<h2 class="sec">Who's in</h2><p class="muted small" style="margin:-4px 2px 10px">Kids and grandparents not on the site? Tick them in here. Everyone ticked brings one gift.</p>`;
     households().forEach(hh => {
       const ms = hh.members, inN = ms.filter(p => S.in && S.in[p.id]).length, all = inN === ms.length;
       h += `<div class="card"><div class="hhhead">${badge(hh.id)}<b>${esc(hh.name)}</b>
         <button class="btn small ${all ? "ghost" : "green"}" data-act="fam" data-hh="${esc(hh.id)}" data-all="${all}">${all ? "Everyone out" : "Whole family in"}</button></div>
         <div class="whos">${ms.map(p => `<button class="who" data-act="who" data-id="${esc(p.id)}" aria-pressed="${!!(S.in && S.in[p.id])}">${esc(p.label)}</button>`).join("")}</div></div>`;
     });
-    h += `<h2 class="sec">Organiser</h2><div class="card"><p class="muted small" style="margin-top:0">Once everyone's in, draw the names. Needs at least 3 players.${S.noSameFamily !== false ? " Nobody will get someone from their own family." : ""}</p>
-      <button class="btn red wide" data-act="draw">🎅 Draw the names</button></div>`;
-  } else {
-    const mine = receiverOf(me.id);
-    if(mine) h += gift("mine", me.id, "You're buying for…");
-    else h += `<div class="card big"><h2>You're not in the draw</h2><p class="muted" style="margin:0">That's okay — you joined after the names were drawn. Ask an organiser if you'd like to be added.</p></div>`;
-    h += facts;
-    const fam = household(me.hh).members.filter(p => p.id !== me.id && receiverOf(p.id));
-    if(fam.length){
-      h += `<h2 class="sec">Peek for someone in my family</h2><div class="card"><p class="muted small" style="margin-top:0">Sharing a phone, or they're not on the site? Pick them, then tap the gift.</p>
-        <div class="whos">${fam.map(p => `<button class="who" data-act="pick" data-id="${esc(p.id)}" aria-pressed="${famPeek === p.id}">${esc(p.label)}</button>`).join("")}</div></div>`;
-      if(famPeek && fam.some(p => p.id === famPeek)) h += gift("fam", famPeek, `${pname(famPeek)} is buying for…`);
-    }
-    h += `<h2 class="sec">My wish list</h2>` + myWish;
-    h += `<h2 class="sec">Organiser</h2><div class="card"><p class="muted small" style="margin-top:0">${n} playing.</p>
-      <div class="row"><button class="btn ghost" data-act="again">Draw again</button><button class="btn ghost" data-act="back">Back to sign-up</button></div></div>`;
+    h += `<h2 class="sec">Organiser</h2><div class="card"><p class="muted small" style="margin-top:0">On the day, once everyone's sitting down and the gifts are on the pile, start the game. It draws the order. Needs at least 3 people in.</p>
+      <button class="btn red wide" data-act="start">🎁 Start the game</button></div>`;
+  }
+  else if(st === "playing"){
+    $("sub").textContent = S.final ? "Last swap" : `${wrapped()} still wrapped`;
+    h += upCard();
+    h += `<div class="card"><div class="pile"><span class="e">🎁</span><span><b>${wrapped()}</b> still wrapped on the pile</span></div></div>`;
+    h += `<h2 class="sec">Opened so far</h2>` + (S.gifts.length ? `<div class="gifts">${S.gifts.map(giftTile).join("")}</div>` : `<div class="empty">Nothing opened yet.</div>`);
+    h += `<h2 class="sec">The order</h2>` + orderCard();
+    h += `<h2 class="sec">What's happened</h2>` + logCard();
+    h += `<h2 class="sec">Fix-ups</h2><div class="card"><p class="muted small" style="margin-top:0">Best run on one phone — everyone else can watch along on theirs. Tapped the wrong thing? Undo it.</p>
+      <div class="row"><button class="btn ghost" data-act="undo">↩️ Undo last move</button>${S.final ? "" : `<button class="btn ghost" data-act="late">Someone's late</button>`}</div>
+      <p style="margin:10px 0 0" class="row">${!S.gifts.length && !(S.hist || []).length ? `<button class="btn small ghost" data-act="redraw">Redraw the order</button>` : ""}<button class="btn small ghost" data-act="reset">Back to sign-up (organiser)</button></p></div>`;
+  }
+  else {
+    const mine = giftOf(me.id);
+    $("sub").textContent = "That's a wrap";
+    h += `<div class="card big">${mine ? `<p class="n">You took home</p><p class="took">${esc(giftName(mine))}</p>` : `<h2>That's a wrap!</h2><p class="muted" style="margin:0">Here's who went home with what.</p>`}</div>`;
+    h += `<h2 class="sec">Who got what</h2><div class="gifts">${S.gifts.map(giftTile).join("")}</div>`;
+    h += `<h2 class="sec">How it went</h2>` + logCard();
+    h += `<h2 class="sec">Organiser</h2><div class="card"><div class="row"><button class="btn ghost" data-act="undo">↩️ Undo last move</button><button class="btn ghost" data-act="reset">Back to sign-up</button></div></div>`;
   }
   $("app").innerHTML = h;
 }
 
+/* ---------- taps ---------- */
+const setIn = (ids, val) => save({ in:{ ...(S.in || {}), ...Object.fromEntries(ids.map(i => [i, val])) } });
 $("app").addEventListener("click", e => {
-  const g = e.target.closest("[data-gift]");
-  if(g){
-    if(g.dataset.gift === "mine") showMine = !showMine; else famOpen = !famOpen;
-    return paint();
-  }
+  const g = e.target.closest("[data-steal]"); if(g) return steal(g.dataset.steal);
   const b = e.target.closest("[data-act]"); if(!b) return;
   const a = b.dataset.act;
-  if(a === "me"){ const v = b.getAttribute("aria-pressed") !== "true"; if(v){ celebrate("santa"); } setIn([me.id], v); }
+  if(a === "me"){ const v = b.getAttribute("aria-pressed") !== "true"; if(v) celebrate("santa"); setIn([me.id], v); }
   else if(a === "who"){ const v = b.getAttribute("aria-pressed") !== "true"; if(v && b.dataset.id === me.id) celebrate("santa"); setIn([b.dataset.id], v); }
   else if(a === "fam"){
     const v = b.dataset.all !== "true", ids = household(b.dataset.hh).members.map(p => p.id);
     if(v && ids.includes(me.id) && !(S.in && S.in[me.id])) celebrate("santa");
     setIn(ids, v);
   }
-  else if(a === "pick"){ famPeek = famPeek === b.dataset.id ? null : b.dataset.id; famOpen = false; paint(); }
+  else if(a === "idea"){ let n; do{ n = Math.floor(Math.random() * IDEAS.length); }while(n === idea && IDEAS.length > 1); idea = n; paint(); }
   else if(a === "rules") editRules();
-  else if(a === "wish") editWish();
-  else if(a === "draw") drawClick(false);
-  else if(a === "again") drawClick(true);
-  else if(a === "back") backToSignup();
+  else if(a === "start") start();
+  else if(a === "redraw") redraw();
+  else if(a === "reset") reset();
+  else if(a === "open") openGift();
+  else if(a === "keep") keepMine();
+  else if(a === "skip") skip();
+  else if(a === "undo") undo();
+  else if(a === "late") addLate();
 });
-$("app").addEventListener("keydown", e => { if((e.key === "Enter" || e.key === " ") && e.target.matches(".gift.open")){ e.preventDefault(); e.target.click(); } });
-// hide anything revealed when the phone is put down
-document.addEventListener("visibilitychange", () => { if(document.hidden && (showMine || famOpen)){ showMine = false; famOpen = false; paint(); } });
 
+idea = Math.floor(Math.random() * IDEAS.length);
 onPeople(paint);
-settings("santa").subscribe(s => { S = { ...DEFAULTS, ...(s || {}) }; S.in = S.in || {}; S.pairs = S.pairs || {}; loaded = true; paint(); });
-col("wishes").subscribe(r => { wishes = r; paint(); });
+settings("santa").subscribe(s => {
+  S = { ...DEFAULTS, ...(s || {}) };
+  if(!s || !s.budget || s.budget === "$20–25") S.budget = DEFAULT_BUDGET;       // the old Secret Santa limit
+  ["order", "gifts", "log", "hist"].forEach(k => { if(!Array.isArray(S[k])) S[k] = []; });
+  S.in = S.in || {};
+  loaded = true; paint();
+});
 }
 </script>
 </body>

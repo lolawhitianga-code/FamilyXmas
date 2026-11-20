@@ -59,7 +59,7 @@
   </div>
   <div id="days"><div class="empty">Loading…</div></div>
   <button class="fab" id="add" aria-label="Add">+</button>
-  <p class="buildstamp">build x30</p>
+  <p class="buildstamp">build x31</p>
 </main>
 <script type="module">
 import { boot, me, col, watchTrip, heroFromWall, tripDays, tripDayToday, fmtDay, todayIso, XMAS_DAY, SLOTS, households, household, onPeople,
@@ -163,7 +163,7 @@ const paintItin = () => {
     const adds = fresh.filter(x => !x.was), chg = fresh.filter(x => x.was);
     $("itinTitle").textContent = "Itinerary update";
     $("itinText").textContent = "The family itinerary has been updated: " +
-      [chg.length ? `${chg.length} change${chg.length === 1 ? "" : "s"} (new organisers and times)` : "", adds.length ? `${adds.length} new thing${adds.length === 1 ? "" : "s"}` : ""].filter(Boolean).join(" and ") +
+      [chg.length ? `${chg.length} change${chg.length === 1 ? "" : "s"} (new wording, organisers and times)` : "", adds.length ? `${adds.length} new thing${adds.length === 1 ? "" : "s"}` : ""].filter(Boolean).join(" and ") +
       ". Anything someone has already edited by hand is left alone.";
     $("itinGo").textContent = "Apply the update";
   }
