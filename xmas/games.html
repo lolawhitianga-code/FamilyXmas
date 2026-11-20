@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12303B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Family Xmas">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Tournaments · Christmas at Bateau Bay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+<style>
+.tog{display:flex;gap:8px;margin-bottom:12px}
+.tog .chip{flex:1;justify-content:center;padding:9px 11px;font-weight:600}
+.lrow{padding:8px 0;border-top:1px dashed var(--line)}
+.lrow:first-child{border-top:0}
+.lrow .top2{display:flex;align-items:center;gap:8px;font-size:14.5px}
+.lrow .pos{font-family:'Fraunces',serif;font-weight:900;font-size:19px;width:26px;text-align:center;color:var(--gold);flex:none}
+.lrow .nm{flex:1;min-width:0;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lrow.me .nm{font-weight:700}
+.lrow .pt{font-family:'DM Mono',monospace;font-size:13px;flex:none}
+.bar{height:9px;border-radius:6px;background:var(--sand-deep);margin:6px 0 0 34px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:6px;transition:width .4s}
+.rule{font-size:12.5px;color:var(--ink-soft);margin:10px 0 0}
+.ev h3{font-family:'Fraunces',serif;font-size:19px;margin:0 0 3px}
+.ev .meta{font-size:13.5px;color:var(--ink-soft)}
+.ev .acts2{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.place{display:flex;gap:8px;align-items:center;padding:3px 0;font-size:14.5px}
+.place .m{font-size:20px;width:26px;text-align:center;flex:none}
+.place small{color:var(--ink-soft)}
+.chips2{display:flex;flex-wrap:wrap;gap:7px;margin:4px 0 2px}
+.emo{font-size:22px;width:50px;height:46px;justify-content:center;padding:0}
+.slot{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:10px 12px;margin-bottom:7px;font-size:15px;min-height:46px}
+.slot.on{border-color:var(--sea);box-shadow:0 0 0 3px rgba(26,165,184,.18)}
+.slot b{flex:none;font-size:20px}
+.slot span{flex:1;min-width:0}
+.pk{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 12px;margin-bottom:6px;font-size:15px;min-height:44px}
+.pk.sel{background:var(--ink);color:var(--sand);border-color:var(--ink)}
+.hhl{font-family:'DM Mono',monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin:10px 0 5px}
+.tf{background:#fff;border:1.5px dashed var(--line);border-radius:12px;padding:10px 12px;margin-top:8px}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="back" href="home.html">← Home</a>
+  <p class="eyebrow">Bragging rights</p>
+  <h1 class="wordmark">Tournaments</h1>
+  <p class="sub" id="sub">&nbsp;</p>
+</header>
+
+<main>
+  <h2 class="sec">Ladder</h2>
+  <div class="card">
+    <div class="tog" id="tog">
+      <button class="chip on" data-v="fam" aria-pressed="true">🏠 Family ladder</button>
+      <button class="chip" data-v="ppl" aria-pressed="false">🙋 People ladder</button>
+    </div>
+    <div id="ladder"></div>
+    <p class="rule">1st = 5 points, 2nd = 3, 3rd = 1. Team events: every member scores for themselves, and their family gets the points once.</p>
+  </div>
+
+  <h2 class="sec">Coming up</h2>
+  <div id="up"></div>
+
+  <h2 class="sec">Results</h2>
+  <div id="done"></div>
+
+  <p class="buildstamp">build x30</p>
+</main>
+<button class="fab" id="add" aria-label="Add event">+</button>
+
+<script type="module">
+import { boot, me, col, watchTrip, tripDays, fmtDay, fmtLong, fromIso, todayIso, heroFromWall,
+         households, people, household, person, onPeople, pname, badge, esc, celebrate, toast,
+         openSheet, closeSheet } from "./app.js";
+
+if(boot("games.html")){
+const $ = id => document.getElementById(id);
+heroFromWall();
+
+const PTS = { 1:5, 2:3, 3:1 }, MEDAL = { 1:"🥇", 2:"🥈", 3:"🥉" }, ORD = { 1:"1st", 2:"2nd", 3:"3rd" };
+const EMOJIS = [["🏏","Beach cricket"],["🃏","Cards night"],["🥏","Bocce / finska"],["🏐","Volleyball"],["🏓","Table tennis"],["🎯","Darts"],["🏊","Pool comp"],["🧩","Quiz night"],["🎱",""]];
+const SIDES = { families:"Families", people:"People", teams:"Made-up teams" };
+const CLASSICS = [
+  { name:"Boxing Day beach cricket", emoji:"🏏", date:"2026-12-26", sides:"teams" },
+  { name:"500 / euchre night",       emoji:"🃏", date:"",           sides:"people" },
+  { name:"Bocce on the sand",        emoji:"🥏", date:"",           sides:"teams" },
+  { name:"Christmas quiz",           emoji:"🧩", date:"2026-12-25", sides:"families" }
+];
+
+let trip = null, events = [], view = "fam";
+const evCol = col("events");
+
+/* ----- scoring ----- */
+function membersOf(e, r){
+  if(e.sides === "teams"){ const t = (e.teams || []).find(t => t.name === r.side); return t ? t.members : []; }
+  return e.sides === "people" ? [r.side] : [];
+}
+function scores(){
+  const hh = {}, pp = {};
+  events.forEach(e => (e.results || []).forEach(r => {
+    const p = PTS[r.place] || 0; if(!p) return;
+    if(e.sides === "families"){ hh[r.side] = (hh[r.side] || 0) + p; return; }
+    const ms = membersOf(e, r), hs = new Set();
+    ms.forEach(id => { pp[id] = (pp[id] || 0) + p; hs.add(person(id).hh); });
+    hs.forEach(h => { if(h) hh[h] = (hh[h] || 0) + p; });
+  }));
+  return { hh, pp };
+}
+const sideName = (e, s) => e.sides === "families" ? household(s).name : e.sides === "people" ? pname(s) : s;
+const sideDot = (e, s) => e.sides === "teams" ? "" : badge(s);
+const teamLine = (e, s) => { const t = (e.teams || []).find(t => t.name === s); return t ? t.members.map(pname).join(", ") : ""; };
+
+/* ----- painting ----- */
+function paintLadder(){
+  const { hh, pp } = scores(), isF = view === "fam";
+  let rows = isF ? households().map(h => ({ id:h.id, nm:h.name, c:h.colour, pts:hh[h.id] || 0, mine:h.id === me.hh }))
+                 : people().map(p => ({ id:p.id, nm:p.label, c:p.colour, pts:pp[p.id] || 0, mine:p.id === me.id }));
+  rows = rows.filter(r => r.pts > 0).sort((a, b) => b.pts - a.pts || a.nm.localeCompare(b.nm));
+  if(!isF) rows = rows.slice(0, 20);
+  const max = rows.length ? rows[0].pts : 1;
+  $("ladder").innerHTML = rows.length ? rows.map((r, i) => `<div class="lrow ${r.mine ? "me" : ""}"><div class="top2">
+      <span class="pos">${i === 0 ? "👑" : i + 1}</span><span class="dot" style="background:${r.c}"></span>
+      <span class="nm">${esc(r.nm)}${r.mine ? " (you)" : ""}</span><span class="pt">${r.pts} pts</span></div>
+      <div class="bar"><i style="width:${Math.max(4, r.pts / max * 100)}%;background:${r.c}"></i></div></div>`).join("")
+    : `<div class="empty">Nobody's on the board yet. Log a result and the ladder starts.</div>`;
+  document.querySelectorAll("#tog .chip").forEach(b => { const on = b.dataset.v === view; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
+}
+const when = e => [e.date ? fmtDay(fromIso(e.date)) : "", e.time, e.where].filter(Boolean).map(esc).join(" · ");
+function card(e){
+  const done = e.status === "done";
+  const places = done ? [...(e.results || [])].sort((a, b) => a.place - b.place).map(r =>
+    `<div class="place"><span class="m">${MEDAL[r.place]}</span><div>${sideDot(e, r.side)} <b>${esc(sideName(e, r.side))}</b>${e.sides === "teams" ? `<br><small>${esc(teamLine(e, r.side))}</small>` : ""}</div></div>`).join("") : "";
+  return `<div class="tag ${done ? "gold" : "green"} ev" data-id="${e.id}">
+    <h3>${esc(e.emoji || "🎱")} ${esc(e.name)}</h3>
+    <div class="meta">${when(e) || "Day to be decided"} · <span class="pill">${SIDES[e.sides] || "Families"}</span></div>
+    ${e.note ? `<div class="small" style="margin-top:4px">${esc(e.note)}</div>` : ""}
+    ${places ? `<div style="margin-top:8px">${places}</div>` : ""}
+    <div class="acts2"><button class="btn small ${done ? "ghost" : "red"}" data-a="res">${done ? "Edit result" : "Log the result"}</button>
+      <button class="btn small ghost" data-a="edit">Edit event</button></div></div>`;
+}
+function paint(){
+  paintLadder();
+  const byDate = (a, b) => (a.date || "9999").localeCompare(b.date || "9999") || (a.time || "").localeCompare(b.time || "") || (a.createdAt || 0) - (b.createdAt || 0);
+  const up = events.filter(e => e.status !== "done").sort(byDate);
+  const dn = events.filter(e => e.status === "done").sort((a, b) => (b.date || "").localeCompare(a.date || "") || (b.createdAt || 0) - (a.createdAt || 0));
+  $("up").innerHTML = up.length ? up.map(card).join("") : events.length ? `<div class="empty">Nothing coming up. Tap + to add one.</div>`
+    : `<div class="card"><p style="margin:0 0 4px"><b>No events yet.</b> Start with a classic:</p><div class="chips2">${CLASSICS.map((c, i) => `<button class="chip" data-q="${i}">${c.emoji} ${esc(c.name)}</button>`).join("")}</div></div>`;
+  $("done").innerHTML = dn.length ? dn.map(card).join("") : `<div class="empty">No results yet.</div>`;
+  const n = events.length; $("sub").textContent = n ? `${n} event${n === 1 ? "" : "s"} · ${dn.length} done` : "Who's the family champion?";
+}
+watchTrip(t => { trip = t; });
+onPeople(paint);
+evCol.subscribe(r => { events = r; paint(); });
+
+$("tog").addEventListener("click", e => { const b = e.target.closest("[data-v]"); if(b){ view = b.dataset.v; paintLadder(); } });
+$("add").onclick = () => eventSheet(null);
+document.querySelector("main").addEventListener("click", e => {
+  const q = e.target.closest("[data-q]"); if(q) return eventSheet(null, CLASSICS[+q.dataset.q]);
+  const b = e.target.closest("[data-a]"); if(!b) return;
+  const ev = events.find(x => x.id === b.closest("[data-id]").dataset.id); if(!ev) return;
+  b.dataset.a === "res" ? resultSheet(ev) : eventSheet(ev);
+});
+
+/* ----- add / edit event ----- */
+function eventSheet(ev, preset){
+  const v = ev || preset || { sides:"families" };
+  let emoji = v.emoji || "🎱", sides = v.sides || "families", lastPre = EMOJIS.find(x => x[0] === emoji)?.[1] || "";
+  const days = trip ? tripDays(trip) : [];
+  const sh = openSheet(`<h3>${ev ? "Edit event" : "Add an event"}</h3>
+    <label class="f">What sort?</label><div class="chips2" id="emo">${EMOJIS.map(x => `<button type="button" class="chip emo" data-e="${x[0]}" title="${esc(x[1] || "Other")}">${x[0]}</button>`).join("")}</div>
+    <label class="f" for="gn">Name</label><input class="in" id="gn" maxlength="60" value="${esc(v.name || "")}" placeholder="e.g. Boxing Day beach cricket">
+    <div class="row"><div><label class="f" for="gd">Day (optional)</label><select class="in" id="gd"><option value="">Not sure yet</option>${days.map(d => `<option value="${d.iso}" ${v.date === d.iso ? "selected" : ""}>${esc(fmtDay(d.date))}</option>`).join("")}</select></div>
+      <div><label class="f" for="gt">Time</label><input class="in" id="gt" type="time" value="${esc(v.time || "")}"></div></div>
+    <label class="f" for="gw">Where</label><input class="in" id="gw" maxlength="60" value="${esc(v.where || "")}" placeholder="e.g. On the beach out the front">
+    <label class="f">Who plays for what?</label><div class="chips2" id="sd">${Object.entries(SIDES).map(([k, l]) => `<button type="button" class="chip" data-s="${k}">${l}</button>`).join("")}</div>
+    <p class="muted small" id="sdh" style="margin:4px 0 0"></p>
+    <label class="f" for="gnote">Note</label><textarea class="in" id="gnote" maxlength="300" placeholder="Rules, what to bring…">${esc(v.note || "")}</textarea>
+    <div class="acts">${ev ? `<button class="btn ghost" id="gdel">Delete</button>` : ""}<button class="btn red" id="gsave">${ev ? "Save" : "Add event"}</button></div>`);
+  const el = sh.el, q = s => el.querySelector(s);
+  const hints = { families:"Each family plays as one. Points go to the family.", people:"Everyone for themselves. Points go to the person and their family.", teams:"You make up the teams when you log the result." };
+  const paintSel = () => {
+    el.querySelectorAll("[data-e]").forEach(b => b.classList.toggle("on", b.dataset.e === emoji));
+    el.querySelectorAll("[data-s]").forEach(b => b.classList.toggle("on", b.dataset.s === sides));
+    q("#sdh").textContent = hints[sides];
+  };
+  paintSel();
+  q("#emo").onclick = e => { const b = e.target.closest("[data-e]"); if(!b) return; emoji = b.dataset.e;
+    const pre = EMOJIS.find(x => x[0] === emoji)[1], nm = q("#gn");
+    if(pre && (!nm.value.trim() || nm.value === lastPre)) nm.value = pre; lastPre = pre || lastPre; paintSel(); };
+  q("#sd").onclick = e => { const b = e.target.closest("[data-s]"); if(b){ sides = b.dataset.s; paintSel(); } };
+  q("#gsave").onclick = async () => {
+    const name = q("#gn").value.trim(); if(!name) return toast("Give it a name");
+    const data = { name, emoji, date:q("#gd").value, time:q("#gt").value, where:q("#gw").value.trim(), note:q("#gnote").value.trim(), sides };
+    try{
+      if(ev){ if(ev.sides !== sides){ data.results = []; data.status = "upcoming"; if(sides !== "teams") data.teams = []; } await evCol.update(ev.id, data); closeSheet(); }
+      else { celebrate("activity"); closeSheet(); await evCol.add({ ...data, teams:[], status:"upcoming", results:[] }); }
+    }catch(err){ toast("Couldn't save — " + err.message); }
+  };
+  if(ev) q("#gdel").onclick = async function(){
+    if(!this.dataset.sure){ this.dataset.sure = 1; this.textContent = "Really delete?"; this.classList.add("red"); return; }
+    try{ await evCol.remove(ev.id); closeSheet(); }catch(err){ toast("Couldn't delete — " + err.message); }
+  };
+}
+
+/* ----- log the result ----- */
+function resultSheet(ev){
+  const slots = { 1:null, 2:null, 3:null };
+  (ev.results || []).forEach(r => { slots[r.place] = r.side; });
+  let active = 1, teams = (ev.teams || []).map(t => ({ name:t.name, members:[...t.members] })), tf = null, qs = "";
+  const sh = openSheet(`<h3>${esc(ev.emoji || "🎱")} ${esc(ev.name)}</h3><p class="muted small" style="margin:0 0 8px">Tap a place, then tap who got it.</p>
+    <div id="sl"></div><input class="in hide" id="qs" placeholder="Search names" autocomplete="off" style="margin:8px 0"><div id="op"></div>
+    <div class="acts"><button class="btn ghost" id="rno">Cancel</button><button class="btn red" id="rsave">Save result</button></div>`);
+  const el = sh.el, q = s => el.querySelector(s);
+  const label = s => s ? `${sideDot(ev, s)} ${esc(sideName(ev, s))}` : `<span class="muted">Tap, then choose</span>`;
+  const paintSlots = () => { q("#sl").innerHTML = [1, 2, 3].map(p => `<button class="slot ${active === p ? "on" : ""}" data-p="${p}"><b>${MEDAL[p]}</b><span>${label(slots[p])}</span>${slots[p] ? `<span class="muted small" style="flex:none" data-x="${p}">✕</span>` : ""}</button>`).join(""); };
+  const taken = s => Object.values(slots).includes(s);
+  const pk = (s, inner) => `<button class="pk ${taken(s) ? "sel" : ""}" data-s="${esc(s)}">${inner}</button>`;
+  const personList = (sel, filt) => households().map(h => {
+    const ms = h.members.filter(p => !filt || p.label.toLowerCase().includes(filt));
+    return ms.length ? `<div class="hhl">${badge(h.id)} ${esc(h.name)}</div>` + ms.map(p => sel(p)).join("") : "";
+  }).join("") || `<div class="empty">No one by that name</div>`;
+  function paintOpts(){
+    const f = qs.trim().toLowerCase(); let h = "";
+    q("#qs").classList.toggle("hide", !(ev.sides === "people" || tf));
+    if(tf){
+      h = `<div class="tf"><label class="f" style="margin-top:0" for="tn">Team name</label><input class="in" id="tn" maxlength="40" value="${esc(tf.name)}" placeholder="e.g. Sandy Bandits">
+        <label class="f">Who's in it? (${tf.members.size} picked)</label>` +
+        personList(p => `<button class="pk ${tf.members.has(p.id) ? "sel" : ""}" data-m="${p.id}">${badge(p.id)} ${esc(p.label)}</button>`, f) +
+        `<div class="acts"><button class="btn ghost" data-t="cancel">Cancel</button><button class="btn green" data-t="save">Add team</button></div></div>`;
+    } else if(ev.sides === "families"){
+      h = households().map(x => pk(x.id, `${badge(x.id)} ${esc(x.name)}`)).join("");
+    } else if(ev.sides === "people"){
+      h = personList(p => pk(p.id, `${badge(p.id)} ${esc(p.label)}`), f);
+    } else {
+      h = (teams.length ? teams.map(t => pk(t.name, `<span><b>${esc(t.name)}</b><br><small>${esc(t.members.map(pname).join(", "))}</small></span>`)).join("") : `<div class="empty">No teams yet. Make them here.</div>`) +
+        `<button class="btn ghost wide" data-t="new">+ Make a team</button>`;
+    }
+    q("#op").innerHTML = h;
+  }
+  paintSlots(); paintOpts();
+  q("#qs").addEventListener("input", e => { qs = e.target.value; paintOpts(); });
+  q("#sl").onclick = e => {
+    const x = e.target.closest("[data-x]"); if(x){ slots[x.dataset.x] = null; active = +x.dataset.x; return paintSlots(), paintOpts(); }
+    const b = e.target.closest("[data-p]"); if(b){ active = +b.dataset.p; paintSlots(); }
+  };
+  q("#op").addEventListener("input", e => { if(e.target.id === "tn") tf.name = e.target.value; });
+  q("#op").onclick = e => {
+    const t = e.target.closest("[data-t]");
+    if(t){
+      if(t.dataset.t === "new"){ tf = { name:"", members:new Set() }; }
+      else if(t.dataset.t === "cancel"){ tf = null; }
+      else {
+        const nm = tf.name.trim();
+        if(!nm) return toast("Name the team");
+        if(!tf.members.size) return toast("Pick at least one person");
+        if(teams.some(x => x.name.toLowerCase() === nm.toLowerCase())) return toast("There's already a team with that name");
+        teams.push({ name:nm, members:[...tf.members] }); tf = null;
+      }
+      qs = ""; q("#qs").value = ""; return paintOpts();
+    }
+    const m = e.target.closest("[data-m]");
+    if(m){ const id = m.dataset.m; tf.members.has(id) ? tf.members.delete(id) : tf.members.add(id); return paintOpts(); }
+    const s = e.target.closest("[data-s]"); if(!s) return;
+    const v = s.dataset.s;
+    for(const p of [1, 2, 3]) if(slots[p] === v) slots[p] = null;
+    slots[active] = v;
+    active = [1, 2, 3].find(p => !slots[p]) || active;
+    paintSlots(); paintOpts();
+  };
+  q("#rno").onclick = () => closeSheet();
+  q("#rsave").onclick = async () => {
+    if(tf) return toast("Finish or cancel the new team first");
+    const results = [1, 2, 3].filter(p => slots[p]).map(p => ({ side:slots[p], place:p }));
+    const used = new Set(results.map(r => r.side));
+    const keep = teams.filter(t => used.has(t.name) || (ev.teams || []).some(o => o.name === t.name));
+    const upd = { results, status: results.length ? "done" : "upcoming", teams: ev.sides === "teams" ? keep : [] };
+    if(results.length) celebrate("result");
+    const first = results.find(r => r.place === 1);
+    const won = first && (ev.sides === "families" ? first.side === me.hh
+      : (ev.sides === "people" ? [first.side] : (keep.find(t => t.name === first.side)?.members || [])).some(id => person(id).hh === me.hh));
+    closeSheet();
+    if(won && !(ev.results || []).some(r => r.place === 1 && r.side === first.side)) setTimeout(() => celebrate("champion"), 1800);
+    try{ await evCol.update(ev.id, upd); }catch(err){ toast("Couldn't save — " + err.message); }
+  };
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,223 @@
+/* ============================================================
+   Christmas at Bateau Bay — shared look for every page.
+   An Aussie beach Christmas: sea, sand, Santa red, gum green,
+   and a string of fairy lights along the bottom of the header.
+   ============================================================ */
+:root{
+  --ink:#12303B; --ink-soft:#3E5A63;
+  --sand:#FFF7EA; --sand-deep:#F7E8CF; --line:#EAD9BC;
+  --red:#D8352A; --green:#1F8A5B; --gold:#F2B33D; --sea:#1AA5B8; --coral:#FF7A59; --plum:#8E5BD0;
+  --shadow:0 2px 0 rgba(18,48,59,.08), 0 10px 26px -14px rgba(18,48,59,.45);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--sand);color:var(--ink);
+  font-family:'Outfit',system-ui,-apple-system,sans-serif;font-size:16px;line-height:1.45;
+  -webkit-font-smoothing:antialiased;padding-bottom:calc(78px + env(safe-area-inset-bottom));
+}
+a{color:inherit}
+button{font:inherit;color:inherit;cursor:pointer}
+input,select,textarea{font:inherit;color:inherit}
+.hide{display:none !important}
+
+/* ---------- header: dusk over the water, sun going down, lights strung along the bottom ---------- */
+.top{
+  position:relative;overflow:hidden;text-align:center;color:#fff;
+  padding:calc(30px + env(safe-area-inset-top)) 20px 50px;
+  background:
+    radial-gradient(120px 120px at 50% 86%, rgba(255,214,120,.95), rgba(255,170,80,.45) 45%, rgba(255,150,80,0) 72%),
+    linear-gradient(180deg, rgba(0,0,0,0) 78%, rgba(14,90,110,.75) 78%, rgba(10,60,80,.9) 100%),
+    linear-gradient(178deg,#12303B 0%,#27506A 34%,#C4576A 62%,#FF9A5A 80%);
+}
+.top.photo{
+  background:
+    linear-gradient(178deg, rgba(18,48,59,.60) 0%, rgba(39,80,106,.30) 42%, rgba(196,87,106,.22) 74%, rgba(255,154,90,.22) 100%),
+    var(--hero) center var(--hero-y, 35%) / cover no-repeat;
+}
+.top::before{   /* the wire */
+  content:'';position:absolute;left:-10px;right:-10px;bottom:13px;height:14px;
+  border-bottom:2px solid rgba(20,30,30,.75);border-radius:0 0 50% 50% / 0 0 100% 100%;
+}
+.top::after{    /* the bulbs */
+  content:'';position:absolute;left:0;right:0;bottom:3px;height:16px;
+  background:
+    radial-gradient(circle at 12px 8px, #FF4D3D 5px, transparent 6px) 0 0/96px 16px,
+    radial-gradient(circle at 36px 10px, #FFD23F 5px, transparent 6px) 0 0/96px 16px,
+    radial-gradient(circle at 60px 10px, #34C77B 5px, transparent 6px) 0 0/96px 16px,
+    radial-gradient(circle at 84px 8px, #3EC6E0 5px, transparent 6px) 0 0/96px 16px;
+  filter:drop-shadow(0 0 5px rgba(255,220,150,.9));
+  animation:twinkle 2.4s ease-in-out infinite;
+}
+@keyframes twinkle{50%{filter:drop-shadow(0 0 2px rgba(255,220,150,.45)) brightness(.82)}}
+.top .back{
+  position:absolute;left:12px;top:calc(12px + env(safe-area-inset-top));
+  font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  color:#fff;text-decoration:none;opacity:.9;padding:6px 10px;border-radius:999px;
+  background:rgba(18,48,59,.38);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+}
+.top:has(.back){padding-top:calc(50px + env(safe-area-inset-top))}
+.eyebrow{
+  font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.24em;text-transform:uppercase;
+  opacity:.85;margin:0 0 10px;text-shadow:0 1px 8px rgba(18,48,59,.7);
+}
+.wordmark{
+  font-family:'Fraunces',serif;font-weight:900;font-size:clamp(34px,10.5vw,60px);
+  line-height:.94;margin:0;font-variation-settings:'SOFT' 40,'WONK' 1;
+  text-shadow:0 2px 22px rgba(18,48,59,.6), 0 1px 3px rgba(18,48,59,.45);
+}
+.sub{
+  font-family:'DM Mono',monospace;font-size:13px;letter-spacing:.08em;margin:12px 0 0;opacity:.95;
+  text-shadow:0 1px 8px rgba(18,48,59,.7);
+}
+
+main{max-width:780px;margin:0 auto;padding:18px 14px 0}
+
+h2.sec{
+  font-family:'DM Mono',monospace;font-weight:500;font-size:11.5px;letter-spacing:.24em;
+  text-transform:uppercase;color:var(--ink-soft);margin:26px 0 11px 2px;
+}
+h2.sec:first-child{margin-top:4px}
+
+/* ---------- cards ---------- */
+.card{
+  background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);
+  padding:14px 15px;margin-bottom:12px;
+}
+.muted{color:var(--ink-soft);opacity:.8}
+.small{font-size:13px}
+.mono{font-family:'DM Mono',monospace}
+.empty{padding:24px 16px;text-align:center;color:var(--ink-soft);font-size:14px;opacity:.75}
+
+/* gift tag — the signature card for "who" and "what's on" */
+.tag{
+  position:relative;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);
+  padding:13px 15px 13px 30px;margin-bottom:12px;
+}
+.tag::before{   /* the punched hole */
+  content:'';position:absolute;left:10px;top:50%;width:11px;height:11px;margin-top:-6px;border-radius:50%;
+  background:var(--sand);border:1.5px solid var(--line);
+}
+.tag.red{border-left:5px solid var(--red)} .tag.green{border-left:5px solid var(--green)} .tag.gold{border-left:5px solid var(--gold)}
+
+/* small pill with a count or a state */
+.pill{display:inline-block;font-family:'DM Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  border-radius:999px;padding:3px 9px;background:var(--sand-deep);color:var(--ink-soft)}
+.pill.red{background:var(--red);color:#fff} .pill.green{background:var(--green);color:#fff} .pill.gold{background:var(--gold);color:var(--ink)}
+
+/* day picker strip used by pages that work day by day */
+.days{display:flex;gap:7px;overflow-x:auto;padding:2px 2px 10px;margin:0 -2px 6px;scrollbar-width:none}
+.days::-webkit-scrollbar{display:none}
+.days button{flex:none;border:1px solid var(--line);background:#fff;border-radius:12px;padding:7px 11px;text-align:center;min-width:54px}
+.days button b{display:block;font-family:'Fraunces',serif;font-size:19px;line-height:1.05}
+.days button span{font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft)}
+.days button.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.days button.on span{color:rgba(255,255,255,.75)}
+.days button.xmas b::after{content:' 🎄';font-size:12px}
+
+/* ---------- buttons ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  border:0;border-radius:12px;padding:11px 16px;font-weight:600;font-size:15px;
+  background:var(--ink);color:var(--sand);text-decoration:none;
+}
+.btn.red{background:var(--red);color:#fff}
+.btn.green{background:var(--green);color:#fff}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn.small{padding:7px 11px;font-size:13px;border-radius:10px}
+.btn.wide{width:100%}
+.btn:disabled{opacity:.5}
+.chip{
+  display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#fff;
+  border-radius:999px;padding:5px 11px;font-size:13px;text-decoration:none;color:var(--ink);
+}
+.chip.on{background:var(--ink);color:var(--sand);border-color:var(--ink)}
+.dot{width:12px;height:12px;border-radius:50%;display:inline-block;flex:none}
+.fab{
+  position:fixed;right:16px;bottom:calc(88px + env(safe-area-inset-bottom));z-index:45;
+  width:58px;height:58px;border-radius:50%;border:0;font-size:30px;line-height:1;
+  background:var(--red);color:#fff;box-shadow:0 10px 24px -8px rgba(150,30,20,.6);
+}
+
+/* ---------- forms ---------- */
+label.f{display:block;font-size:13px;color:var(--ink-soft);margin:10px 0 4px;font-weight:500}
+.in{
+  width:100%;border:1.5px solid var(--line);border-radius:11px;padding:10px 12px;background:#fff;
+  font-size:16px;
+}
+.in:focus{outline:none;border-color:var(--sea)}
+textarea.in{min-height:76px;resize:vertical}
+.row{display:flex;gap:10px}
+.row > *{flex:1;min-width:0}
+
+/* ---------- bottom sheet ---------- */
+.scrim{position:fixed;inset:0;background:rgba(18,48,59,.45);z-index:70}
+.sheet{
+  position:fixed;left:0;right:0;bottom:0;z-index:71;background:var(--sand);
+  border-radius:20px 20px 0 0;max-height:88vh;overflow:auto;
+  padding:16px 16px calc(20px + env(safe-area-inset-bottom));
+  max-width:640px;margin:0 auto;box-shadow:0 -12px 40px -10px rgba(18,48,59,.45);
+}
+.sheet h3{font-family:'Fraunces',serif;font-weight:700;font-size:22px;margin:4px 0 6px}
+.sheet .grab{width:44px;height:5px;border-radius:5px;background:var(--line);margin:0 auto 10px}
+.sheet .acts{display:flex;gap:10px;margin-top:16px}
+.sheet .acts .btn{flex:1}
+
+/* ---------- lightbox ---------- */
+.lightbox{position:fixed;inset:0;z-index:80;background:rgba(8,22,28,.93);display:grid;place-items:center;padding:16px}
+.lightbox img{max-width:100%;max-height:82vh;border-radius:10px}
+.lightbox p{color:#fff;text-align:center;margin:10px 0 0}
+
+/* ---------- bottom nav ---------- */
+.nav{
+  position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;
+  background:rgba(255,247,234,.96);border-top:1px solid var(--line);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.nav a{
+  flex:1;text-align:center;padding:8px 2px 9px;text-decoration:none;
+  font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-soft);
+}
+.nav b{display:block;font-size:18px;font-weight:400;line-height:1.3;margin-bottom:2px}
+.nav [aria-current="page"]{color:var(--ink);font-weight:500}
+.nav [aria-current="page"] b{transform:scale(1.12)}
+
+/* ---------- toast & banner ---------- */
+.toast{
+  position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateX(-50%);
+  z-index:95;background:var(--ink);color:var(--sand);border-radius:12px;padding:10px 16px;
+  font-size:14px;box-shadow:var(--shadow);max-width:90vw;text-align:center;
+}
+.banner{
+  background:#FFF1D0;border:1px solid var(--gold);border-radius:12px;padding:10px 12px;
+  font-size:13.5px;margin:0 0 14px;
+}
+
+.buildstamp{
+  text-align:center;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.2em;
+  color:var(--ink-soft);opacity:.45;margin:28px 0 8px;
+}
+@media (prefers-reduced-motion:reduce){ *{transition:none !important;animation:none !important} }
+/* the "can't reach" note shouldn't sit under cards that tuck into the header */
+.banner + *{margin-top:0 !important}
+
+/* photo pickers: the button IS a <label> around the file input, so the phone opens its own picker straight
+   from the tap. The input is hidden from view but not display:none, which some iPhones won't open. */
+.vh-file{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip:rect(0 0 0 0)}
+label.btn,label.fab{cursor:pointer;-webkit-tap-highlight-color:transparent;position:relative}
+label.fab{display:grid;place-items:center;position:fixed}
+
+/* Kay's big "add baby photos" box — the whole box is the photo picker */
+.dropzone{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;cursor:pointer;
+  border:3px dashed var(--sea);border-radius:18px;background:linear-gradient(160deg,#F0FBFD,#FFF0F5);padding:22px 16px;color:var(--ink);
+  -webkit-tap-highlight-color:transparent;position:relative}
+.dropzone:active{transform:scale(.98)}
+.dropzone .big{font-size:46px;line-height:1}
+.dropzone b{font-family:'Fraunces',serif;font-weight:900;font-size:24px;line-height:1.1}
+.dropzone .go{margin-top:6px;background:var(--red);color:#fff;font-weight:700;font-size:17px;border-radius:12px;padding:12px 22px;box-shadow:0 3px 0 #8E1F18}
+.dropzone small{color:var(--ink-soft);font-size:13px}
+.dropzone.busy{pointer-events:none;opacity:.75}
+.pokiefloat{transition:opacity .2s ease}
+.dz-in-view .pokiefloat{opacity:0;pointer-events:none}

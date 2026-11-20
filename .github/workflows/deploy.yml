@@ -1,4 +1,4 @@
-# Uploads this repo to the website (public_html/xmas) by FTP whenever main changes.
+# Uploads the xmas/ folder to the website (public_html/xmas) by FTP whenever main changes.
 # FTP login is kept in the repo's Actions secrets: FTP_SERVER, FTP_USERNAME, FTP_PASSWORD.
 # Only files that changed since the last upload are sent. Files on the site that
 # never came from this repo (whatever is already in xmas) are left alone.
@@ -27,11 +27,5 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           security: loose
+          local-dir: ./xmas/
           server-dir: ./xmas/
-          exclude: |
-            **/.git*
-            **/.git*/**
-            .github/**
-            README.md
-            CLAUDE.md
-            .claude/**

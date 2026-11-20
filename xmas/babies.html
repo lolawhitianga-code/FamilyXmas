@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12303B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Family Xmas">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Guess the Baby</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+<style>
+.intro{text-align:center}
+.intro b{display:block;font-family:'Fraunces',serif;font-size:21px;margin-bottom:2px}
+.prog{height:10px;border-radius:6px;background:var(--sand-deep);overflow:hidden;margin:10px 0 2px}
+.prog i{display:block;height:100%;background:var(--sea);border-radius:6px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.bb{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column}
+.bb .pic{position:relative;aspect-ratio:1/1;background:var(--sand-deep)}
+.bb .pic img{width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in}
+.bb .pic .no{position:absolute;left:8px;top:8px;background:rgba(18,48,59,.82);color:#fff;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;border-radius:999px;padding:3px 9px}
+.bb .pic .ok{position:absolute;right:8px;top:8px;background:var(--green);color:#fff;font-size:12px;font-weight:600;border-radius:999px;padding:3px 9px}
+.bb .body{padding:9px 10px 10px;display:flex;flex-direction:column;gap:6px;flex:1}
+.bb .mine{font-size:13px;color:var(--ink-soft)}.bb .mine b{color:var(--ink)}
+.bb .btn{width:100%}
+/* Kay's view */
+.kay .bb{grid-column:1 / -1;flex-direction:row}
+.kay .bb .pic{width:38%;flex:none;aspect-ratio:auto;min-height:150px}
+.kay .bb .body{min-width:0}
+.ans{display:flex;gap:6px}.ans .in{padding:8px 10px;font-size:15px}
+.gs{margin:0;padding:0;list-style:none;font-size:14px}
+.gs li{display:flex;align-items:center;gap:6px;padding:4px 0;border-top:1px dashed var(--line)}
+.gs li:first-child{border-top:0}
+.gs li .nm{color:var(--ink-soft);flex:none;max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gs li .g{flex:1;min-width:0;font-weight:600;overflow-wrap:anywhere}
+.gs li.right .g{color:var(--green)}
+.gs li.right .g::after{content:' ✓'}
+.lb .lbrow{display:flex;align-items:center;gap:9px;padding:7px 0;border-top:1px dashed var(--line)}
+.lb .lbrow:first-child{border-top:0}
+.lb .pos{font-family:'Fraunces',serif;font-weight:900;font-size:18px;width:24px;text-align:center;color:var(--gold)}
+.lb .nm{flex:1;min-width:0}
+.lb .pts{white-space:nowrap;font-family:'DM Mono',monospace;font-size:13px}
+.upl{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.who{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 14px}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="back" href="home.html">← Home</a>
+  <p class="eyebrow">Kay's competition</p>
+  <h1 class="wordmark">Guess the Baby</h1>
+  <p class="sub" id="sub">Who grew up to be this lot?</p>
+</header>
+<main>
+  <!-- Kay and the organisers -->
+  <div id="kayView" class="hide kay keep-top">
+    <label class="dropzone" id="pick"><span class="big">👶📷</span><b>Add baby photos</b>
+      <small>Tap here, then pick the photos from your phone. You can pick lots at once.</small>
+      <span class="go">Choose photos</span><small id="uplMsg"></small>
+      <input type="file" id="file" class="vh-file" accept="image/*" multiple></label>
+    <p class="small muted" style="margin:8px 4px 0">They're numbered in the order you add them. Under each photo, type who the baby really is so the site can tick the right guesses — nobody else sees the answers.</p>
+    <h2 class="sec">Who's guessing best</h2>
+    <div class="card lb" id="board"></div>
+    <h2 class="sec">The photos and the guesses</h2>
+    <div class="who" id="filters"></div>
+    <div class="grid" id="kayGrid"></div>
+  </div>
+
+  <!-- everyone else: guess -->
+  <div id="guessView">
+    <div class="card intro"><b>Whose baby photo is it?</b>
+      <span class="muted small">Tap a photo to make it bigger, type a name, and that's it. Only Kay and the organisers can see your guesses. The answers come out at Kay's photo booth on Christmas Eve.</span>
+      <div class="prog"><i id="progBar" style="width:0"></i></div><div class="small muted" id="progTxt"></div></div>
+    <div class="grid" id="guessGrid" style="margin-top:12px"></div>
+  </div>
+
+  <div id="orgBar" style="text-align:center;margin-top:22px"></div>
+  <p class="buildstamp">build x30</p>
+</main>
+<script type="module">
+import { boot, me, col, heroFromWall, esc, askPin, toast, lightbox, compressImage, pname, person, people, badge,
+         isKay, KAY, guessBaby, guessId, celebrate, addBabyPhotos } from "./app.js";
+if(boot("babies.html")){
+const $ = id => document.getElementById(id);
+heroFromWall();
+let babies = [], imgs = {}, guesses = [], answers = {}, armed = null, organiser = false, filter = "all";
+const canSee = () => isKay() || organiser;
+const sorted = () => [...babies].sort((a, b) => (a.n || 0) - (b.n || 0));
+/* does a guess match the answer? first names, case and spacing don't matter */
+const norm = x => String(x || "").toLowerCase().replace(/[^a-z ]/g, " ").replace(/\s+/g, " ").trim();
+const right = (guess, answer) => { const g = norm(guess), a = norm(answer); if(!g || !a) return false;
+  if(g === a || a.includes(g) && g.length >= 3 || g.includes(a)) return true;
+  // first names and nicknames: Gem/Gemma, Bren/Brendon, Georgie/Georgia, Holly/Holli
+  const x = g.split(" ")[0], y = a.split(" ")[0];
+  if(x.length >= 3 && y.length >= 3 && (x.startsWith(y) || y.startsWith(x))) return true;
+  let i = 0; while(i < x.length && x[i] === y[i]) i++;
+  return i >= 4; };
+
+function paintGuess(){
+  const xs = sorted(), mine = Object.fromEntries(guesses.filter(g => g.who === me.id).map(g => [g.photo, g.guess]));
+  const done = xs.filter(b => mine[b.id]).length;
+  $("progBar").style.width = xs.length ? Math.round(done / xs.length * 100) + "%" : "0";
+  $("progTxt").textContent = xs.length ? `You've guessed ${done} of ${xs.length}` : "";
+  $("guessGrid").innerHTML = xs.length ? xs.map(b => `<div class="bb"><div class="pic">${imgs[b.id] ? `<img src="${imgs[b.id]}" alt="Baby ${b.n}" data-zoom="${b.id}">` : ""}
+      <span class="no">No. ${b.n}</span>${mine[b.id] ? `<span class="ok">Guessed</span>` : ""}</div>
+      <div class="body">${mine[b.id] ? `<div class="mine">Your guess: <b>${esc(mine[b.id])}</b></div>` : `<div class="mine">Not guessed yet</div>`}
+      <button class="btn small ${mine[b.id] ? "ghost" : "red"}" data-guess="${b.id}">${mine[b.id] ? "Change guess" : "Guess"}</button></div></div>`).join("")
+    : `<div class="empty" style="grid-column:1/-1">Kay hasn't put any baby photos up yet. Check back soon.</div>`;
+}
+
+function paintKay(){
+  const xs = sorted();
+  // leaderboard: correct guesses per person
+  const score = {};
+  guesses.forEach(g => { const a = answers[g.photo]; if(!score[g.who]) score[g.who] = { right:0, made:0 }; score[g.who].made++; if(a && right(g.guess, a)) score[g.who].right++; });
+  const rows = Object.entries(score).sort((a, b) => b[1].right - a[1].right || b[1].made - a[1].made);
+  const answered = xs.filter(b => answers[b.id]).length;
+  $("board").innerHTML = rows.length ? rows.slice(0, 12).map(([id, s], i) => `<div class="lbrow"><span class="pos">${i + 1}</span>${badge(id)}<span class="nm">${esc(pname(id))}</span>
+      <span class="pts">${s.right} right · ${s.made} guessed</span></div>`).join("") +
+      (answered < xs.length ? `<p class="small muted" style="margin:8px 0 2px">Fill in who ${xs.length - answered === 1 ? "1 baby is" : (xs.length - answered) + " babies are"} below and the scores update.</p>` : "")
+    : `<div class="empty">No guesses yet.</div>`;
+  $("filters").innerHTML = [["all", "All photos"], ["noans", "No answer yet"]].map(([k, l]) => `<button class="chip${filter === k ? " on" : ""}" data-f="${k}">${l}</button>`).join("");
+  const show = filter === "noans" ? xs.filter(b => !answers[b.id]) : xs;
+  $("kayGrid").innerHTML = show.length ? show.map(b => {
+    const gs = guesses.filter(g => g.photo === b.id).sort((x, y) => (x.at || 0) - (y.at || 0)), a = answers[b.id] || "";
+    const nRight = a ? gs.filter(g => right(g.guess, a)).length : 0;
+    return `<div class="bb"><div class="pic">${imgs[b.id] ? `<img src="${imgs[b.id]}" alt="Baby ${b.n}" data-zoom="${b.id}">` : ""}<span class="no">No. ${b.n}</span></div>
+      <div class="body">
+        <div class="ans"><input class="in" data-ans="${b.id}" value="${esc(a)}" placeholder="Who is it really?" maxlength="40"><button class="btn small" data-save="${b.id}">Save</button></div>
+        <div class="small muted">${gs.length} guess${gs.length === 1 ? "" : "es"}${a ? ` · ${nRight} right` : ""}</div>
+        ${gs.length ? `<ul class="gs">${gs.map(g => `<li class="${a && right(g.guess, a) ? "right" : ""}">${badge(g.who)}<span class="nm">${esc(pname(g.who))}</span><span class="g">${esc(g.guess)}</span></li>`).join("")}</ul>` : ""}
+        <button class="chip" data-del="${b.id}" style="align-self:flex-start;margin-top:auto">${armed === b.id ? "Really delete this photo?" : "Delete photo"}</button>
+      </div></div>`; }).join("")
+    : `<div class="empty">${xs.length ? "Every photo has an answer." : "No photos yet — add the first one above."}</div>`;
+}
+
+function paint(){
+  const k = canSee();
+  $("kayView").classList.toggle("hide", !k);
+  $("guessView").classList.toggle("hide", isKay());       // Kay doesn't guess her own comp
+  $("sub").textContent = isKay() ? "Your competition — only you and the organisers see this" : organiser ? "Organiser view" : "Who grew up to be this lot?";
+  $("orgBar").innerHTML = isKay() ? "" : organiser ? `<button class="chip" id="orgOff">Hide the guesses</button>` : `<button class="chip" id="orgOn">🔒 Organisers: see the guesses</button>`;
+  if(!isKay()) paintGuess();
+  if(k) paintKay();
+}
+
+col("babies").subscribe(r => { babies = r; paint(); });
+col("babyimg").subscribe(r => { imgs = Object.fromEntries(r.map(x => [x.id, x.data])); paint(); });
+col("babyguess").subscribe(r => { guesses = r; paint(); });
+col("babykey").subscribe(r => { answers = Object.fromEntries(r.filter(x => x.answer).map(x => [x.id, x.answer])); paint(); });
+
+document.addEventListener("click", async e => {
+  const z = e.target.closest("[data-zoom]"); if(z){ const b = babies.find(x => x.id === z.dataset.zoom); lightbox(imgs[z.dataset.zoom], "Baby No. " + (b ? b.n : "")); return; }
+  const g = e.target.closest("[data-guess]"); if(g){ const b = babies.find(x => x.id === g.dataset.guess); if(b) guessBaby(b); return; }
+  const f = e.target.closest("[data-f]"); if(f){ filter = f.dataset.f; paintKay(); return; }
+  if(e.target.closest("#orgOn")){ if(await askPin("The guesses are for Kay and the organisers.")){ organiser = true; paint(); } return; }
+  if(e.target.closest("#orgOff")){ organiser = false; paint(); return; }
+  const sv = e.target.closest("[data-save]");
+  if(sv){ if(!canSee()) return; const v = document.querySelector(`[data-ans="${sv.dataset.save}"]`).value.trim();
+    try{ await col("babykey").set(sv.dataset.save, { answer: v }); toast(v ? "Saved" : "Answer cleared"); }catch(err){ toast("Couldn't save — " + err.message); } return; }
+  const d = e.target.closest("[data-del]");
+  if(d){ if(!canSee()) return;
+    if(armed !== d.dataset.del){ armed = d.dataset.del; paintKay(); return; }
+    armed = null; const id = d.dataset.del;
+    try{
+      await col("babies").remove(id); await col("babyimg").remove(id); await col("babykey").remove(id);
+      for(const x of guesses.filter(x => x.photo === id)) await col("babyguess").remove(x.id);
+      toast("Photo deleted");
+    }catch(err){ toast("Couldn't delete — " + err.message); }
+  }
+});
+document.addEventListener("keydown", e => { const i = e.target.closest && e.target.closest("[data-ans]"); if(i && e.key === "Enter") document.querySelector(`[data-save="${i.dataset.ans}"]`).click(); });
+
+$("file").onchange = async e => {
+  const files = [...e.target.files]; e.target.value = "";
+  if(!files.length || !canSee()) return;
+  $("pick").classList.add("busy");
+  await addBabyPhotos(files, (d, t, fin) => { $("uplMsg").textContent = fin ? (d ? `${d} photo${d === 1 ? "" : "s"} added ✓` : "") : `Adding ${d + 1} of ${t}…`; });
+  $("pick").classList.remove("busy");
+};
+}
+</script>
+</body>
+</html>

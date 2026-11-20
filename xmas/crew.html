@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12303B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Family Xmas">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Who's coming</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+<style>
+.strip{display:flex;gap:6px;align-items:flex-end;overflow-x:auto;padding:4px 2px 6px;scrollbar-width:none}
+.strip::-webkit-scrollbar{display:none}
+.col{flex:1 0 46px;border:1px solid var(--line);background:#fff;border-radius:12px;padding:6px 4px 7px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px}
+.col .cnt{font-family:'Fraunces',serif;font-weight:900;font-size:17px;line-height:1}
+.col .bar{width:22px;height:70px;display:flex;align-items:flex-end;background:var(--sand-deep);border-radius:6px;overflow:hidden}
+.col .bar i{display:block;width:100%;background:var(--sea);border-radius:6px 6px 0 0;min-height:2px}
+.col .dt{font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);line-height:1.2}
+.col .dt b{display:block;font-size:13px;color:var(--ink);font-family:'Fraunces',serif}
+.col.today{border-color:var(--red);box-shadow:0 0 0 2px var(--red)}
+.col.xm .bar i{background:var(--red)}
+.col.on{background:var(--ink);border-color:var(--ink)}
+.col.on .cnt,.col.on .dt b{color:#fff} .col.on .dt{color:rgba(255,255,255,.75)}
+.col.on .bar{background:rgba(255,255,255,.2)}
+.filt{font-size:13px;margin:6px 2px 12px;color:var(--ink-soft)}
+.fam{cursor:pointer;display:block;width:100%;text-align:left;font:inherit;color:inherit}
+.fam .hd{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.fam h3{font-family:'Fraunces',serif;font-size:18px;margin:0;flex:1;min-width:0}
+.fam .chips{display:flex;flex-wrap:wrap;gap:6px;margin:9px 0}
+.fam .chip{font-size:13.5px}
+.fam .dates{font-size:14px;margin:4px 0}
+.fam .dates .mono{font-size:12.5px}
+.fam .meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px}
+.fam .note{font-size:13.5px;margin:8px 0 0;color:var(--ink-soft)}
+.opts{display:flex;flex-wrap:wrap;gap:7px}
+.opts button{border:1.5px solid var(--line);background:#fff;border-radius:11px;padding:10px 14px;font-size:15px}
+.opts button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.sum{text-align:center;font-size:15px}
+.sum b{font-family:'Fraunces',serif;font-size:20px}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="back" href="home.html">← Home</a>
+  <p class="eyebrow" id="eb">14 families · 39 people</p>
+  <h1 class="wordmark">Who's coming</h1>
+  <p class="sub" id="sub">&nbsp;</p>
+</header>
+<main>
+  <h2 class="sec">Who's at camp each night</h2>
+  <div class="card" style="padding:10px 8px 6px"><div class="strip" id="strip"></div><p class="muted small" style="margin:2px 6px 4px">Tap a day to see just who's there.</p></div>
+  <div class="filt hide" id="filt"></div>
+  <h2 class="sec">The families</h2>
+  <div id="list"></div>
+  <div class="card sum" id="sum"></div>
+  <div class="chips" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center" id="campChips"></div>
+  <p class="buildstamp">build x30</p>
+</main>
+<script type="module">
+import { boot, me, col, watchTrip, heroFromWall, tripDays, fmtDay, fmtLong, fromIso, todayIso, XMAS_DAY, households, household, people, onPeople,
+         hereOn, esc, badge, pname, openSheet, closeSheet, toast, saveHousehold, addPerson, mapsLink, celebrate } from "./app.js";
+import { CAMP } from "./places.js";
+
+if(boot("crew.html")){
+const $ = id => document.getElementById(id);
+heroFromWall();
+let trip = null, pick = null;
+const nights = h => Math.max(0, Math.round((fromIso(h.leave) - fromIso(h.arrive)) / 86400000));
+const daysTo = iso => Math.round((fromIso(iso) - fromIso(todayIso())) / 86400000);
+const pl = (n, w) => n + " " + w + (n === 1 ? "" : "s");
+
+function status(h){
+  const t = todayIso();
+  if(hereOn(h, t)) return ["Here now", "green"];
+  if(h.arrive > t){ const n = daysTo(h.arrive); return [n === 1 ? "Arrives tomorrow" : `Arrives in ${pl(n, "day")}`, "gold"]; }
+  return ["Gone home", ""];
+}
+const fmtShort = iso => fmtDay(fromIso(iso)).replace(",", "");
+
+function paintStrip(){
+  if(!trip) return;
+  const ds = tripDays(trip), hs = households(), t = todayIso();
+  const counts = ds.map(d => hs.filter(h => hereOn(h, d.iso)).reduce((n, h) => n + h.members.length, 0));
+  const max = Math.max(1, ...counts);
+  $("strip").innerHTML = ds.map((d, i) => `<button class="col${d.iso === t ? " today" : ""}${d.iso === XMAS_DAY ? " xm" : ""}${pick === d.iso ? " on" : ""}" data-d="${d.iso}" aria-pressed="${pick === d.iso}" aria-label="${esc(fmtDay(d.date))}, ${counts[i]} people">
+    <span class="cnt">${counts[i]}</span><span class="bar"><i style="height:${Math.round(counts[i] / max * 100)}%"></i></span>
+    <span class="dt">${d.date.toLocaleDateString("en-NZ", { weekday:"short" })}<b>${d.date.getDate()}</b>${d.iso === XMAS_DAY ? "🎄" : "&nbsp;"}</span></button>`).join("");
+  $("strip").querySelectorAll("button").forEach(b => b.onclick = () => { pick = pick === b.dataset.d ? null : b.dataset.d; paintStrip(); paintList(); });
+  const today = $("strip").querySelector(".today"); if(today && !paintStrip.done){ paintStrip.done = 1; today.scrollIntoView({ inline:"center", block:"nearest" }); }
+}
+
+function paintList(){
+  let hs = households().slice();
+  const mine = me.hh;
+  hs.sort((a, b) => (a.id === mine ? -1 : b.id === mine ? 1 : 0));
+  const all = hs.length, ppl = people().length;
+  $("eb").textContent = `${all} families · ${ppl} people`;
+  if(pick){
+    hs = hs.filter(h => hereOn(h, pick));
+    const heads = hs.reduce((n, h) => n + h.members.length, 0);
+    $("filt").classList.remove("hide");
+    $("filt").innerHTML = `<b>${esc(fmtLong(fromIso(pick)))}</b> — ${pl(hs.length, "family").replace("familys","families")}, ${pl(heads, "person").replace("persons","people")} at camp. <a href="#" id="clr">Show everyone</a>`;
+    $("clr").onclick = e => { e.preventDefault(); pick = null; paintStrip(); paintList(); };
+  } else $("filt").classList.add("hide");
+  $("list").innerHTML = hs.length ? hs.map(h => {
+    const [st, cls] = status(h), n = nights(h);
+    return `<button class="tag fam" data-h="${h.id}" style="border-left:5px solid ${h.colour}">
+      <div class="hd">${badge(h.id)}<h3>${esc(h.name)}</h3>${h.id === mine ? '<span class="pill red">Your family</span>' : ""}</div>
+      <div class="chips">${h.members.map(p => `<span class="chip" style="border-color:${h.colour}">${esc(pname(p.id))}</span>`).join("")}</div>
+      <div class="dates">${esc(fmtShort(h.arrive))} <b>→</b> ${esc(fmtShort(h.leave))} <span class="mono muted">· ${pl(n, "night")}</span></div>
+      <div class="meta"><span class="pill ${cls}">${st}</span><span class="pill">${esc(h.stay || "Cabin")}</span>${h.site ? `<span class="pill">${!h.stay || h.stay === "Cabin" ? "Cabin" : "Site"} ${esc(h.site)}</span>` : ""}</div>
+      ${h.note ? `<p class="note">📝 ${esc(h.note)}</p>` : ""}</button>`;
+  }).join("") : `<div class="empty">Nobody's booked in for that day.</div>`;
+  $("list").querySelectorAll(".fam").forEach(b => b.onclick = () => edit(b.dataset.h));
+  const all2 = households(), cab = all2.filter(h => h.stay === "Cabin").length, car = all2.filter(h => h.stay === "Caravan").length;
+  const other = all2.length - cab - car;
+  $("sum").innerHTML = `<b>${ppl}</b> people in <b>${all2.length}</b> families — <b>${cab}</b> cabin${cab === 1 ? "" : "s"}, <b>${car}</b> caravan${car === 1 ? "" : "s"}${other > 0 ? `, ${other} other` : ""}`;
+}
+
+function paintCamp(){
+  $("campChips").innerHTML = `<a class="chip" target="_blank" rel="noopener" href="${mapsLink(CAMP.name + ", " + CAMP.address, CAMP.place_id)}">📍 ${esc(CAMP.name)}</a>
+    <a class="chip" href="tel:${esc(CAMP.phone.replace(/\s/g, ""))}">📞 ${esc(CAMP.phone)}</a><span class="chip">🕗 Reception ${esc(CAMP.reception)}</span>`;
+}
+
+function edit(id){
+  const h = household(id); let stay = h.stay || "Cabin";
+  const sh = openSheet(`<h3>${esc(h.name)}</h3>
+    <div class="row"><div><label class="f" for="ar">Arrive</label><input class="in" type="date" id="ar" value="${esc(h.arrive)}"></div>
+    <div><label class="f" for="lv">Leave</label><input class="in" type="date" id="lv" value="${esc(h.leave)}"></div></div>
+    <label class="f">Staying in</label><div class="opts" id="opts">${["Cabin","Caravan","Tent","Other"].map(o => `<button type="button" class="${o === stay ? "on" : ""}" data-o="${o}">${o}</button>`).join("")}</div>
+    <label class="f" for="site">Site or cabin number</label><input class="in" id="site" value="${esc(h.site || "")}" placeholder="e.g. 14">
+    <label class="f" for="nt">Note</label><textarea class="in" id="nt" placeholder="Anything we should know">${esc(h.note || "")}</textarea>
+    <div class="acts"><button class="btn ghost" id="no">Cancel</button><button class="btn red" id="go">Save</button></div>
+    <h3 style="margin-top:22px;font-size:18px">Add someone to this family</h3>
+    <div class="row"><input class="in" id="nm" placeholder="Their name" autocomplete="off"><button class="btn green" id="addp" style="flex:none">Add</button></div>`);
+  const q = s => sh.el.querySelector(s);
+  q("#opts").querySelectorAll("button").forEach(b => b.onclick = () => { stay = b.dataset.o; q("#opts").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); });
+  q("#no").onclick = () => closeSheet();
+  q("#go").onclick = async () => {
+    const arrive = q("#ar").value, leave = q("#lv").value;
+    if(!arrive || !leave) return toast("Pick both dates");
+    if(leave < arrive) return toast("Leave day is before arrive day");
+    closeSheet();
+    try{ await saveHousehold(id, { arrive, leave, stay, site:q("#site").value.trim(), note:q("#nt").value.trim() }); toast("Saved"); }
+    catch(e){ toast("Couldn't save — " + e.message); }
+  };
+  q("#addp").onclick = async () => {
+    const name = q("#nm").value.trim(); if(!name) return toast("Type their name first");
+    q("#addp").disabled = true;
+    try{ await addPerson(name, id); q("#nm").value = ""; toast(name + " added"); }
+    catch(e){ toast("Couldn't save — " + e.message); }
+    q("#addp").disabled = false;
+  };
+}
+
+watchTrip(t => { trip = t; paintStrip(); });
+onPeople(() => { paintStrip(); paintList(); });
+paintCamp();
+}
+</script>
+</body>
+</html>

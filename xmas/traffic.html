@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12303B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Family Xmas">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Who's been on</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+<style>
+.tiles4{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-bottom:6px}
+.tiles4 div{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 10px;text-align:center}
+.tiles4 b{display:block;font-family:'Fraunces',serif;font-weight:900;font-size:30px;line-height:1}
+.tiles4 span{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
+.tiles4 .live b{color:var(--green)}
+.bars{display:flex;align-items:flex-end;gap:5px;height:110px;padding:6px 2px 0;overflow-x:auto}
+.bars .c{flex:1;min-width:26px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.bars .c i{display:block;width:100%;background:var(--sea);border-radius:5px 5px 0 0;min-height:2px}
+.bars .c b{font-size:11px;font-weight:600}.bars .c span{font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-soft);margin-top:3px;white-space:nowrap}
+.pr{display:flex;align-items:center;gap:9px;padding:9px 0;border-top:1px dashed var(--line)}
+.pr:first-child{border-top:0}
+.pr .nm{flex:1;min-width:0}.pr .nm b{display:block;font-size:15px;font-weight:600}
+.pr .nm small{display:block;font-size:12px;color:var(--ink-soft)}
+.pr .tt{text-align:right;font-family:'DM Mono',monospace;font-size:12px;white-space:nowrap}
+.pr .tt small{display:block;color:var(--ink-soft);font-size:10.5px}
+.nowdot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-left:5px;vertical-align:1px}
+.never{display:flex;flex-wrap:wrap;gap:6px}
+.pg{display:flex;align-items:center;gap:8px;font-size:13.5px;padding:3px 0}
+.pg span{width:92px;flex:none}.pg i{display:block;height:10px;border-radius:5px;background:var(--gold)}.pg b{font-family:'DM Mono',monospace;font-size:11px;font-weight:400}
+.seg{display:flex;gap:6px;margin:0 0 10px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="back" href="home.html">← Home</a>
+  <p class="eyebrow">Organisers only</p>
+  <h1 class="wordmark">Who's been on</h1>
+  <p class="sub" id="sub">Visits to the family site</p>
+</header>
+<main>
+  <div id="locked" class="card" style="text-align:center"><p style="margin:6px 0 12px">This page is for the organisers.</p><button class="btn" id="unlock">Enter the organiser PIN</button></div>
+  <div id="body" class="hide">
+    <div class="seg" id="range"></div>
+    <div class="tiles4" id="tiles"></div>
+    <h2 class="sec">Visits each day</h2><div class="card"><div class="bars" id="bars"></div></div>
+    <h2 class="sec">Who's logged in</h2><div class="card" id="people"></div>
+    <h2 class="sec">Haven't logged in yet</h2><div class="card"><div class="never" id="never"></div></div>
+    <h2 class="sec">Most-used pages</h2><div class="card" id="pages"></div>
+    <h2 class="sec">Phones and computers</h2><div class="card" id="devs"></div>
+    <h2 class="sec">Latest visits</h2><div class="card" id="recent"></div>
+    <p class="small muted" style="margin-top:12px">Time is how long the site was actually on screen, counted in 15-second steps, so very quick looks show as under a minute. A visit ends after 30 minutes away. Counting started when this version of the site went up, and the casino games aren't counted.</p>
+  </div>
+  <p class="buildstamp">build x30</p>
+</main>
+<script type="module">
+import { boot, col, heroFromWall, esc, askPin, people, households, household, pname, onPeople, badge, fmtDay, isoDate, fromIso } from "./app.js";
+if(boot("traffic.html")){
+const $ = id => document.getElementById(id);
+heroFromWall();
+let rows = [], unlocked = false, range = "all";
+const dur = s => s < 60 ? "under 1 min" : s < 3600 ? Math.round(s / 60) + " min" : Math.floor(s / 3600) + " h " + Math.round(s % 3600 / 60) + " min";
+const ago = t => { const m = Math.round((Date.now() - t) / 60000); return m < 2 ? "just now" : m < 60 ? m + " min ago" : m < 1440 ? Math.round(m / 60) + " h ago" : Math.round(m / 1440) + " d ago"; };
+const NAMES = { front:"Front page", home:"Home", planner:"Planner", food:"Meals", games:"Tournaments", photos:"Photos", crew:"Who's coming", signup:"Sign-ups", santa:"Secret Santa",
+  awards:"Awards", stars:"Gold stars", fishing:"Fishing", money:"Money", shopping:"Shopping", places:"Things to do", casino:"Casino page", help:"Help", kristy:"Kristy Files" };
+
+function paint(){
+  if(!unlocked) return;
+  const now = Date.now(), today = isoDate(new Date());
+  const since = range === "today" ? new Date(today + "T00:00:00").getTime() : range === "week" ? now - 7 * 86400000 : 0;
+  const vs = rows.filter(v => v.start && v.start >= since);
+  $("range").innerHTML = [["all","All time"],["week","Last 7 days"],["today","Today"]].map(([k, l]) => `<button class="chip${range === k ? " on" : ""}" data-r="${k}">${l}</button>`).join("");
+  const known = vs.filter(v => v.who), ppl = new Set(known.map(v => v.who)), devs = new Set(vs.map(v => v.dev));
+  const total = vs.reduce((n, v) => n + (v.secs || 0), 0);
+  const live = new Set(rows.filter(v => now - (v.last || 0) < 120000).map(v => v.who || v.dev));
+  $("tiles").innerHTML = `<div><b>${ppl.size}<small style="font-size:14px;font-weight:500"> of ${people().length}</small></b><span>people logged in</span></div>
+    <div><b>${devs.size}</b><span>different devices</span></div>
+    <div><b>${vs.length}</b><span>visits</span></div>
+    <div><b style="font-size:22px;line-height:1.35">${dur(total)}</b><span>total time on site</span></div>
+    <div><b>${vs.length ? dur(Math.round(total / vs.length)) : "–"}</b><span style="display:block">average visit</span></div>
+    <div class="live"><b>${live.size}</b><span>on right now</span></div>`;
+  $("tiles").querySelectorAll("div:nth-child(5) b").forEach(b => { b.style.fontSize = "22px"; b.style.lineHeight = "1.35"; });
+
+  // by day (last 14 days that have anything)
+  const byDay = {}; vs.forEach(v => { const d = isoDate(new Date(v.start)); (byDay[d] = byDay[d] || { n:0, p:new Set() }); byDay[d].n++; byDay[d].p.add(v.who || v.dev); });
+  const days = Object.keys(byDay).sort().slice(-14), max = Math.max(1, ...days.map(d => byDay[d].n));
+  $("bars").innerHTML = days.length ? days.map(d => `<div class="c"><b>${byDay[d].n}</b><i style="height:${Math.round(byDay[d].n / max * 70)}px" title="${byDay[d].p.size} people"></i><span>${esc(fmtDay(fromIso(d)).replace(/^\w+,? /, ""))}</span></div>`).join("") : `<div class="empty" style="width:100%">No visits yet</div>`;
+
+  // per person
+  const by = {}; known.forEach(v => { const p = by[v.who] = by[v.who] || { n:0, secs:0, last:0, devs:new Set(), kinds:new Set(), app:false, views:0 };
+    p.n++; p.secs += v.secs || 0; p.last = Math.max(p.last, v.last || v.start); p.devs.add(v.dev); p.kinds.add(v.kind); p.app = p.app || v.app; p.views += v.views || 0; });
+  const list = Object.entries(by).sort((a, b) => b[1].last - a[1].last);
+  $("people").innerHTML = list.length ? list.map(([id, p]) => `<div class="pr">${badge(id)}<div class="nm"><b>${esc(pname(id))}${now - p.last < 120000 ? '<span class="nowdot" title="on now"></span>' : ""}</b>
+      <small>${p.n} visit${p.n === 1 ? "" : "s"} · ${p.views} pages · ${[...p.kinds].join(", ")}${p.app ? " · on home screen" : ""}</small></div>
+      <div class="tt">${dur(p.secs)}<small>${ago(p.last)}</small></div></div>`).join("") : `<div class="empty">Nobody in this period</div>`;
+  const everIn = new Set(rows.filter(v => v.who).map(v => v.who));
+  const never = people().filter(p => !everIn.has(p.id));
+  $("never").innerHTML = never.length ? households().map(h => { const m = h.members.filter(p => !everIn.has(p.id)); return m.length ? m.map(p => `<span class="chip">${badge(p.id)}${esc(p.label)}</span>`).join("") : ""; }).join("") : `<span class="muted">Everyone's been on 🎉</span>`;
+
+  const pg = {}; vs.forEach(v => Object.entries(v.pages || {}).forEach(([k, n]) => pg[k] = (pg[k] || 0) + n));
+  const pl = Object.entries(pg).sort((a, b) => b[1] - a[1]).slice(0, 10), pm = Math.max(1, ...pl.map(x => x[1]));
+  $("pages").innerHTML = pl.length ? pl.map(([k, n]) => `<div class="pg"><span>${esc(NAMES[k] || k)}</span><i style="width:${Math.max(3, Math.round(n / pm * 55))}%"></i><b>${n}</b></div>`).join("") : `<div class="empty">Nothing yet</div>`;
+  const kinds = {}; const seen = new Set(); vs.forEach(v => { if(seen.has(v.dev)) return; seen.add(v.dev); kinds[v.kind || "Other"] = (kinds[v.kind || "Other"] || 0) + 1; });
+  const apps = new Set(vs.filter(v => v.app).map(v => v.dev)).size, anon = new Set(vs.filter(v => !v.who).map(v => v.dev)).size;
+  $("devs").innerHTML = (Object.entries(kinds).sort((a, b) => b[1] - a[1]).map(([k, n]) => `<span class="pill" style="margin:0 6px 6px 0">${esc(k)} × ${n}</span>`).join("") || `<span class="muted">Nothing yet</span>`) +
+    `<p class="small muted" style="margin:8px 0 0">${apps} added to a home screen · ${anon} opened the front page without picking a name</p>`;
+  $("recent").innerHTML = [...vs].sort((a, b) => b.start - a.start).slice(0, 25).map(v => `<div class="pr">${v.who ? badge(v.who) : '<span class="dot" style="background:#ccc"></span>'}<div class="nm"><b>${v.who ? esc(pname(v.who)) : "Someone (no name picked)"}</b>
+      <small>${esc(new Date(v.start).toLocaleString("en-NZ", { weekday:"short", day:"numeric", month:"short", hour:"numeric", minute:"2-digit" }))} · ${esc(v.kind || "")} · ${v.views || 0} pages</small></div>
+      <div class="tt">${dur(v.secs || 0)}</div></div>`).join("") || `<div class="empty">No visits yet</div>`;
+}
+$("range").addEventListener("click", e => { const b = e.target.closest("[data-r]"); if(b){ range = b.dataset.r; paint(); } });
+$("unlock").onclick = async () => { if(await askPin("Visitor details are for the organisers.")){ unlocked = true; $("locked").classList.add("hide"); $("body").classList.remove("hide"); paint(); } };
+col("visits").subscribe(r => { rows = r; paint(); });
+onPeople(paint);
+setInterval(paint, 30000);
+if(sessionStorage.getItem("xmas_pin_ok") === "1") $("unlock").click();
+}
+</script>
+</body>
+</html>

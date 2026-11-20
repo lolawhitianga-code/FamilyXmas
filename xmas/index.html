@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12303B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Family Xmas">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Family Xmas 2026">
+<meta property="og:description" content="Tap to open. Everything for the week: who's coming, the plan, meals and games.">
+<meta property="og:image" content="https://mybaliholiday.kiwi/xmas/share.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://mybaliholiday.kiwi/xmas/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="description" content="Tap to open. Everything for the week: who's coming, the plan, meals and games.">
+<title>Family Xmas 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;min-height:100%}
+body{
+  color:#fff;font-family:'Outfit',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;text-align:center;background:#12303B;
+}
+/* the photo sits on its own fixed layer so it stays put while the names scroll (and behaves on iPhones) */
+.bgphoto{position:fixed;inset:0;z-index:-1;
+  background:
+    linear-gradient(178deg, rgba(18,48,59,.34) 0%, rgba(39,80,106,.16) 30%, rgba(18,48,59,.52) 60%, rgba(10,34,44,.84) 100%),
+    var(--hero, linear-gradient(178deg,#12303B 0%,#27506A 30%,#C4576A 54%,#FF9A5A 70%)) center var(--hero-y, 30%) / cover no-repeat;
+}
+.wrap{min-height:100svh;display:flex;flex-direction:column;justify-content:center;align-items:center;
+  padding:calc(34px + env(safe-area-inset-top)) 18px calc(46px + env(safe-area-inset-bottom))}
+/* fairy lights across the top */
+body::before{content:'';position:fixed;left:0;right:0;top:calc(4px + env(safe-area-inset-top));height:16px;z-index:5;
+  background:
+    radial-gradient(circle at 12px 8px, #FF4D3D 5px, transparent 6px) 0 0/96px 16px,
+    radial-gradient(circle at 36px 10px, #FFD23F 5px, transparent 6px) 0 0/96px 16px,
+    radial-gradient(circle at 60px 10px, #34C77B 5px, transparent 6px) 0 0/96px 16px,
+    radial-gradient(circle at 84px 8px, #3EC6E0 5px, transparent 6px) 0 0/96px 16px;
+  filter:drop-shadow(0 0 6px rgba(255,220,150,.9));animation:twinkle 2.4s ease-in-out infinite}
+@keyframes twinkle{50%{filter:drop-shadow(0 0 2px rgba(255,220,150,.4)) brightness(.8)}}
+.logo{display:block;width:min(92%,380px);margin:0 auto 4px}
+.logo img{display:block;width:100%;height:auto;opacity:.4;filter:drop-shadow(0 3px 8px rgba(8,30,40,.4))}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.eyebrow{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;opacity:.9;margin:0 0 10px;text-shadow:0 1px 8px rgba(18,48,59,.7)}
+h1{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(36px,11.5vw,64px);line-height:.92;margin:0 0 8px;
+  font-variation-settings:'SOFT' 40,'WONK' 1;text-shadow:0 2px 22px rgba(18,48,59,.65), 0 1px 3px rgba(18,48,59,.5)}
+.sleeps{margin-top:14px !important;font-family:'DM Mono',monospace;font-size:12.5px;letter-spacing:.08em;margin:6px 0 0;text-shadow:0 1px 8px rgba(18,48,59,.8)}
+.ask{font-family:'DM Mono',monospace;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;opacity:.95;margin:24px 0 12px;text-shadow:0 1px 8px rgba(18,48,59,.7)}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;width:100%;max-width:460px}
+.grid button{
+  font:inherit;color:#fff;cursor:pointer;background:rgba(18,48,59,.42);border:1.5px solid rgba(255,255,255,.34);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:15px;padding:12px 10px;min-height:62px;
+  display:flex;align-items:center;gap:10px;text-align:left;font-weight:600;font-size:15px;line-height:1.2;
+  transition:transform .14s ease, background .14s ease;
+}
+.grid button:hover,.grid button:focus-visible{transform:translateY(-2px);background:rgba(18,48,59,.6);outline:none}
+.grid button i{width:14px;height:14px;border-radius:50%;flex:none;box-shadow:0 0 0 2px rgba(255,255,255,.5)}
+.grid.names button{justify-content:center;font-size:19px;min-height:66px}
+.grid .wide{grid-column:1 / -1;justify-content:center}
+.link{margin-top:16px;background:none;border:0;color:#fff;font:inherit;font-size:14px;opacity:.9;text-decoration:underline;text-underline-offset:4px;cursor:pointer;text-shadow:0 1px 8px rgba(18,48,59,.7)}
+.spin{margin-top:18px;display:inline-block;color:#12303B;background:#F2B33D;font-weight:700;text-decoration:none;border-radius:999px;padding:10px 18px;box-shadow:0 3px 0 #A8741A, 0 0 0 2px rgba(255,255,255,.4)}
+.add{width:100%;max-width:460px;margin-top:12px;display:flex;gap:8px}
+.add input{flex:1;min-width:0;font:inherit;font-size:16px;border-radius:12px;border:0;padding:11px 12px;color:#12303B}
+.add button{font:inherit;font-weight:700;border:0;border-radius:12px;padding:0 16px;background:#D8352A;color:#fff}
+.buildstamp{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.2em;color:rgba(255,255,255,.65);margin:22px 0 0;text-shadow:0 1px 6px rgba(18,48,59,.7)}
+.hide{display:none !important}
+@media (prefers-reduced-motion:reduce){ *{animation:none !important;transition:none !important} }
+</style>
+</head>
+<body>
+<div class="bgphoto" id="bgphoto"></div>
+<div class="wrap">
+  <h1 class="vh">Townsend Family Christmas 2026, Bateau Bay NSW</h1>
+  <div class="logo"><picture><source srcset="logo-clear.webp" type="image/webp"><img src="logo-clear.png" alt="Townsend Family Christmas 2026 — Bateau Bay NSW" width="900" height="626"></picture></div>
+  <p class="sleeps" id="sleeps">&nbsp;</p>
+
+  <div id="installSlot" style="width:100%;display:flex;justify-content:center"></div>
+  <p class="ask" id="ask">Which family are you with?</p>
+  <div class="grid" id="grid"></div>
+  <form class="add hide" id="addForm"><input id="addName" placeholder="Your first name" autocomplete="off" maxlength="24"><button>Add me</button></form>
+  <button class="link hide" id="back">← Different family</button>
+  <button class="link hide" id="again"></button>
+  <button class="link" id="notlisted">Not on the list?</button>
+  <a class="spin hide" id="spin" href="casino.html">🎰 Or just spin Lucky Lauren</a>
+  <p class="buildstamp">build x30</p>
+</div>
+<script type="module">
+import { households, people, onPeople, setMe, addPerson, me, XMAS_DAY, LUCKY_LAUREN, gameUrl, esc, noPokies, randomShot, shotY, installCard, track, musicButton } from "./app.js";
+const $ = id => document.getElementById(id);
+{ const s = randomShot(), b = $("bgphoto"); b.style.setProperty("--hero", `url("${s.src}")`);
+  // put the face in the top third, where the logo's see-through bits are
+  b.style.setProperty("--hero-y", shotY(s.src, innerWidth, innerHeight * 0.72)); }
+let picked = null;       // household id once a family is chosen, "new" when adding a brand-new family
+
+/* sleeps till Christmas */
+{ const t = new Date(); t.setHours(0,0,0,0);
+  const n = Math.round((new Date(XMAS_DAY + "T00:00:00") - t) / 86400000);
+  $("sleeps").textContent = n > 1 ? `${n} sleeps till Christmas` : n === 1 ? "One more sleep!" : n === 0 ? "Merry Christmas! 🎄" : "Hope it was a good one"; }
+
+function draw(){
+  const g = $("grid");
+  if(!picked){
+    $("ask").textContent = "Which family are you with?";
+    g.className = "grid";
+    g.innerHTML = households().map(h => `<button data-hh="${h.id}"><i style="background:${h.colour}"></i><span>${esc(h.name)}</span></button>`).join("");
+    $("back").classList.add("hide"); $("addForm").classList.add("hide"); $("notlisted").classList.remove("hide");
+  } else if(picked === "new"){
+    $("ask").textContent = "No worries — what's your name?";
+    g.innerHTML = ""; $("addForm").classList.remove("hide"); $("back").classList.remove("hide"); $("notlisted").classList.add("hide");
+    $("addName").focus();
+  } else {
+    const h = households().find(x => x.id === picked);
+    $("ask").textContent = "And you are…";
+    g.className = "grid names";
+    g.innerHTML = h.members.map(p => `<button data-me="${p.id}">${esc(p.name)}</button>`).join("") +
+      `<button class="wide" data-addto="${h.id}" style="font-size:15px;font-weight:500">＋ Someone else in this family</button>`;
+    $("back").classList.remove("hide"); $("addForm").classList.add("hide"); $("notlisted").classList.add("hide");
+  }
+}
+onPeople(draw);
+
+let addTo = null;
+document.addEventListener("click", e => {
+  const hh = e.target.closest("[data-hh]"); if(hh){ picked = hh.dataset.hh; draw(); scrollTo(0, 0); return; }
+  const who = e.target.closest("[data-me]");
+  if(who){ const p = people().find(x => x.id === who.dataset.me); if(p){ setMe(p); location.href = "home.html"; } return; }
+  const at = e.target.closest("[data-addto]");
+  if(at){ addTo = at.dataset.addto; $("ask").textContent = "What's your name?"; $("grid").innerHTML = ""; $("addForm").classList.remove("hide"); $("addName").focus(); }
+});
+$("back").addEventListener("click", () => { picked = null; addTo = null; draw(); });
+$("notlisted").addEventListener("click", () => { picked = "new"; addTo = null; draw(); });
+$("addForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const name = $("addName").value.trim(); if(!name) return;
+  try{ const p = await addPerson(name, addTo); setMe(p); location.href = "home.html"; }
+  catch(err){ $("ask").textContent = "Couldn't add you just now — " + err.message; }
+});
+
+if(me){ const b = $("again"); b.textContent = `Carry on as ${me.name} →`; b.classList.remove("hide"); b.addEventListener("click", () => location.href = "home.html"); }
+/* the quick spin is only for people we already know are happy to see it */
+if(me && !noPokies()) $("spin").classList.remove("hide");
+$("spin").addEventListener("click", e => { e.currentTarget.href = gameUrl(LUCKY_LAUREN); });
+installCard(document.getElementById("installSlot"), true);
+track("front");
+musicButton();
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+</script>
+</body>
+</html>

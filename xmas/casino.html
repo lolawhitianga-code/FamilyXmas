@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12303B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Family Xmas">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>The casino — Christmas at Bateau Bay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+<style>
+.floor{background:radial-gradient(120% 80% at 50% 0%,#17694A,#0E3B2A 60%,#0A2B1F);border-radius:20px;padding:14px 12px 16px;
+  box-shadow:0 0 0 2px #E2A93B, 0 14px 30px -14px rgba(10,43,31,.8);color:#FFE9B0}
+.floor h2.sec{color:#FFD166;margin-left:2px}
+.hero{position:relative;overflow:hidden;text-align:center;border-radius:18px;padding:24px 16px 22px;margin-bottom:12px;color:#fff;
+  background:linear-gradient(160deg,#7A1E1A,#4B0F2E 55%,#2A0A3A);box-shadow:0 0 0 3px #FFD166,0 0 0 5px #9C6C14,0 0 26px rgba(255,209,102,.4)}
+.hero::before{content:'';position:absolute;inset:7px;border-radius:13px;pointer-events:none;
+  background:radial-gradient(circle,#FFD166 1.6px,transparent 2.2px) 0 0/14px 14px;opacity:.5;
+  -webkit-mask:linear-gradient(#000 0 0) top/100% 4px no-repeat,linear-gradient(#000 0 0) bottom/100% 4px no-repeat;
+          mask:linear-gradient(#000 0 0) top/100% 4px no-repeat,linear-gradient(#000 0 0) bottom/100% 4px no-repeat;
+  animation:bulbs 1s steps(2) infinite}
+@keyframes bulbs{50%{background-position:7px 0;opacity:.95}}
+.hero .st{font-size:34px;line-height:1}
+.hero small{display:block;font-family:'DM Mono',monospace;font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:#FFD166;margin-top:6px}
+.hero h2{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(32px,10vw,46px);line-height:1;margin:6px 0 8px;color:#FFD166;text-shadow:0 2px 0 #9C6C14,0 0 22px rgba(255,209,102,.5)}
+.hero p{margin:0 auto 16px;max-width:30ch;font-size:15px;opacity:.95}
+.spin{display:inline-block;background:linear-gradient(180deg,#FFD166,#E2A93B);color:#2A0A0A;font-weight:700;font-size:20px;padding:15px 26px;border-radius:999px;text-decoration:none;box-shadow:0 5px 0 #9C6C14,0 10px 20px -6px rgba(0,0,0,.6)}
+.spin:active{transform:translateY(3px);box-shadow:0 2px 0 #9C6C14}
+.dip{display:flex;width:100%;justify-content:center;align-items:center;gap:8px;border:2px dashed #FFD166;background:rgba(0,0,0,.2);color:#FFD166;border-radius:14px;padding:14px;font-weight:600;font-size:17px;margin-bottom:6px}
+.dipmsg{text-align:center;font-size:13px;min-height:18px;margin:2px 0 4px;color:#FFE9B0}
+.gc{display:flex;align-items:center;gap:12px;text-decoration:none;color:#2B1B14;background:#FFF8E6;border-radius:14px;padding:12px 13px;margin-bottom:8px;box-shadow:inset 0 0 0 2px #E2A93B}
+.gc .n{flex:1;min-width:0}
+.gc .n b{display:block;font-family:'Fraunces',serif;font-size:17px;line-height:1.15}
+.gc .n span{display:block;font-size:13px;color:#5B4636;margin-top:2px}
+.gc .p{flex:none;background:var(--red);color:#fff;font-weight:600;border-radius:999px;padding:8px 14px;font-size:14px;box-shadow:0 3px 0 #8E1F18}
+.gc.star{background:linear-gradient(160deg,#FFF1C2,#FFE08A)}
+.lobby{display:block;text-align:center;margin:14px 0 4px;color:#FFD166;font-weight:600}
+.note{text-align:center;font-size:13.5px;margin:14px 6px 0;color:var(--ink-soft)}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="back" href="home.html">← Home</a>
+  <p class="eyebrow">Lucky Lola's</p>
+  <h1 class="wordmark">The casino</h1>
+  <p class="sub">Pokies, cards and a bit of fun</p>
+</header>
+
+<main>
+  <div class="floor">
+    <section class="hero">
+      <div class="st">⭐</div>
+      <small>The family machine</small>
+      <h2>Lucky Lauren</h2>
+      <p>The family machine — made for this Christmas. Most of us are on the reels.</p>
+      <a class="spin" id="spin" href="../Casino/lucky_lauren.html">Spin Lucky Lauren →</a>
+    </section>
+    <button class="dip" id="dip">🎲 Lucky dip</button>
+    <div class="dipmsg" id="dipmsg">Can't choose? Tap for a surprise game.</div>
+    <div id="games"></div>
+    <a class="lobby" id="lobby" href="../Casino/">Visit the full casino lobby →</a>
+  </div>
+  <p class="note">It's play money — the only thing at stake is bragging rights. 🎄</p>
+  <p class="buildstamp">build x30</p>
+</main>
+
+<script type="module">
+import { boot, heroFromWall, GAMES, LUCKY_LAUREN, gameUrl, randomGame, casinoLobby, esc } from "./app.js";
+
+if(boot("casino.html")){
+const $ = id => document.getElementById(id);
+heroFromWall();
+const GROUPS = [["pokies", "Pokies"], ["cards", "Card games"], ["fun", "Fun games"]];
+const card = g => `<a class="gc${g.star ? " star" : ""}" data-file="${esc(g.file)}" href="${esc(gameUrl(g))}"><span class="n"><b>${g.star ? "⭐ " : ""}${esc(g.name)}</b><span>${esc(g.tag)}</span></span><span class="p">Play →</span></a>`;
+$("games").innerHTML = GROUPS.map(([k, l]) => `<h2 class="sec">${l}</h2>` +
+  GAMES.filter(g => g.kind === k).sort((a, b) => (b.star ? 1 : 0) - (a.star ? 1 : 0)).map(card).join("")).join("");
+
+const refresh = () => {
+  $("spin").href = gameUrl(LUCKY_LAUREN);
+  document.querySelectorAll("a.gc").forEach(a => { const g = GAMES.find(x => x.file === a.dataset.file); if(g) a.href = gameUrl(g); });
+  $("lobby").href = casinoLobby();
+};
+refresh(); setTimeout(refresh, 600); setTimeout(refresh, 2500);
+$("spin").addEventListener("click", () => { $("spin").href = gameUrl(LUCKY_LAUREN); });
+$("games").addEventListener("click", e => {
+  const a = e.target.closest("a.gc"); if(!a) return;
+  const g = GAMES.find(x => x.file === a.dataset.file); if(g) a.href = gameUrl(g);
+});
+$("lobby").addEventListener("click", () => { $("lobby").href = casinoLobby(); });
+$("dip").addEventListener("click", () => {
+  const g = randomGame();
+  $("dipmsg").textContent = "Off to " + g.name + "…";
+  location.href = g.url;
+});
+}
+</script>
+</body>
+</html>

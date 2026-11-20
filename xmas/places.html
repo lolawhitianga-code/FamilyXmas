@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12303B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Family Xmas">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Things to do</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+<style>
+.filters{display:flex;gap:7px;overflow-x:auto;padding:2px 2px 10px;margin:0 -2px 4px;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.filters .chip{flex:none;font-size:14px;padding:8px 13px}
+.flags{background:#E6F6F8;border:1px solid #A9DCE3;border-radius:14px;padding:11px 13px;font-size:14px;margin-bottom:12px}
+.flags b{display:block;margin-bottom:2px}
+.pc h3{font-family:'Fraunces',serif;font-size:18px;margin:0 0 3px;line-height:1.2}
+.pc p{margin:3px 0}
+.pc .addr{font-size:13px;color:var(--ink-soft)}
+.pc .acts2{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.pc .acts2 .chip{padding:8px 12px;font-size:13.5px}
+.keen{display:flex;align-items:center;gap:9px;margin-top:10px;padding-top:9px;border-top:1px dashed var(--line)}
+.keen button{flex:none;border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:8px 14px;font-size:14px;font-weight:600}
+.keen button[aria-pressed="true"]{background:var(--coral);border-color:var(--coral);color:#fff}
+.keen .who{font-size:13px;color:var(--ink-soft);min-width:0}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="back" href="home.html">← Home</a>
+  <p class="eyebrow">Around Bateau Bay</p>
+  <h1 class="wordmark">Things to do</h1>
+  <p class="sub" id="sub">&nbsp;</p>
+</header>
+<main>
+  <div class="filters" id="filters"></div>
+  <div id="list"></div>
+  <button class="fab" id="add" aria-label="Add an idea">+</button>
+  <p class="buildstamp">build x30</p>
+</main>
+<script type="module">
+import { boot, me, col, settings, heroFromWall, onPeople, pname, esc, openSheet, closeSheet, toast, celebrate, mapsLink, noPokies } from "./app.js";
+import { PLACES, KINDS } from "./places.js";
+/* people who've asked for no pokies get a different badge on the clubs */
+const kindOf = k => k === "club" && noPokies() ? ["🥂", KINDS.club[1]] : KINDS[k];
+
+if(boot("places.html")){
+const $ = id => document.getElementById(id);
+heroFromWall();
+let kind = "all", keen = {}, ideas = [];
+const keenDoc = settings("keen");
+const planHref = (name, link) => "planner.html?add=" + encodeURIComponent(name) + "&link=" + encodeURIComponent(link || "");
+const linkOf = u => { u = (u || "").trim(); return u && !/^[a-z]+:/i.test(u) ? "https://" + u : u; };
+
+function keenRow(id, map){
+  const ids = Object.keys(map || {}).filter(k => map[k]), mine = !!(map || {})[me.id];
+  const names = ids.map(pname);
+  const shown = names.slice(0, 3).join(", "), more = names.length - 3;
+  return `<div class="keen"><button data-k="${esc(id)}" aria-pressed="${mine}">${mine ? "👍 I'm keen" : "👍 Keen?"}</button>
+    <span class="who">${ids.length ? `<b>${ids.length}</b> keen · ${esc(shown)}${more > 0 ? ` +${more}` : ""}` : "Nobody yet"}</span></div>`;
+}
+
+function placeCard(p){
+  const q = p.name + ", " + p.address, map = mapsLink(q, p.place_id);
+  return `<div class="card pc"><h3>${kindOf(p.kind) ? kindOf(p.kind)[0] : "📍"} ${esc(p.name)}</h3>
+    <p>${esc(noPokies() && p.quiet ? p.quiet : p.blurb)}</p><p class="addr">${esc(p.address)}</p>
+    <div class="acts2">${p.phone ? `<a class="chip" href="tel:${esc(p.phone.replace(/\s/g, ""))}">📞 ${esc(p.phone)}</a>` : ""}
+      <a class="chip" target="_blank" rel="noopener" href="${map}">🗺️ Map</a>
+      <a class="chip" href="${planHref(p.name, map)}">🗓️ Add to plan</a></div>
+    ${keenRow(p.id, keen[p.id])}</div>`;
+}
+function ideaCard(i){
+  return `<div class="card pc"><h3>💡 ${esc(i.title)}</h3>${i.note ? `<p>${esc(i.note)}</p>` : ""}
+    <p class="addr">Added by ${esc(pname(i.by))}</p>
+    <div class="acts2">${i.link ? `<a class="chip" target="_blank" rel="noopener" href="${esc(linkOf(i.link))}">🔗 Link</a>` : ""}
+      <a class="chip" href="${planHref(i.title, linkOf(i.link))}">🗓️ Add to plan</a>
+      <button class="chip" data-edit="${i.id}">✏️ Change</button></div>
+    ${keenRow("idea:" + i.id, i.keen)}</div>`;
+}
+
+function paint(){
+  const kinds = Object.keys(KINDS).filter(k => PLACES.some(p => p.kind === k));
+  $("filters").innerHTML = [["all", "All"], ...kinds.map(k => [k, kindOf(k)[0] + " " + kindOf(k)[1]]), ["ideas", "💡 Our ideas"]]
+    .map(([k, l]) => `<button class="chip${kind === k ? " on" : ""}" data-f="${k}">${l}</button>`).join("");
+  $("filters").querySelectorAll("button").forEach(b => b.onclick = () => { kind = b.dataset.f; paint(); });
+  let h = "";
+  const ideaBlock = () => `<h2 class="sec">Our own ideas</h2>` + (ideas.length ? ideas.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).map(ideaCard).join("") : `<div class="empty">Got a good idea? Tap + and add it.</div>`);
+  if(kind === "ideas") h = ideaBlock();
+  else {
+    const ks = kind === "all" ? kinds : [kind];
+    ks.forEach(k => {
+      h += `<h2 class="sec">${kindOf(k)[0]} ${kindOf(k)[1]}</h2>`;
+      if(k === "beach") h += `<div class="flags"><b>🚩 Swim between the flags</b>Bateau Bay Beach out the front isn't patrolled. Shelly Beach and Toowoon Bay have surf clubs.</div>`;
+      h += PLACES.filter(p => p.kind === k).map(placeCard).join("");
+    });
+    if(kind === "all") h += ideaBlock();
+  }
+  $("list").innerHTML = h;
+  $("list").querySelectorAll("[data-k]").forEach(b => b.onclick = () => toggle(b));
+  $("list").querySelectorAll("[data-edit]").forEach(b => b.onclick = () => sheet(ideas.find(i => i.id === b.dataset.edit)));
+}
+
+async function toggle(b){
+  const key = b.dataset.k, on = b.getAttribute("aria-pressed") !== "true";
+  b.setAttribute("aria-pressed", on);
+  const isIdea = key.startsWith("idea:");
+  try{
+    if(isIdea){
+      const id = key.slice(5), cur = { ...((ideas.find(i => i.id === id) || {}).keen || {}) };
+      if(on) cur[me.id] = true; else delete cur[me.id];
+      if(on) celebrate("keen");
+      await col("ideas").update(id, { keen:cur });
+    } else {
+      const cur = { ...(keen[key] || {}) };
+      cur[me.id] = on;   // false (not delete): a merge-save would otherwise keep the old true
+      keen = { ...keen, [key]: cur };
+      if(on) celebrate("keen");
+      await keenDoc.save({ [key]: cur });
+    }
+  }catch(e){ toast("Couldn't save — " + e.message); }
+}
+
+function sheet(item){
+  let armed = false;
+  const sh = openSheet(`<h3>${item ? "Change this idea" : "Add an idea"}</h3>
+    <label class="f" for="ti">What is it?</label><input class="in" id="ti" value="${esc(item ? item.title : "")}" placeholder="e.g. Mini golf" autocomplete="off">
+    <label class="f" for="nt">A few words about it (optional)</label><textarea class="in" id="nt">${esc(item ? item.note || "" : "")}</textarea>
+    <label class="f" for="lk">Link (optional)</label><input class="in" id="lk" type="url" inputmode="url" value="${esc(item ? item.link || "" : "")}" placeholder="https://…">
+    <div class="acts">${item ? '<button class="btn" id="del" style="flex:none;background:transparent;color:var(--red);border:1.5px solid var(--red)">Delete</button>' : '<button class="btn ghost" id="no">Cancel</button>'}<button class="btn green" id="go">${item ? "Save" : "Add"}</button></div>`);
+  const q = s => sh.el.querySelector(s);
+  if(q("#no")) q("#no").onclick = () => closeSheet();
+  q("#go").onclick = async () => {
+    const title = q("#ti").value.trim(); if(!title) return toast("Give the idea a name first");
+    const v = { title, note:q("#nt").value.trim(), link:q("#lk").value.trim() };
+    closeSheet();
+    try{
+      if(item) await col("ideas").update(item.id, v);
+      else { celebrate("activity"); await col("ideas").add({ ...v, keen:{ [me.id]:true } }); }
+    }catch(e){ toast("Couldn't save — " + e.message); }
+  };
+  if(item) q("#del").onclick = async () => {
+    const b = q("#del");
+    if(!armed){ armed = true; b.textContent = "Really delete?"; b.style.background = "var(--red)"; b.style.color = "#fff"; return; }
+    closeSheet();
+    try{ await col("ideas").remove(item.id); }catch(e){ toast("Couldn't delete — " + e.message); }
+  };
+}
+$("add").onclick = () => sheet(null);
+
+keenDoc.subscribe(d => { const { id, ...m } = d || {}; keen = m; paint(); });
+col("ideas").subscribe(r => { ideas = r; paint(); });
+onPeople(paint);
+paint();
+}
+</script>
+</body>
+</html>

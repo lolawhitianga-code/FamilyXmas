@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12303B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Family Xmas">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Family Xmas 2026">
+<meta property="og:description" content="Tap to open. Everything for the week: who's coming, the plan, meals and games.">
+<meta property="og:image" content="https://mybaliholiday.kiwi/xmas/share.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://mybaliholiday.kiwi/xmas/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="description" content="Tap to open. Everything for the week: who's coming, the plan, meals and games.">
+<title>Family Xmas 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+<style>
+.logo{display:block;width:min(88%,330px);margin:0 auto 4px}
+.logo img{display:block;width:100%;height:auto;opacity:.4;filter:drop-shadow(0 3px 8px rgba(8,30,40,.4))}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.top{padding-top:calc(22px + env(safe-area-inset-top))}
+.hi{font-size:15px;margin:10px 0 0;opacity:.95;text-shadow:0 1px 8px rgba(18,48,59,.7)}
+
+.camp{display:flex;align-items:center;gap:14px}
+.camp .n{font-family:'Fraunces',serif;font-weight:900;font-size:46px;line-height:.9;color:var(--red);flex:none;min-width:58px;text-align:center}
+.camp .n small{display:block;font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:.12em;color:var(--ink-soft);font-weight:400;margin-top:4px}
+.camp .t{flex:1;min-width:0;font-size:14px}
+.camp .t b{display:block;font-size:15px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+
+.today h3{font-family:'Fraunces',serif;font-size:19px;margin:0 0 6px}
+.line{display:flex;gap:10px;padding:8px 0;border-top:1px dashed var(--line);align-items:flex-start}
+.line:first-of-type{border-top:0}
+.line .g{font-size:18px;width:26px;flex:none;text-align:center}
+.line .t{flex:1;min-width:0}
+.line .t small{display:block;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft)}
+.line .t div{margin:1px 0}
+
+.ladder a{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px dashed var(--line);text-decoration:none}
+.ladder a:first-child{border-top:0}
+.ladder .pos{font-family:'Fraunces',serif;font-weight:900;font-size:20px;width:26px;text-align:center;color:var(--gold)}
+.ladder .nm{flex:1;min-width:0;font-weight:500;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ladder .pts{font-family:'DM Mono',monospace;font-size:13px}
+
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.tiles a{background:#fff;border:1px solid var(--line);border-radius:15px;padding:13px 6px 11px;text-align:center;text-decoration:none;
+  box-shadow:0 1px 0 rgba(18,48,59,.06);transition:transform .12s ease}
+.tiles a:hover{transform:translateY(-2px)}
+.tiles a b{display:block;font-size:26px;line-height:1.1;font-weight:400}
+.tiles a span{font-size:13px;font-weight:500;display:block;margin-top:5px;line-height:1.2}
+.tiles a.festive{background:linear-gradient(160deg,#FFF3F0,#FFE1DC);border-color:#F3B9B2}
+.tiles a.comp{background:linear-gradient(160deg,#F1FAF4,#DDF2E5);border-color:#B5DDC5}
+.foot{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:22px}
+/* ---------- "just show me my stuff" ---------- */
+.mineswitch{display:flex;align-items:center;gap:12px;width:100%;border:1px solid var(--line);background:#fff;border-radius:999px;
+  padding:9px 16px 9px 10px;margin:0 0 16px;font-weight:600;font-size:15.5px;box-shadow:var(--shadow);text-align:left}
+.mineswitch i{flex:none;width:48px;height:28px;border-radius:999px;background:var(--sand-deep);position:relative;transition:background .18s ease}
+.mineswitch i::after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;
+  box-shadow:0 1px 4px rgba(18,48,59,.35);transition:transform .18s ease}
+.mineswitch[aria-checked="true"]{border-color:var(--green)}
+.mineswitch[aria-checked="true"] i{background:var(--green)}
+.mineswitch[aria-checked="true"] i::after{transform:translateX(20px)}
+body.mine #full, body.mine .pokiebar, body.mine .pokiefloat, body.mine #quiet{display:none !important}
+#mine h2.sec{margin-top:22px}
+.mrow{display:flex;gap:12px;align-items:flex-start;padding:11px 2px;border-top:1px solid var(--line);text-decoration:none}
+.mrow:first-child{border-top:0}
+.mrow .g{flex:none;width:28px;text-align:center;font-size:19px;line-height:1.25}
+.mrow .t{flex:1;min-width:0;font-size:15.5px;line-height:1.35}
+.mrow .t small{display:block;font-size:12.5px;color:var(--ink-soft);margin-top:2px}
+.mrow .tm{flex:none;font-family:'DM Mono',monospace;font-size:12px;color:var(--ink-soft);padding-top:3px;min-width:42px;text-align:right}
+.mday{font-family:'Fraunces',serif;font-weight:700;font-size:17px;margin:16px 0 2px}
+.mday.today{color:var(--red)}
+.mcard{background:#fff;border:1px solid var(--line);border-radius:16px;padding:2px 14px;box-shadow:var(--shadow)}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1 class="vh">Townsend Family Christmas 2026, Bateau Bay NSW</h1>
+  <div class="logo"><picture><source srcset="logo-clear.webp" type="image/webp"><img src="logo-clear.png" alt="Townsend Family Christmas 2026 — Bateau Bay NSW" width="900" height="626"></picture></div>
+  <p class="sub" id="countdown">&nbsp;</p>
+  <p class="hi" id="hi"></p>
+</header>
+
+<main>
+  <div class="keep-top hide" id="kayBox" style="margin-bottom:16px">
+    <label class="dropzone" id="kayPick"><span class="big">👶📷</span><b>Kay — add your baby photos</b>
+      <small id="kayStats">For your Guess the Baby comp</small>
+      <span class="go">Choose photos</span><small id="kayMsg"></small>
+      <input type="file" id="kayFile" class="vh-file" accept="image/*" multiple></label>
+    <a class="btn ghost wide" href="babies.html" style="margin-top:8px">See the photos, answers &amp; guesses →</a>
+  </div>
+  <button class="mineswitch" id="mineSwitch" role="switch" aria-checked="false"><i></i><span>Just show me my stuff</span></button>
+  <div id="mine" class="hide"></div>
+  <div id="full">
+  <h2 class="sec" id="campHead">At camp today</h2>
+  <a class="card camp" href="crew.html" style="text-decoration:none" id="camp"><div class="empty">Loading…</div></a>
+
+  <h2 class="sec" id="todayHead">Today</h2>
+  <div class="card today" id="today"><div class="empty">Loading…</div></div>
+
+  <h2 class="sec">Family ladder</h2>
+  <div class="card ladder" id="ladder"><div class="empty">No gold stars yet — go and earn some</div></div>
+
+  <h2 class="sec">Everything</h2>
+  <div class="tiles">
+    <a href="crew.html"><b>👨‍👩‍👧‍👦</b><span>Who's coming</span></a>
+    <a href="planner.html"><b>🗓️</b><span>Planner</span></a>
+    <a href="signup.html"><b>✋</b><span>Sign-up sheet</span></a>
+    <a href="food.html" class="festive"><b>🍤</b><span>Meals &amp; Christmas lunch</span></a>
+    <a href="food.html#happy" class="festive"><b>🍹</b><span>Happy hour</span></a>
+    <a href="santa.html" class="festive"><b>🎅</b><span>Secret Santa</span></a>
+    <a href="games.html" class="comp"><b>🏆</b><span>Tournaments</span></a>
+    <a href="fishing.html" class="comp"><b>🎣</b><span>Fishing comp</span></a>
+    <a href="awards.html" class="comp"><b>🏅</b><span>Daily awards</span></a>
+    <a href="shopping.html"><b>🛒</b><span>Shopping &amp; esky</span></a>
+    <a href="money.html"><b>💸</b><span>Money</span></a>
+    <a href="photos.html"><b>📸</b><span>Photos</span></a>
+    <a href="places.html"><b>🏖️</b><span>Things to do</span></a>
+    <a href="stars.html"><b>⭐</b><span>Gold stars</span></a>
+    <a href="casino.html" data-casino><b>🎰</b><span>The casino</span></a>
+    <a href="babies.html" class="festive"><b>👶</b><span>Guess the baby</span></a>
+    <a href="where.html" class="comp"><b>🔍</b><span>Where's Wally?</span></a>
+    <a href="kristy.html" class="festive hide" id="kTile"><b>🚨</b><span>The Kristy Files</span></a>
+    <a href="help.html"><b>🆘</b><span>If it goes wrong</span></a>
+  </div>
+
+  </div><!-- /full -->
+  <div class="foot">
+    <button class="chip" id="mute"></button>
+    <button class="chip hide" id="quiet"></button>
+    <a class="chip" href="index.html">Not you?</a>
+    <button class="chip" id="homeScreen">📲 Add to home screen</button>
+    <button class="chip" id="share">📤 Share the link</button>
+    <a class="chip" href="traffic.html">📈 Who's been on (organisers)</a>
+  </div>
+
+  <p class="buildstamp">build x30</p>
+</main>
+
+<script type="module">
+import { boot, me, SLOTS, col, watchTrip, heroFromWall, tripDayToday, dayDate, fmtLong, isoDate, todayIso, XMAS_DAY,
+         households, people, household, onPeople, hereOn, pname, esc, isMuted, setMuted, badge, noPokies, noPokiesFixed, setNoPokies, toast, settings, aud, fmtDay, fromIso, installCard, addToHomeScreen, onHomeScreen, isKay, addBabyPhotos } from "./app.js";
+
+if(boot("home.html")){
+const $ = id => document.getElementById(id);
+heroFromWall();
+$("hi").textContent = `Merry Christmas, ${me.name}`;
+
+let trip = null, plan = [], meals = [], signups = [], scores = [];
+
+/* which date are we showing? today if we're there, otherwise the first day */
+function showDay(){
+  if(!trip) return null;
+  let d = tripDayToday(trip); const live = d >= 1 && d <= trip.days;
+  if(d < 1) d = 1; if(d > trip.days) d = trip.days;
+  return { n:d, iso: isoDate(dayDate(trip, d)), live };
+}
+
+function paintCountdown(){
+  if(!trip) return;
+  const d = tripDayToday(trip), t = new Date(); t.setHours(0,0,0,0);
+  const toXmas = Math.round((new Date(XMAS_DAY + "T00:00:00") - t) / 86400000);
+  const mine = household(me.hh), toArrive = mine.arrive ? Math.round((new Date(mine.arrive + "T00:00:00") - t) / 86400000) : null;
+  let txt;
+  if(toXmas === 0) txt = "It's Christmas Day! 🎄";
+  else if(d >= 1 && d <= trip.days) txt = toXmas > 0 ? `Day ${d} · ${toXmas} sleep${toXmas === 1 ? "" : "s"} till Christmas` : `Day ${d} of ${trip.days}`;
+  else if(d < 1) txt = toArrive !== null && toArrive > 0 ? `${toArrive} sleeps till you arrive · ${toXmas} till Christmas` : `${toXmas} sleeps till Christmas`;
+  else txt = "Home again — see you next Christmas";
+  $("countdown").textContent = txt;
+}
+
+function paintCamp(){
+  const s = showDay(); if(!s) return;
+  const hs = households(), here = hs.filter(h => hereOn(h, s.iso));
+  const heads = here.reduce((n, h) => n + h.members.length, 0);
+  const arr = hs.filter(h => h.arrive === s.iso), lea = hs.filter(h => h.leave === s.iso);
+  $("campHead").textContent = s.live ? "At camp today" : `At camp on day 1 · ${fmtLong(dayDate(trip, s.n))}`;
+  $("camp").innerHTML = `<div class="n">${heads}<small>PEOPLE</small></div><div class="t">
+    <b>${here.length} of ${hs.length} families</b>
+    ${arr.length ? `<div>🚗 Arriving: ${arr.map(h => esc(h.name)).join("; ")}</div>` : ""}
+    ${lea.length ? `<div>👋 Heading home: ${lea.map(h => esc(h.name)).join("; ")}</div>` : ""}
+    <div class="muted small">Tap for cabins, dates and notes</div></div>`;
+}
+
+function paintToday(){
+  const s = showDay(); if(!s) return;
+  $("todayHead").textContent = s.live ? `Today · ${fmtLong(dayDate(trip, s.n))}` : `Day 1 · ${fmtLong(dayDate(trip, 1))}`;
+  const items = plan.filter(p => +p.day === s.n);
+  let h = SLOTS.map(sl => {
+    const xs = items.filter(i => i.slot === sl.key).sort((a,b) => (a.time||"").localeCompare(b.time||"") || (a.createdAt||0)-(b.createdAt||0));
+    return `<div class="line"><span class="g">${sl.glyph}</span><div class="t"><small>${sl.label}</small>` +
+      (xs.length ? xs.map(i => `<div>${i.time ? `<span class="mono small muted">${esc(i.time)}</span> ` : ""}${esc(i.text)}</div>`).join("") : `<div class="muted small">Nothing planned</div>`) + `</div></div>`;
+  }).join("");
+  const dinner = meals.filter(m => m.kind === "dinner" && m.date === s.iso);
+  h += `<div class="line"><span class="g">🍽️</span><div class="t"><small>Dinner</small>` +
+    (dinner.length ? dinner.map(m => `<div>${esc(m.what || "Dinner")} <span class="muted small">— ${esc(m.hh ? household(m.hh).name : (m.who || "someone"))}</span></div>`).join("")
+                   : `<div class="muted small">Nobody's on yet — <a href="food.html">put a name down</a></div>`) + `</div></div>`;
+  const happy = meals.filter(m => m.kind === "happy" && m.date === s.iso);
+  h += `<div class="line"><span class="g">🍹</span><div class="t"><small>Happy hour</small>` +
+    (happy.length ? happy.map(m => `<div>${m.time ? `<span class="mono small muted">${esc(m.time)}</span> ` : ""}${esc(m.hh ? household(m.hh).name : (m.who || ""))}${m.where ? ` <span class="muted small">— ${esc(m.where)}</span>` : ""}</div>`).join("")
+                  : `<div class="muted small">No host yet — <a href="food.html#happy">volunteer a cabin</a></div>`) + `</div></div>`;
+  const acts = signups.filter(a => a.date === s.iso).sort((a,b) => (a.time||"").localeCompare(b.time||""));
+  if(acts.length) h += `<div class="line"><span class="g">✋</span><div class="t"><small>On today</small>` +
+    acts.map(a => `<div>${a.time ? `<span class="mono small muted">${esc(a.time)}</span> ` : ""}${esc(a.title)} <span class="muted small">— ${(a.in || []).length} in</span></div>`).join("") + `</div></div>`;
+  h += `<p style="margin:10px 0 0"><a class="btn small ghost" href="planner.html#day-${s.n}">Open the planner →</a></p>`;
+  $("today").innerHTML = h;
+}
+
+function paintLadder(){
+  const byHh = {};
+  scores.forEach(s => { const p = people().find(x => x.id === s.id); if(p) byHh[p.hh] = (byHh[p.hh] || 0) + (s.total || 0); });
+  const rows = households().map(h => ({ h, pts: byHh[h.id] || 0 })).filter(r => r.pts > 0).sort((a,b) => b.pts - a.pts).slice(0, 5);
+  if(!rows.length) return;
+  $("ladder").innerHTML = rows.map((r, i) => `<a href="stars.html"><span class="pos">${i + 1}</span>${badge(r.h.id)}<span class="nm">${esc(r.h.name)}</span><span class="pts">${r.pts} ⭐</span></a>`).join("");
+}
+
+const paintAll = () => { paintCountdown(); paintCamp(); paintToday(); paintLadder(); };
+watchTrip(t => { trip = t; paintAll(); });
+onPeople(paintAll);
+col("planner").subscribe(r => { plan = r; paintToday(); });
+col("meals").subscribe(r => { meals = r; paintToday(); });
+col("signups").subscribe(r => { signups = r; paintToday(); });
+col("scores").subscribe(r => { scores = r; paintLadder(); });
+setInterval(paintCountdown, 3600000);
+
+/* ============================================================
+   JUST SHOW ME MY STUFF — one switch, and the home page becomes
+   a short list of only what has your name (or your family's) on
+   it: jobs on the itinerary, meals you're cooking, dishes you're
+   bringing, what you've signed up for, comps you're in, and where
+   your family stands on money. Everything else steps out of the way.
+   ============================================================ */
+let events = [], shopping = [], expenses = [], santa = null;
+/* the itinerary and food list use nicknames — match those too */
+const ALIASES = { Gemma:["Gem"], Georgia:["Georgie"], Brendon:["Bren","Brendan"], Holli:["Holly"], Lynda:["Linda"], Lochie:["Lockie"], Steve:["Steve W"] };
+const fam = () => household(me.hh).members || [];
+const rx = name => new RegExp("(^|[^A-Za-z])(" + [name, ...(ALIASES[name] || [])].map(n => n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|") + ")(?![A-Za-z])", "i");
+/** Who in my family does this text name? [] if nobody. Me first. */
+function named(text){
+  if(!text) return [];
+  return fam().filter(p => rx(p.name).test(text)).sort((a, b) => (b.id === me.id) - (a.id === me.id));
+}
+const whoTag = ps => { const others = ps.filter(p => p.id !== me.id).map(p => p.name);
+  return ps.some(p => p.id === me.id) ? (others.length ? "You & " + others.join(", ") : "You") : others.join(", "); };
+const EVERYONE = /\b(all|each|every)\b.*famil|everyone/i;
+
+function paintMine(){
+  if(!document.body.classList.contains("mine") || !trip) return;
+  const hh = household(me.hh), ids = new Set(fam().map(p => p.id)), today = todayIso();
+  const dayIso = n => isoDate(dayDate(trip, n));
+  const dated = [];     // {iso, time, g, text, sub, href}
+  const push = (iso, time, g, text, sub, href) => dated.push({ iso, time: time || "", g, text, sub, href });
+
+  plan.forEach(p => { const ps = named(p.text), mineBy = p.by && ids.has(p.by);
+    if(ps.length || mineBy) push(dayIso(+p.day), p.time, "🗓️", p.text, ps.length ? whoTag(ps) : "You added this", "planner.html#day-" + p.day); });
+  meals.filter(m => m.kind === "dinner" && (m.hh === me.hh || named(m.who).length || named(m.note).length))
+       .forEach(m => push(m.date, "", "🍽️", "Cooking dinner" + (m.what ? ": " + m.what : ""), m.hh === me.hh ? "Your family's night" : whoTag([...named(m.who), ...named(m.note)]), "food.html#dinners"));
+  meals.filter(m => m.kind === "happy" && m.hh === me.hh)
+       .forEach(m => push(m.date, m.time, "🍹", "Hosting happy hour" + (m.theme ? " — " + m.theme : ""), m.where || "Your place", "food.html#happy"));
+  signups.forEach(a => { const inn = (a.in || []).filter(id => ids.has(id)), host = ids.has(a.host);
+    if(inn.length || host) push(a.date, a.time, a.emoji || "✋", a.title, [host ? "Running it: " + pname(a.host) : "", inn.length ? "In: " + inn.map(pname).join(", ") : ""].filter(Boolean).join(" · "), "signup.html"); });
+  const undatedEv = [];
+  events.forEach(e => {
+    const inTeam = (e.teams || []).filter(t => (t.members || []).some(id => ids.has(id))).map(t => t.name);
+    const side = (e.results || []).find(r => r.side === me.hh || ids.has(r.side) || inTeam.includes(r.side));
+    const org = named(e.note);
+    if(!inTeam.length && !side && !org.length) return;
+    const sub = [org.length ? "Organising: " + whoTag(org) : "", inTeam.length ? "Team: " + inTeam.join(", ") : "", side ? ["", "🥇 1st", "🥈 2nd", "🥉 3rd"][side.place] || "" : ""].filter(Boolean).join(" · ");
+    if(e.date && e.time && dated.some(d => d.iso === e.date && d.time === e.time && d.g === "🗓️")) return;   // already listed from the plan
+    if(e.date) push(e.date, e.time, e.emoji || "🏆", e.name, sub, "games.html"); else undatedEv.push({ g: e.emoji || "🏆", text: e.name, sub, href:"games.html" });
+  });
+
+  /* to bring / to do */
+  const todo = [];
+  meals.filter(m => m.kind === "dish").forEach(m => { const ps = named(m.who), mineC = m.claimedBy && ids.has(m.claimedBy), all = EVERYONE.test(m.who || "");
+    if(ps.length || mineC || all) todo.push({ g: m.done ? "✅" : "🍤", text: m.dish, sub: (m.meal === "boxing" ? "Boxing Day breakfast" : "Christmas lunch") + " · " + (all && !ps.length ? "Every family" : whoTag(ps.length ? ps : [fam().find(p => p.id === m.claimedBy)].filter(Boolean))) + (m.done ? " · sorted" : ""), href:"food.html#lunch", done: m.done }); });
+  shopping.forEach(s => { const ps = named(s.forWhat), mineB = s.buyer && ids.has(s.buyer), all = /^everyone$/i.test(s.forWhat || "") && s.list === "other";
+    if(ps.length || mineB || all) todo.push({ g: s.done ? "✅" : (s.list === "other" ? "🎒" : "🛒"), text: s.text + (s.qty ? " × " + s.qty : ""), sub: (mineB ? pname(s.buyer) + " is getting it" : all ? "Everyone brings this" : whoTag(ps)) + (s.done ? " · done" : ""), href:"shopping.html", done: s.done }); });
+  todo.sort((a, b) => (a.done ? 1 : 0) - (b.done ? 1 : 0));
+
+  /* your family */
+  const famRows = [];
+  const nights = hh.arrive && hh.leave ? Math.round((fromIso(hh.leave) - fromIso(hh.arrive)) / 86400000) : 0;
+  famRows.push({ g:"🏕️", text: `${fmtDay(fromIso(hh.arrive))} → ${fmtDay(fromIso(hh.leave))}`, sub: [nights + " nights", hh.stay, hh.site ? "Site " + hh.site : ""].filter(Boolean).join(" · "), href:"crew.html" });
+  let paid = 0, share = 0;
+  expenses.forEach(e => { const amt = Number(e.amount) || 0, split = e.split || [];
+    if(e.paidBy === me.hh) paid += amt;
+    if(split.includes(me.hh)){
+      if(e.mode === "heads"){ const tot = split.reduce((n, id) => n + (household(id).members || []).length, 0); share += tot ? amt * fam().length / tot : 0; }
+      else share += amt / split.length;
+    } });
+  const bal = Math.round((paid - share) * 100) / 100;
+  if(expenses.length) famRows.push({ g:"💸", text: bal > 0.004 ? `Your family is owed ${aud(bal)}` : bal < -0.004 ? `Your family owes ${aud(-bal)}` : "All square on money", sub: `Paid ${aud(paid)} · share ${aud(share)}`, href:"money.html" });
+  if(santa){ const inn = santa.in && santa.in[me.id];
+    famRows.push({ g:"🎅", text: santa.state === "drawn" ? (inn ? "Secret Santa: names are drawn" : "Secret Santa: you're not in the draw") : (inn ? "Secret Santa: you're in" : "Secret Santa: you haven't joined yet"),
+      sub: santa.state === "drawn" && inn ? "Tap to peek at who you're buying for" : (santa.budget ? "Spend " + santa.budget : ""), href:"santa.html" }); }
+  const myStars = (scores.find(s => s.id === me.id) || {}).total || 0;
+  if(myStars) famRows.push({ g:"⭐", text: `${myStars} gold stars`, sub:"", href:"stars.html" });
+
+  const row = r => `<a class="mrow" href="${r.href}">${r.tm !== undefined ? `<span class="tm">${esc(r.tm)}</span>` : ""}<span class="g">${r.g}</span><span class="t">${esc(r.text)}${r.sub ? `<small>${esc(r.sub)}</small>` : ""}</span></a>`;
+  const live = today >= trip.start;
+  const up = dated.filter(d => d.iso && (!live || d.iso >= today)).sort((a, b) => a.iso.localeCompare(b.iso) || (a.time || "99").localeCompare(b.time || "99"));
+  let html = "";
+  if(up.length){
+    html += `<h2 class="sec">Your week</h2>`;
+    let cur = null;
+    up.forEach(d => { if(d.iso !== cur){ if(cur) html += `</div>`; cur = d.iso;
+        html += `<div class="mday${d.iso === today ? " today" : ""}">${d.iso === today ? "Today · " : ""}${esc(fmtLong(fromIso(d.iso)))}${d.iso === XMAS_DAY ? " 🎄" : ""}</div><div class="mcard">`; }
+      html += row({ ...d, tm: d.time }); });
+    html += `</div>`;
+  }
+  if(undatedEv.length) html += `<h2 class="sec">Day to be decided</h2><div class="mcard">${undatedEv.map(row).join("")}</div>`;
+  if(todo.length) html += `<h2 class="sec">To bring &amp; to do</h2><div class="mcard">${todo.map(row).join("")}</div>`;
+  html += `<h2 class="sec">${esc(hh.name)}</h2><div class="mcard">${famRows.map(row).join("")}</div>`;
+  if(!up.length && !todo.length && !undatedEv.length) html = `<div class="empty">Nothing has your name on it yet. Enjoy it while it lasts.</div>` + html;
+  $("mine").innerHTML = html;
+}
+function setMine(on){
+  document.body.classList.toggle("mine", on);
+  $("mineSwitch").setAttribute("aria-checked", on ? "true" : "false");
+  $("mine").classList.toggle("hide", !on);
+  try{ localStorage.setItem("xmas_mine_" + me.id, on ? "1" : "0"); }catch(e){}
+  if(on) paintMine();
+}
+$("mineSwitch").addEventListener("click", () => { setMine(!document.body.classList.contains("mine")); scrollTo({ top: 0 }); });
+watchTrip(paintMine); onPeople(paintMine);
+["planner", "meals", "signups", "scores"].forEach(n => col(n).subscribe(paintMine));
+col("events").subscribe(r => { events = r; paintMine(); });
+col("shopping").subscribe(r => { shopping = r; paintMine(); });
+col("expenses").subscribe(r => { expenses = r; paintMine(); });
+settings("santa").subscribe(s => { santa = s; paintMine(); });
+setMine(localStorage.getItem("xmas_mine_" + me.id) === "1");
+
+if(me.id !== "h09-kristy" && me.id !== "h07-kay") $("kTile").classList.remove("hide");   // everyone but Kristy and Kay
+/* Kay's Guess the Baby box, top of the page, only for Kay */
+if(isKay()){
+  $("kayBox").classList.remove("hide");
+  let nb = 0, ng = 0;
+  const stats = () => $("kayStats").textContent = nb ? `${nb} photo${nb === 1 ? "" : "s"} up · ${ng} guess${ng === 1 ? "" : "es"} so far` : "For your Guess the Baby comp — none up yet";
+  col("babies").subscribe(r => { nb = r.length; stats(); });
+  col("babyguess").subscribe(r => { ng = r.length; stats(); });
+  $("kayFile").onchange = async e => {
+    const files = [...e.target.files]; e.target.value = ""; if(!files.length) return;
+    $("kayPick").classList.add("busy");
+    await addBabyPhotos(files, (d, t, fin) => { $("kayMsg").textContent = fin ? (d ? `${d} added ✓` : "") : `Adding ${d + 1} of ${t}…`; });
+    $("kayPick").classList.remove("busy");
+  };
+}
+installCard(document.querySelector("main"));
+if(onHomeScreen()) $("homeScreen").remove(); else $("homeScreen").onclick = () => addToHomeScreen();
+$("share").addEventListener("click", async () => {
+  const url = new URL("./", location.href).href, data = { title:"Family Xmas 2026", text:"Family Xmas 2026 🎄", url };
+  if(navigator.share){ try{ await navigator.share(data); }catch(e){} return; }
+  location.href = "https://wa.me/?text=" + encodeURIComponent("Family Xmas 2026 🎄 " + url);
+});
+const paintMute = () => $("mute").textContent = isMuted() ? "🔇 Music & sound off" : "🎵 Music & sound on";
+paintMute();
+$("mute").addEventListener("click", () => { setMuted(!isMuted()); paintMute(); });
+
+/* your own switch for the casino bits — not shown to anyone who's on the built-in "none for me" list */
+if(!noPokiesFixed()){
+  const q = $("quiet"); q.classList.remove("hide");
+  const paintQuiet = () => q.textContent = noPokies() ? "Bring the casino back" : "Hide the pokies for me";
+  paintQuiet();
+  q.addEventListener("click", async () => {
+    const on = !noPokies();
+    try{ await setNoPokies(on); }catch(e){ toast("Saved on this phone only — " + e.message); }
+    if(on){ paintQuiet(); toast("Done — no pokies for you"); } else location.reload();
+  });
+}
+}
+</script>
+</body>
+</html>

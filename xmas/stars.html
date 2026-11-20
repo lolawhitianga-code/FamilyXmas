@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12303B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Family Xmas">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Gold stars · Christmas at Bateau Bay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+<style>
+.tabs{display:flex;gap:6px;background:var(--sand-deep);padding:4px;border-radius:14px;margin-bottom:12px}
+.tabs button{flex:1;border:0;background:transparent;border-radius:11px;padding:10px;font-weight:600;font-size:15px}
+.tabs button[aria-selected="true"]{background:#fff;box-shadow:var(--shadow)}
+.rk{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px dashed var(--line);width:100%;background:none;border-left:0;border-right:0;border-bottom:0;text-align:left}
+.rk:first-child{border-top:0}
+.rk .pos{flex:none;width:28px;text-align:center;font-family:'Fraunces',serif;font-weight:900;font-size:19px;color:var(--gold)}
+.rk .mid{flex:1;min-width:0}
+.rk .nm{display:block;font-weight:500;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rk .tr{display:block;height:9px;border-radius:6px;background:var(--sand-deep);margin-top:5px;overflow:hidden}
+.rk .tr i{display:block;height:100%;border-radius:6px;min-width:3px}
+.rk .pts{flex:none;font-family:'DM Mono',monospace;font-size:14px}
+.rk.me{background:#FFF3D6;border-radius:12px;padding-left:8px;padding-right:8px;border-top-color:transparent}
+.mem{padding:2px 0 8px 38px}
+.mem div{display:flex;justify-content:space-between;gap:10px;font-size:14px;padding:3px 0}
+.gap{text-align:center;color:var(--ink-soft);letter-spacing:.3em;line-height:.8;margin:2px 0}
+.mystars{display:flex;align-items:center;gap:14px}
+.mystars .n{font-family:'Fraunces',serif;font-weight:900;font-size:50px;line-height:.9;color:var(--gold);text-shadow:0 2px 0 rgba(18,48,59,.1)}
+.mystars .n small{display:block;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.14em;color:var(--ink-soft);font-weight:400;margin-top:4px}
+.kinds{margin-top:10px;font-size:14px}
+.kinds div{display:flex;gap:8px;padding:5px 0;border-top:1px dashed var(--line)}
+.kinds span:first-child{flex:1;min-width:0}
+.feed div{display:flex;gap:8px;padding:8px 0;border-top:1px dashed var(--line);font-size:14px;align-items:baseline}
+.feed div:first-child{border-top:0}
+.feed .t{flex:1;min-width:0}
+.feed .pl{flex:none;font-family:'DM Mono',monospace;color:var(--green);font-weight:500}
+.feed .ago{flex:none;font-size:12px}
+.earn div{display:flex;gap:10px;padding:7px 0;border-top:1px dashed var(--line);align-items:baseline}
+.earn div:first-child{border-top:0}
+.earn b{flex:none;width:44px;font-family:'DM Mono',monospace;color:var(--red);font-weight:500}
+.earn span{flex:1;min-width:0}
+.foot{display:flex;justify-content:center;margin-top:18px}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="back" href="home.html">← Home</a>
+  <p class="eyebrow">Who's winning</p>
+  <h1 class="wordmark">Gold stars</h1>
+  <p class="sub" id="sub">&nbsp;</p>
+</header>
+
+<main>
+  <div class="tabs" role="tablist"><button role="tab" id="t-fam" aria-selected="true">Families</button><button role="tab" id="t-ppl" aria-selected="false">People</button></div>
+  <div class="card" id="board"><div class="empty">No gold stars yet — go and earn some</div></div>
+
+  <h2 class="sec">My stars</h2>
+  <div class="card" id="mine"></div>
+
+  <h2 class="sec">Just happened</h2>
+  <div class="card feed" id="feed"><div class="empty">Nothing yet</div></div>
+
+  <h2 class="sec">How to earn stars</h2>
+  <div class="card earn" id="earn"></div>
+
+  <div class="foot"><button class="chip" id="mute"></button></div>
+  <p class="buildstamp">build x30</p>
+</main>
+
+<script type="module">
+import { boot, me, col, STAR, esc, people, households, person, pname, badge, onPeople, heroFromWall, isMuted, setMuted } from "./app.js";
+
+if(boot("stars.html")){
+const $ = id => document.getElementById(id);
+heroFromWall();
+
+let scores = [], log = [], tab = "fam", open = new Set();
+const total = id => { const s = scores.find(x => x.id === id); return s ? (s.total || 0) : 0; };
+
+function ago(t){
+  const s = Math.max(0, (Date.now() - t) / 1000);
+  if(s < 60) return "just now";
+  if(s < 3600) return Math.floor(s / 60) + "m ago";
+  if(s < 86400) return Math.floor(s / 3600) + "h ago";
+  return Math.floor(s / 86400) + "d ago";
+}
+
+function paintBoard(){
+  const grand = scores.reduce((n, s) => n + (s.total || 0), 0);
+  $("sub").textContent = grand ? `${grand} stars handed out` : "Be the first on the board";
+  $("t-fam").setAttribute("aria-selected", tab === "fam"); $("t-ppl").setAttribute("aria-selected", tab === "ppl");
+  let h = "";
+  if(tab === "fam"){
+    const rows = households().map(hh => ({ hh, pts: hh.members.reduce((n, p) => n + total(p.id), 0) })).sort((a, b) => b.pts - a.pts);
+    const max = Math.max(1, rows[0] ? rows[0].pts : 1), mine = me.hh;
+    h = rows.map((r, i) => {
+      const ex = open.has(r.hh.id);
+      return `<button class="rk ${r.hh.id === mine ? "me" : ""}" data-hh="${esc(r.hh.id)}" aria-expanded="${ex}"><span class="pos">${r.pts > 0 && i === 0 ? "👑" : i + 1}</span>
+        <span class="mid"><span class="nm">${badge(r.hh.id)} ${esc(r.hh.name)}</span><span class="tr"><i style="width:${Math.round(r.pts / max * 100)}%;background:${r.hh.colour}"></i></span></span>
+        <span class="pts">${r.pts} ⭐</span></button>` +
+        (ex ? `<div class="mem">${r.hh.members.slice().sort((a, b) => total(b.id) - total(a.id)).map(p => `<div><span>${esc(p.label)}</span><span class="mono">${total(p.id)} ⭐</span></div>`).join("")}</div>` : "");
+    }).join("");
+  } else {
+    const all = people().map(p => ({ p, pts: total(p.id) })).sort((a, b) => b.pts - a.pts || a.p.label.localeCompare(b.p.label));
+    const row = (r, i) => `<div class="rk ${r.p.id === me.id ? "me" : ""}"><span class="pos">${r.pts > 0 && i === 0 ? "👑" : i + 1}</span>
+      <span class="mid"><span class="nm">${badge(r.p.id)} ${esc(r.p.label)}${r.p.id === me.id ? " (you)" : ""}</span></span><span class="pts">${r.pts} ⭐</span></div>`;
+    const top = all.slice(0, 15);
+    h = top.map(row).join("");
+    const mi = all.findIndex(r => r.p.id === me.id);
+    if(mi >= 15) h += `<div class="gap">···</div>` + row(all[mi], mi);
+  }
+  $("board").innerHTML = h;
+}
+
+function paintMine(){
+  const s = scores.find(x => x.id === me.id), counts = (s && s.counts) || {};
+  const ks = Object.keys(counts).filter(k => counts[k] > 0).sort((a, b) => (counts[b] * (STAR[b] ? STAR[b][0] : 0)) - (counts[a] * (STAR[a] ? STAR[a][0] : 0)));
+  $("mine").innerHTML = `<div class="mystars"><div class="n">${s ? s.total || 0 : 0}<small>GOLD STARS</small></div>
+    <div class="muted small">${ks.length ? "Here's where they came from." : "Join in on the site and watch this grow."}</div></div>` +
+    (ks.length ? `<div class="kinds">${ks.map(k => `<div><span>${esc(STAR[k] ? STAR[k][1] : k)}</span><span class="muted">× ${counts[k]}</span><span class="mono">${counts[k] * (STAR[k] ? STAR[k][0] : 0)}</span></div>`).join("")}</div>` : "");
+}
+
+function paintFeed(){
+  const rows = log.slice().sort((a, b) => (b.at || 0) - (a.at || 0)).slice(0, 40);
+  if(!rows.length) return;
+  $("feed").innerHTML = rows.map(r => `<div><span class="t"><b>${esc(pname(r.who))}</b> · ${esc(STAR[r.kind] ? STAR[r.kind][1] : r.kind)}</span><span class="pl">+${r.pts}</span><span class="ago muted">${ago(r.at)}</span></div>`).join("");
+}
+
+$("earn").innerHTML = Object.values(STAR).map(a => a).map((a, i) => ({ pts:a[0], label:a[1], note:a[2] }))
+  .sort((a, b) => b.pts - a.pts).map(a => `<div><b>+${a.pts}</b><span>${esc(a.label)}${a.note ? ` <span class="muted small">— ${esc(a.note)}</span>` : ""}</span></div>`).join("");
+
+const paintMute = () => $("mute").textContent = isMuted() ? "🔇 Sound off" : "🔊 Sound on";
+paintMute();
+$("mute").onclick = () => { setMuted(!isMuted()); paintMute(); };
+$("t-fam").onclick = () => { tab = "fam"; paintBoard(); };
+$("t-ppl").onclick = () => { tab = "ppl"; paintBoard(); };
+$("board").addEventListener("click", e => {
+  const b = e.target.closest("[data-hh]"); if(!b) return;
+  const id = b.dataset.hh; open.has(id) ? open.delete(id) : open.add(id); paintBoard();
+});
+
+const paintAll = () => { paintBoard(); paintMine(); paintFeed(); };
+onPeople(paintAll);
+col("scores").subscribe(r => { scores = r; paintAll(); });
+col("starlog").subscribe(r => { log = r; paintFeed(); });
+setInterval(paintFeed, 60000);
+}
+</script>
+</body>
+</html>

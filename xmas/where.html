@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12303B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Family Xmas">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Where's Wally?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+<style>
+.share{display:flex;align-items:center;gap:12px;width:100%;border:1px solid var(--line);background:#fff;border-radius:16px;padding:12px 14px;text-align:left;box-shadow:var(--shadow)}
+.share i{flex:none;width:50px;height:30px;border-radius:999px;background:var(--sand-deep);position:relative;transition:background .18s}
+.share i::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(18,48,59,.35);transition:transform .18s}
+.share[aria-checked="true"]{border-color:var(--green)}
+.share[aria-checked="true"] i{background:var(--green)}
+.share[aria-checked="true"] i::after{transform:translateX(20px)}
+.share .tx{flex:1;min-width:0}.share .tx b{display:block;font-size:16px}.share .tx small{display:block;font-size:12.5px;color:var(--ink-soft);line-height:1.35;margin-top:2px}
+.ci{margin-top:10px}
+#map{height:min(58vh,460px);border-radius:16px;border:1px solid var(--line);box-shadow:var(--shadow);background:#E9F1F2;overflow:hidden;position:relative;z-index:1}
+#map .nomap{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:20px;color:var(--ink-soft);font-size:14px}
+.mapbar{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0}
+.who-pin{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:#fff;font:700 13px/1 'Outfit',sans-serif;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.who-pin.old{opacity:.5}
+.ci-pin{display:flex;align-items:center;gap:4px;background:#fff;border:2px solid var(--red);border-radius:999px;padding:2px 8px 2px 4px;font:600 12px/1.2 'Outfit',sans-serif;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.3);transform:translate(-8px,-8px)}
+.ci-pin .d{width:10px;height:10px;border-radius:50%;flex:none}
+.camp-pin{font-size:26px;line-height:1;filter:drop-shadow(0 2px 3px rgba(0,0,0,.4))}
+.lrow{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px dashed var(--line)}
+.lrow:first-child{border-top:0}
+.lrow .nm{flex:1;min-width:0}.lrow .nm b{display:block;font-size:15px}.lrow .nm small{display:block;font-size:12.5px;color:var(--ink-soft)}
+.lrow .tm{flex:none;font-family:'DM Mono',monospace;font-size:11.5px;color:var(--ink-soft);text-align:right}
+.lrow button.find{flex:none}
+.leaflet-popup-content{font-family:'Outfit',sans-serif;font-size:14px;margin:10px 12px}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="back" href="home.html">← Home</a>
+  <p class="eyebrow">Find the family</p>
+  <h1 class="wordmark">Where's Wally?</h1>
+  <p class="sub" id="sub">Who's where, and where everyone's checked in</p>
+</header>
+<main>
+  <button class="share" id="share" role="switch" aria-checked="false"><i></i><span class="tx"><b>Share my location</b>
+    <small id="shareTx">While you have this site open, the family can see where you are on this map. Turn it off any time.</small></span></button>
+  <button class="btn red wide ci" id="checkin">📍 Check in where I am</button>
+
+  <h2 class="sec">The map</h2>
+  <div id="map"><div class="nomap" id="nomap">Loading the map…</div></div>
+  <div class="mapbar" id="mapbar"></div>
+
+  <h2 class="sec">Who's where</h2>
+  <div class="card" id="people"></div>
+
+  <h2 class="sec">Check-ins</h2>
+  <div class="card" id="feed"></div>
+  <p class="small muted" style="margin:10px 2px 0">Locations only show for people who've switched sharing on, and only update while they have the site open. Dots older than a few hours fade out.</p>
+  <p class="buildstamp">build x30</p>
+</main>
+<script type="module">
+import { boot, me, col, heroFromWall, esc, toast, pname, person, household, badge, sharingOn, setSharing, checkIn, metres, howFar } from "./app.js";
+import { PLACES } from "./places.js";
+if(boot("where.html")){
+const $ = id => document.getElementById(id);
+heroFromWall();
+const CAMP = PLACES.find(p => p.kind === "camp") || { name:"Camp", lat:-33.37833, lng:151.4857 };
+let spots = [], checks = [], range = "today", map = null, L = null, layer = null, first = true;
+const ago = t => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? "just now" : m < 60 ? m + " min ago" : m < 1440 ? Math.round(m / 60) + " h ago" : Math.round(m / 1440) + " d ago"; };
+const initials = n => n.split(/\s+/).map(w => w[0]).join("").slice(0, 2).toUpperCase();
+const nearPlace = pt => { let best = null; PLACES.forEach(p => { if(!p.lat) return; const d = metres(pt, p); if(d < 350 && (!best || d < best.d)) best = { ...p, d }; }); return best; };
+const live = () => spots.filter(s => s.sharing && s.lat != null && Date.now() - (s.at || 0) < 24 * 3600000).sort((a, b) => b.at - a.at);
+const shownChecks = () => { const since = range === "today" ? new Date().setHours(0, 0, 0, 0) : range === "week" ? Date.now() - 8 * 86400000 : Infinity;
+  return checks.filter(c => c.at >= since).sort((a, b) => b.at - a.at); };
+
+/* ---------- the switch ---------- */
+const paintShare = () => { const on = sharingOn(); $("share").setAttribute("aria-checked", on ? "true" : "false");
+  $("shareTx").textContent = on ? "On — the family can see your spot while you have this site open. Tap to turn it off." : "While you have this site open, the family can see where you are on this map. Turn it off any time."; };
+paintShare(); addEventListener("xmas-share", paintShare);
+$("share").onclick = async () => { const on = !sharingOn();
+  try{ await setSharing(on); }catch(e){ toast("Couldn't save — " + e.message); }
+  paintShare(); toast(on ? "Sharing on — your phone may ask first. Say Allow." : "Sharing off. Your dot is off the map."); };
+$("checkin").onclick = () => checkIn(PLACES);
+
+/* ---------- lists ---------- */
+function paintLists(){
+  const ls = live();
+  $("people").innerHTML = ls.length ? ls.map(s => { const p = nearPlace(s), d = metres(CAMP, s);
+      return `<div class="lrow">${badge(s.id)}<div class="nm"><b>${esc(pname(s.id))}</b><small>${p ? "At " + esc(p.name) : d < 300 ? "At camp" : howFar(d) + " from camp"}</small></div>
+        <span class="tm">${ago(s.at)}</span><button class="chip find" data-find="${s.id}">Find</button></div>`; }).join("")
+    : `<div class="empty">Nobody's sharing right now. Switch on "Share my location" above to be first.</div>`;
+  const cs = shownChecks();
+  $("feed").innerHTML = cs.length ? cs.slice(0, 40).map(c => `<div class="lrow">${badge(c.who)}<div class="nm"><b>${esc(pname(c.who))} · ${esc(c.place)}</b>
+      <small>${new Date(c.at).toLocaleString("en-NZ", { weekday:"short", hour:"numeric", minute:"2-digit" })}${c.lat == null ? " · not on the map" : ""}</small></div>
+      <span class="tm">${ago(c.at)}</span>${c.lat != null ? `<button class="chip find" data-findc="${c.id}">Map</button>` : ""}${c.who === me.id ? `<button class="chip" data-del="${c.id}" aria-label="Delete">✕</button>` : ""}</div>`).join("")
+    : `<div class="empty">${range === "today" ? "No check-ins yet today." : "No check-ins yet."} Tap "Check in where I am" to add one.</div>`;
+  $("mapbar").innerHTML = [["today", "Check-ins today"], ["week", "This week"], ["none", "Hide check-ins"]].map(([k, l]) => `<button class="chip${range === k ? " on" : ""}" data-r="${k}">${l}</button>`).join("") +
+    `<button class="chip" id="fit">Show everyone</button><button class="chip" id="toCamp">⛺ Camp</button>`;
+}
+
+/* ---------- the map (Leaflet + OpenStreetMap, loaded when the page opens) ---------- */
+function loadLeaflet(){
+  return new Promise((res, rej) => {
+    if(window.L) return res(window.L);
+    const css = document.createElement("link"); css.rel = "stylesheet"; css.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"; document.head.appendChild(css);
+    const js = document.createElement("script"); js.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+    js.onload = () => res(window.L); js.onerror = () => rej(new Error("no map")); document.head.appendChild(js);
+    setTimeout(() => rej(new Error("slow")), 12000);
+  });
+}
+function paintMap(){
+  if(!map) return;
+  layer.clearLayers();
+  L.marker([CAMP.lat, CAMP.lng], { icon: L.divIcon({ className:"", html:`<div class="camp-pin">⛺</div>`, iconSize:[28, 28], iconAnchor:[14, 24] }), zIndexOffset:-100 })
+    .bindPopup(`<b>${esc(CAMP.name)}</b><br>Camp`).addTo(layer);
+  shownChecks().filter(c => c.lat != null).forEach(c => {
+    const col_ = (person(c.who) || {}).colour || "#D8352A";
+    L.marker([c.lat, c.lng], { icon: L.divIcon({ className:"", html:`<div class="ci-pin" style="border-color:${col_}"><span class="d" style="background:${col_}"></span>${esc(person(c.who).name)} · ${esc(c.place)}</div>`, iconSize:null }) })
+      .bindPopup(`<b>${esc(pname(c.who))}</b> checked in at <b>${esc(c.place)}</b><br>${esc(ago(c.at))}`).addTo(layer);
+  });
+  live().forEach(s => {
+    const p = person(s.id), old = Date.now() - s.at > 3 * 3600000;
+    L.marker([s.lat, s.lng], { zIndexOffset: 500, icon: L.divIcon({ className:"", html:`<div class="who-pin${old ? " old" : ""}" style="background:${p.colour}">${esc(initials(p.name))}</div>`, iconSize:[36, 36], iconAnchor:[18, 18] }) })
+      .bindPopup(`<b>${esc(pname(s.id))}</b><br>${esc(ago(s.at))}${s.acc > 150 ? ` · rough spot (±${howFar(s.acc)})` : ""}`).addTo(layer);
+  });
+  if(first){ first = false; fitAll(); }
+}
+function fitAll(){
+  if(!map) return;
+  const pts = [[CAMP.lat, CAMP.lng], ...live().map(s => [s.lat, s.lng]), ...shownChecks().filter(c => c.lat != null).map(c => [c.lat, c.lng])];
+  if(pts.length < 2) map.setView([CAMP.lat, CAMP.lng], 15); else map.fitBounds(pts, { padding:[40, 40], maxZoom: 16 });
+}
+loadLeaflet().then(l => {
+  L = l; $("nomap").remove();
+  map = L.map("map", { zoomControl: true, attributionControl: true }).setView([CAMP.lat, CAMP.lng], 15);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(map);
+  layer = L.layerGroup().addTo(map);
+  paintMap();
+}).catch(() => { $("nomap").textContent = "The map needs an internet connection to load. The lists below still work."; });
+
+/* ---------- live data ---------- */
+const paint = () => { paintLists(); paintMap(); };
+col("whereabouts").subscribe(r => { spots = r; paint(); });
+col("checkins").subscribe(r => { checks = r; paint(); });
+setInterval(paintLists, 60000);
+let armed = null;
+document.addEventListener("click", async e => {
+  const r = e.target.closest("[data-r]"); if(r){ range = r.dataset.r; paint(); return; }
+  if(e.target.closest("#fit")){ fitAll(); return; }
+  if(e.target.closest("#toCamp")){ map && map.setView([CAMP.lat, CAMP.lng], 16); return; }
+  const f = e.target.closest("[data-find]");
+  if(f){ const s = spots.find(x => x.id === f.dataset.find); if(s && map){ map.setView([s.lat, s.lng], 17); $("map").scrollIntoView({ behavior:"smooth", block:"center" }); } return; }
+  const fc = e.target.closest("[data-findc]");
+  if(fc){ const c = checks.find(x => x.id === fc.dataset.findc); if(c && map){ map.setView([c.lat, c.lng], 17); $("map").scrollIntoView({ behavior:"smooth", block:"center" }); } return; }
+  const d = e.target.closest("[data-del]");
+  if(d){ if(armed !== d.dataset.del){ armed = d.dataset.del; d.textContent = "Delete?"; return; }
+    armed = null; try{ await col("checkins").remove(d.dataset.del); toast("Check-in deleted"); }catch(err){ toast("Couldn't delete — " + err.message); } }
+});
+}
+</script>
+</body>
+</html>

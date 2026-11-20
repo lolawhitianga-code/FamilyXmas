@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12303B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Family Xmas">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Meals &amp; happy hour · Christmas at Bateau Bay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+<style>
+.seg{display:flex;background:var(--sand-deep);border-radius:16px;padding:4px;gap:4px;margin:0 0 14px}
+.seg button{flex:1;border:0;background:transparent;border-radius:12px;padding:13px 4px;font-weight:600;font-size:15px;line-height:1.1;min-height:48px}
+.seg button[aria-selected="true"]{background:var(--ink);color:var(--sand);box-shadow:var(--shadow)}
+.seg button small{display:block;font-family:'DM Mono',monospace;font-size:10px;font-weight:400;letter-spacing:.08em;margin-top:3px;opacity:.8}
+.day{margin:0 0 18px}
+.day h3{font-family:'Fraunces',serif;font-size:19px;margin:0 0 8px 2px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.day h3 span{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;color:var(--ink-soft);font-weight:400}
+.tag.tap{cursor:pointer}
+.tag .who{display:flex;align-items:center;gap:8px;font-weight:600;font-size:16px}
+.tag .what{font-size:15px;margin-top:2px}
+.tag .meta{font-size:13px;color:var(--ink-soft);margin-top:2px}
+.big{width:100%;min-height:56px;font-size:17px;border-radius:14px}
+.xnote{background:#FFF1D0;border:1px solid var(--gold);border-radius:12px;padding:9px 12px;font-size:14px;margin:0 0 8px}
+.fair{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.fair .chip b{font-family:'DM Mono',monospace}
+.fair .chip.zero{border-color:var(--coral);background:#FFF0EA}
+.bar{height:12px;background:var(--sand-deep);border-radius:99px;overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;background:var(--green);border-radius:99px;transition:width .3s}
+.dish{display:flex;gap:12px;align-items:center}
+.dish .body{flex:1;min-width:0}
+.sorted{flex:none;min-width:92px;min-height:52px;border-radius:14px;border:2px solid var(--line);background:#fff;font-weight:700;font-size:15px;padding:0 10px}
+.sorted[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:#fff}
+.dish.ok .nm{text-decoration:line-through;opacity:.6}
+.nm{font-weight:600;font-size:16px}
+.claim{border:1.5px dashed var(--coral);background:#FFF0EA;border-radius:999px;padding:6px 12px;font-size:14px;margin-top:5px;font-weight:500}
+.grp{font-family:'Fraunces',serif;font-size:19px;margin:20px 0 9px 2px}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="back" href="home.html">← Home</a>
+  <p class="eyebrow">Who's cooking</p>
+  <h1 class="wordmark">Meals &amp; happy hour</h1>
+  <p class="sub" id="sub">Dinners, Christmas lunch, 5 o'clock drinks</p>
+</header>
+
+<main>
+  <div class="seg" role="tablist" id="seg">
+    <button role="tab" data-t="dinners" id="t-dinners">🍽️ Dinners</button>
+    <button role="tab" data-t="lunch" id="t-lunch">🎄 Christmas lunch</button>
+    <button role="tab" data-t="happy" id="t-happy">🍹 Happy hour</button>
+  </div>
+  <div id="panel"></div>
+  <button class="fab hide" id="add" aria-label="Add a dish">+</button>
+  <p class="buildstamp">build x30</p>
+</main>
+
+<script type="module">
+import { boot, me, col, watchTrip, heroFromWall, tripDays, fmtDay, fmtLong, fromIso, todayIso, XMAS_DAY, uid,
+         households, household, onPeople, hereOn, pname, esc, badge, celebrate, openSheet, closeSheet, toast } from "./app.js";
+import { XMAS_FOOD } from "./people.js";
+
+if(boot("food.html")){
+const $ = id => document.getElementById(id);
+heroFromWall();
+const HASH = { dinners:"dinners", lunch:"lunch", happy:"happy" };
+let trip = null, meals = [], tab = HASH[location.hash.slice(1)] || "dinners";
+const byTime = (a, b) => (a.createdAt || 0) - (b.createdAt || 0);
+const hhName = h => household(h).name;
+const sorry = e => toast("Couldn't save \u2014 " + e.message);
+const hhOptions = sel => households().map(h => `<option value="${h.id}"${h.id === sel ? " selected" : ""}>${esc(h.name)}</option>`).join("");
+const days = () => trip ? tripDays(trip) : [];
+
+function setTab(t, push){
+  tab = t; if(push !== false) history.replaceState(null, "", "#" + t);
+  document.querySelectorAll("#seg button").forEach(b => b.setAttribute("aria-selected", String(b.dataset.t === t)));
+  $("add").classList.toggle("hide", t !== "lunch");
+  render();
+}
+document.querySelectorAll("#seg button").forEach(b => b.addEventListener("click", () => setTab(b.dataset.t)));
+addEventListener("hashchange", () => { const t = HASH[location.hash.slice(1)]; if(t && t !== tab) setTab(t, false); });
+
+/* ---------- delete helper: second tap confirms ---------- */
+function delBtn(sh, id){
+  const b = sh.el.querySelector("#del"); let armed = false;
+  b.onclick = async () => {
+    if(!armed){ armed = true; b.textContent = "Really delete?"; return; }
+    closeSheet(); try{ await col("meals").remove(id); }catch(e){ sorry(e); }
+  };
+}
+
+/* ================= DINNERS ================= */
+function fairShare(){
+  const ds = days(), nights = {};
+  meals.filter(m => m.kind === "dinner" && m.hh).forEach(m => { (nights[m.hh] = nights[m.hh] || new Set()).add(m.date); });
+  const hs = households().filter(h => ds.filter(d => hereOn(h, d.iso)).length >= 2);
+  return `<div class="card"><b>Fair share</b> <span class="muted small">\u2014 nights cooked so far</span><div class="fair">` +
+    hs.map(h => { const n = nights[h.id] ? nights[h.id].size : 0;
+      return `<span class="chip${n ? "" : " zero"}">${badge(h.id)}${esc(h.name)} <b>${n}</b></span>`; }).join("") + `</div></div>`;
+}
+function dinnerEntry(m){
+  const who = m.hh ? esc(hhName(m.hh)) : esc(m.who || "Someone");
+  return `<div class="tag tap" data-edit="${m.id}" role="button" tabindex="0"><div class="who">${m.hh ? badge(m.hh) : "\ud83d\udc6a"}${who}</div>` +
+    `<div class="what">${m.what ? esc(m.what) : '<span class="muted">What\u2019s for dinner? Tap to say</span>'}</div>` +
+    (m.note ? `<div class="meta">${esc(m.note)}</div>` : "") + `</div>`;
+}
+function renderDinners(){
+  const ds = days(); if(!ds.length) return `<div class="empty">Loading\u2026</div>`;
+  const hs = households();
+  return fairShare() + ds.map(d => {
+    const heads = hs.filter(h => hereOn(h, d.iso)).reduce((n, h) => n + h.members.length, 0);
+    const es = meals.filter(m => m.kind === "dinner" && m.date === d.iso).sort(byTime);
+    return `<section class="day"><h3>${fmtDay(d.date)}<span>${heads} AT CAMP</span></h3>` +
+      (d.iso === XMAS_DAY ? `<div class="xnote">\ud83c\udf84 Christmas lunch is the main event \u2014 see the Christmas lunch tab</div>` : "") +
+      es.map(dinnerEntry).join("") +
+      (es.length ? `<button class="btn ghost small" data-cook="${d.iso}">+ Another family cooking</button>`
+                : `<button class="btn green big" data-cook="${d.iso}">\ud83d\udc68\u200d\ud83c\udf73 We\u2019ll cook</button>`) + `</section>`;
+  }).join("");
+}
+function dinnerSheet(m, isNew){
+  const sh = openSheet(`<h3>${isNew ? "What\u2019s for dinner?" : "Dinner"} \u00b7 ${esc(fmtDay(fromIso(m.date)))}</h3>
+    <label class="f" for="dh">Who\u2019s cooking</label>
+    <select class="in" id="dh">${hhOptions(m.hh)}<option value=""${m.hh ? "" : " selected"}>Someone else / everyone\u2026</option></select>
+    <div id="dwWrap" class="${m.hh ? "hide" : ""}"><label class="f" for="dw">Who (e.g. Everyone \u2014 BBQ)</label><input class="in" id="dw" value="${esc(m.who || "")}"></div>
+    <label class="f" for="dt">What\u2019s for dinner?</label><input class="in" id="dt" value="${esc(m.what || "")}" placeholder="Tacos, snags, curry\u2026">
+    <label class="f" for="dn">Note</label><input class="in" id="dn" value="${esc(m.note || "")}" placeholder="Bring a chair, 6pm, nut-free\u2026">
+    <div class="acts">${isNew ? "" : '<button class="btn red" id="del">Delete</button>'}<button class="btn ghost" id="no">${isNew ? "Later" : "Cancel"}</button><button class="btn green" id="ok">Save</button></div>`);
+  const q = s => sh.el.querySelector(s);
+  q("#dh").onchange = () => q("#dwWrap").classList.toggle("hide", !!q("#dh").value);
+  q("#no").onclick = () => closeSheet();
+  if(!isNew) delBtn(sh, m.id);
+  q("#ok").onclick = async () => {
+    const hh = q("#dh").value, v = { hh, who: hh ? "" : q("#dw").value.trim(), what: q("#dt").value.trim(), note: q("#dn").value.trim() };
+    closeSheet(); try{ await col("meals").update(m.id, v); }catch(e){ sorry(e); }
+  };
+}
+async function cook(iso){
+  if(!me.hh){ toast("Pick your family on the front page first"); return; }
+  celebrate("cook");
+  const id = uid(), row = { kind:"dinner", date:iso, hh:me.hh, who:"", what:"", note:"", createdAt:Date.now(), by:me.id };
+  dinnerSheet({ ...row, id }, true);
+  try{ await col("meals").set(id, row); }catch(e){ sorry(e); }
+}
+
+/* ================= CHRISTMAS LUNCH ================= */
+const dishes = () => meals.filter(m => m.kind === "dish");
+function dishRow(m){
+  const nobody = !m.who && !m.claimedBy, who = m.claimedBy ? pname(m.claimedBy) : m.who;
+  return `<div class="tag ${m.done ? "green" : ""}"><div class="dish${m.done ? " ok" : ""}"><div class="body" data-edit="${m.id}" role="button" tabindex="0">
+    <div class="nm">${esc(m.dish)}</div>
+    ${nobody ? "" : `<div class="meta">${m.claimedBy ? badge(m.claimedBy) + " " : ""}${esc(who)}</div>`}
+    ${m.note ? `<div class="meta">${esc(m.note)}</div>` : ""}
+    ${nobody ? `<button class="claim" data-claim="${m.id}">Nobody yet \u2014 I\u2019ll bring it</button>` : ""}</div>
+    <button class="sorted" data-sort="${m.id}" aria-pressed="${!!m.done}">${m.done ? "Sorted \u2713" : "Sorted?"}</button></div></div>`;
+}
+function renderLunch(){
+  const ds = dishes().sort(byTime);
+  if(!ds.length) return `<div class="card" style="text-align:center"><p>No dishes yet.</p><button class="btn green big" id="seed">Start with the family list</button><p class="muted small">Adds the list the family agreed on. Then tick things off as they\u2019re sorted.</p></div>`;
+  const ok = ds.filter(m => m.done).length, pct = Math.round(ok / ds.length * 100);
+  const grp = (title, meal) => { const xs = ds.filter(m => (m.meal === "boxing" ? "boxing" : "lunch") === meal);
+    return `<h2 class="grp">${title}</h2>` + (xs.length ? xs.map(dishRow).join("") : `<div class="empty">Nothing here yet \u2014 tap + to add</div>`); };
+  return `<div class="card"><b>${ok} of ${ds.length} sorted</b><div class="bar"><i style="width:${pct}%"></i></div></div>` +
+    grp("Christmas lunch \u00b7 Fri 25 Dec", "lunch") + grp("Boxing Day breakfast cook-up \u00b7 Sat 26 Dec", "boxing");
+}
+function dishSheet(m){
+  const isNew = !m;  m = m || { dish:"", who:"", claimedBy:"", meal:"lunch", note:"" };
+  const sh = openSheet(`<h3>${isNew ? "Add a dish" : "Edit dish"}</h3>
+    <label class="f" for="xd">Dish</label><input class="in" id="xd" value="${esc(m.dish)}" placeholder="Pavlova, ham, garlic bread\u2026">
+    <label class="f" for="xw">Who\u2019s bringing it</label>
+    <div class="row"><input class="in" id="xw" value="${esc(m.claimedBy ? pname(m.claimedBy) : m.who)}" placeholder="Nobody yet"><button class="btn ghost small" id="me" style="flex:none">That\u2019s me</button></div>
+    <label class="f" for="xm">Which meal</label>
+    <select class="in" id="xm"><option value="lunch"${m.meal !== "boxing" ? " selected" : ""}>Christmas lunch \u00b7 25 Dec</option><option value="boxing"${m.meal === "boxing" ? " selected" : ""}>Boxing Day breakfast \u00b7 26 Dec</option></select>
+    <label class="f" for="xn">Note</label><input class="in" id="xn" value="${esc(m.note || "")}" placeholder="Bought the prawns, need a big esky\u2026">
+    <div class="acts">${isNew ? "" : '<button class="btn red" id="del">Delete</button>'}<button class="btn ghost" id="no">Cancel</button><button class="btn green" id="ok">Save</button></div>`);
+  const q = s => sh.el.querySelector(s); let claimed = m.claimedBy || "";
+  const orig = m.claimedBy ? pname(m.claimedBy) : m.who;
+  q("#me").onclick = () => { q("#xw").value = pname(me.id); claimed = me.id; };
+  q("#no").onclick = () => closeSheet();
+  if(!isNew) delBtn(sh, m.id);
+  q("#ok").onclick = async () => {
+    const dish = q("#xd").value.trim(); if(!dish){ toast("What\u2019s the dish?"); return; }
+    const who = q("#xw").value.trim(); if(who !== orig && claimed !== me.id) claimed = "";
+    if(claimed === me.id && who !== pname(me.id)) claimed = "";
+    const v = { kind:"dish", meal:q("#xm").value, dish, who, claimedBy:who ? claimed : "", note:q("#xn").value.trim() };
+    if(isNew) v.done = false;
+    closeSheet();
+    if(isNew && v.claimedBy === me.id) celebrate("dish");
+    try{ isNew ? await col("meals").add(v) : await col("meals").update(m.id, v); }catch(e){ sorry(e); }
+  };
+}
+async function seed(btn){
+  btn.disabled = true;
+  try{ await Promise.all(XMAS_FOOD.map(f => col("meals").add({ kind:"dish", meal:f.meal || "lunch", dish:f.dish, who:f.who, claimedBy:"", done:false, note:"" }))); }
+  catch(e){ sorry(e); btn.disabled = false; }
+}
+
+/* ================= HAPPY HOUR ================= */
+function renderHappy(){
+  const ds = days(); if(!ds.length) return `<div class="empty">Loading\u2026</div>`;
+  return ds.map(d => {
+    const es = meals.filter(m => m.kind === "happy" && m.date === d.iso).sort(byTime);
+    return `<section class="day"><h3>${fmtDay(d.date)}</h3>` + es.map(m =>
+      `<div class="tag gold tap" data-edit="${m.id}" role="button" tabindex="0"><div class="who">${badge(m.hh)}${esc(hhName(m.hh))}${m.time ? ` <span class="mono small muted">${esc(m.time)}</span>` : ""}</div>` +
+      (m.where ? `<div class="what">\ud83d\udccd ${esc(m.where)}</div>` : "") + (m.theme ? `<div class="meta">\ud83c\udf79 ${esc(m.theme)}</div>` : "") + `</div>`).join("") +
+      (es.length ? `<button class="btn ghost small" data-host="${d.iso}">+ Another host</button>`
+                 : `<button class="btn big" style="background:var(--sea);color:#fff" data-host="${d.iso}">\ud83c\udf79 We\u2019ll host</button>`) + `</section>`;
+  }).join("");
+}
+function happySheet(m, isNew){
+  const sh = openSheet(`<h3>${isNew ? "Happy hour \u2014 where &amp; what?" : "Happy hour"} \u00b7 ${esc(fmtDay(fromIso(m.date)))}</h3>
+    <label class="f" for="hh">Host family</label><select class="in" id="hh">${hhOptions(m.hh)}</select>
+    <label class="f" for="hw">Where (cabin / site)</label><input class="in" id="hw" value="${esc(m.where || "")}" placeholder="Cabin 7, the BBQ area\u2026">
+    <div class="row"><div><label class="f" for="ht">Time</label><input class="in" type="time" id="ht" value="${esc(m.time || "17:00")}"></div></div>
+    <label class="f" for="hm">Theme / what to bring</label><input class="in" id="hm" value="${esc(m.theme || "")}" placeholder="Margaritas, bring a plate\u2026">
+    <div class="acts">${isNew ? "" : '<button class="btn red" id="del">Delete</button>'}<button class="btn ghost" id="no">${isNew ? "Later" : "Cancel"}</button><button class="btn green" id="ok">Save</button></div>`);
+  const q = s => sh.el.querySelector(s);
+  q("#hh").onchange = () => { if(!q("#hw").value.trim()){ const s = household(q("#hh").value).site; if(s) q("#hw").value = s; } };
+  q("#no").onclick = () => closeSheet();
+  if(!isNew) delBtn(sh, m.id);
+  q("#ok").onclick = async () => {
+    const v = { hh:q("#hh").value, where:q("#hw").value.trim(), time:q("#ht").value, theme:q("#hm").value.trim() };
+    closeSheet(); try{ await col("meals").update(m.id, v); }catch(e){ sorry(e); }
+  };
+}
+async function host(iso){
+  if(!me.hh){ toast("Pick your family on the front page first"); return; }
+  celebrate("host");
+  const site = household(me.hh).site, id = uid();
+  const row = { kind:"happy", date:iso, hh:me.hh, where: site ? String(site) : "", time:"17:00", theme:"", createdAt:Date.now(), by:me.id };
+  happySheet({ ...row, id }, true);
+  try{ await col("meals").set(id, row); }catch(e){ sorry(e); }
+}
+
+/* ================= wiring ================= */
+function render(){
+  document.querySelectorAll("#seg button").forEach(b => {
+    const t = b.dataset.t; b.setAttribute("aria-selected", String(t === tab));
+  });
+  $("panel").innerHTML = tab === "dinners" ? renderDinners() : tab === "lunch" ? renderLunch() : renderHappy();
+}
+$("panel").addEventListener("click", e => {
+  const t = e.target;
+  const cl = t.closest("[data-claim]");
+  if(cl){ e.stopPropagation(); celebrate("dish"); col("meals").update(cl.dataset.claim, { who:pname(me.id), claimedBy:me.id }).catch(sorry); return; }
+  const so = t.closest("[data-sort]");
+  if(so){ const on = so.getAttribute("aria-pressed") !== "true"; so.setAttribute("aria-pressed", String(on)); if(on) celebrate("dish");
+    col("meals").update(so.dataset.sort, { done:on }).catch(sorry); return; }
+  if(t.closest("#seed")){ seed(t.closest("#seed")); return; }
+  const ck = t.closest("[data-cook]"); if(ck){ cook(ck.dataset.cook); return; }
+  const ho = t.closest("[data-host]"); if(ho){ host(ho.dataset.host); return; }
+  const ed = t.closest("[data-edit]");
+  if(ed){ const m = meals.find(x => x.id === ed.dataset.edit); if(!m) return;
+    m.kind === "dinner" ? dinnerSheet(m, false) : m.kind === "dish" ? dishSheet(m) : happySheet(m, false); }
+});
+$("panel").addEventListener("keydown", e => { if(e.key === "Enter" && e.target.matches("[data-edit]")) e.target.click(); });
+$("add").addEventListener("click", () => dishSheet(null));
+
+watchTrip(t => { trip = t; render(); });
+onPeople(render);
+col("meals").subscribe(r => { meals = r; render(); });
+setTab(tab, !!location.hash);
+}
+</script>
+</body>
+</html>

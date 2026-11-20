@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12303B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Family Xmas">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Day by day</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+<style>
+.day{scroll-margin-top:12px}
+.day.now{border:2px solid var(--red)}
+.day h3{font-family:'Fraunces',serif;font-size:21px;margin:0;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.day h3 .fest{font-size:14px;font-family:'Outfit',sans-serif;font-weight:600;color:var(--red)}
+.day h3 .cnt{margin-left:auto;font-family:'DM Mono',monospace;font-size:11px;font-weight:400;color:var(--ink-soft);letter-spacing:.06em}
+.slot{border-top:1px dashed var(--line);padding:9px 0 4px;margin-top:9px}
+.slot .sh{display:flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft)}
+.slot .sh span:first-child{font-size:16px}
+.slot .sh .plus{margin-left:auto;width:36px;height:36px;border-radius:50%;border:1.5px solid var(--line);background:#fff;font-size:22px;line-height:1;padding:0;color:var(--red)}
+.item{display:block;width:100%;text-align:left;border:0;background:none;padding:8px 2px;border-bottom:1px solid #F4EAD8;font:inherit;color:inherit}
+.item:last-child{border-bottom:0}
+.item .tx{display:flex;gap:8px;align-items:baseline}
+.item .tm{font-family:'DM Mono',monospace;font-size:12.5px;color:var(--ink-soft);flex:none}
+.item .by{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink-soft);margin-top:3px}
+.item .chip{font-size:12px;padding:2px 9px;margin-top:4px}
+.none{font-size:13px;opacity:.6;padding:4px 2px}
+.also{margin-top:10px;padding-top:8px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink-soft)}
+.also a{display:block;padding:3px 0;text-decoration:none}
+.also a span{opacity:.7}
+.sel{width:100%;border:1.5px solid var(--line);border-radius:11px;padding:10px 12px;background:#fff;font-size:16px}
+.slots{display:flex;gap:7px}
+.slots button{flex:1;border:1.5px solid var(--line);background:#fff;border-radius:11px;padding:9px 4px;font-size:13px;line-height:1.25}
+.slots button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.slots button b{display:block;font-size:18px;font-weight:400}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="back" href="home.html">← Home</a>
+  <p class="eyebrow">21–30 December</p>
+  <h1 class="wordmark">Day by day</h1>
+  <p class="sub" id="sub">&nbsp;</p>
+</header>
+<main>
+  <div class="card hide" id="itin" style="border-left:5px solid var(--gold)">
+    <b style="font-family:'Fraunces',serif;font-size:18px" id="itinTitle">The family itinerary</b>
+    <p class="small muted" style="margin:4px 0 10px" id="itinText">Load the Townsend Family Christmas itinerary (23–28 Dec) in one go: the day-by-day plan, the competitions, the dinners and the bring-list. After that anyone can change any of it.</p>
+    <button class="btn green wide" id="itinGo">Load the itinerary</button>
+  </div>
+  <div id="days"><div class="empty">Loading…</div></div>
+  <button class="fab" id="add" aria-label="Add">+</button>
+  <p class="buildstamp">build x30</p>
+</main>
+<script type="module">
+import { boot, me, col, watchTrip, heroFromWall, tripDays, tripDayToday, fmtDay, todayIso, XMAS_DAY, SLOTS, households, household, onPeople,
+         hereOn, esc, badge, pname, openSheet, closeSheet, toast, celebrate, settings, jingle } from "./app.js";
+import { ITINERARY, ITIN_EVENTS, ITIN_DINNERS, ITIN_GEAR, ITIN_VERSION } from "./itinerary.js";
+
+if(boot("planner.html")){
+const $ = id => document.getElementById(id);
+heroFromWall();
+let trip = null, plan = [], meals = [], signups = [], firstDone = false, hashDone = false, deep = null;
+
+/* deep link from other pages: ?add=TEXT&link=URL&day=N */
+{ const q = new URLSearchParams(location.search);
+  if(q.has("add") || q.has("link")){ deep = { text:q.get("add") || "", link:q.get("link") || "", day:+q.get("day") || 0 }; history.replaceState(null, "", location.pathname + location.hash); } }
+
+const todayN = () => { if(!trip) return 1; return Math.min(trip.days, Math.max(1, tripDayToday(trip))); };
+const dayLabel = d => fmtDay(d.date).replace(/,/g, "");
+const linkOf = u => { u = (u || "").trim(); return u && !/^[a-z]+:/i.test(u) ? "https://" + u : u; };
+const host = u => { try{ return new URL(u).hostname.replace(/^www\./, ""); }catch(e){ return "link"; } };
+const hhName = m => m.hh ? household(m.hh).name : (m.who || "someone");
+
+function paint(){
+  if(!trip) return;
+  const ds = tripDays(trip), live = tripDayToday(trip), hs = households();
+  $("sub").textContent = live >= 1 && live <= trip.days ? `Day ${live} of ${trip.days}` : live < 1 ? "Tap + to plan something" : "Home again";
+  $("days").innerHTML = ds.map(d => {
+    const here = hs.filter(h => hereOn(h, d.iso)).reduce((n, h) => n + h.members.length, 0);
+    const fest = d.iso === XMAS_DAY ? '<span class="fest">🎄 Christmas Day</span>' : d.iso === "2026-12-26" ? '<span class="fest">Boxing Day</span>' : "";
+    const slots = SLOTS.map(sl => {
+      const xs = plan.filter(p => +p.day === d.n && p.slot === sl.key).sort((a, b) => (a.time || "").localeCompare(b.time || "") || (a.createdAt || 0) - (b.createdAt || 0));
+      return `<div class="slot"><div class="sh"><span>${sl.glyph}</span><span>${sl.label}</span><button class="plus" data-d="${d.n}" data-s="${sl.key}" aria-label="Add to ${sl.label}, ${esc(dayLabel(d))}">+</button></div>` +
+        (xs.length ? xs.map(i => `<button class="item" data-id="${i.id}"><div class="tx">${i.time ? `<span class="tm">${esc(i.time)}</span>` : ""}<span>${esc(i.text)}</span></div>
+          ${i.link ? `<span class="chip" data-href="${esc(linkOf(i.link))}">🔗 ${esc(host(linkOf(i.link)))}</span>` : ""}
+          <div class="by">${i.src === "itinerary" ? "📋 Family itinerary" : i.by ? badge(i.by) + esc(pname(i.by)) : ""}</div></button>`).join("") : `<div class="none">Nothing yet</div>`) + `</div>`;
+    }).join("");
+    const dinner = meals.filter(m => m.kind === "dinner" && m.date === d.iso).map(m => `<a href="food.html">🍽️ Dinner: ${esc(m.what || "Dinner")} <span>— ${esc(hhName(m))}</span></a>`);
+    const happy = meals.filter(m => m.kind === "happy" && m.date === d.iso).map(m => `<a href="food.html#happy">🍹 Happy hour: ${esc(hhName(m))}${m.time ? " " + esc(m.time) : ""}</a>`);
+    const acts = signups.filter(a => a.date === d.iso).sort((a, b) => (a.time || "").localeCompare(b.time || ""))
+      .map(a => `<a href="signup.html">✋ ${a.time ? esc(a.time) + " " : ""}${esc(a.title)} <span>(${(a.in || []).length} in)</span></a>`);
+    const also = [...dinner, ...happy, ...acts].join("");
+    return `<div class="card day${live === d.n ? " now" : ""}" id="day-${d.n}"><h3>${esc(dayLabel(d))}${fest}<span class="cnt">${here} at camp</span></h3>${slots}${also ? `<div class="also">${also}</div>` : ""}</div>`;
+  }).join("");
+  $("days").querySelectorAll(".plus").forEach(b => b.onclick = () => sheet({ day:+b.dataset.d, slot:b.dataset.s }));
+  $("days").querySelectorAll(".item").forEach(b => b.onclick = e => {
+    const c = e.target.closest("[data-href]"); if(c){ e.stopPropagation(); window.open(c.dataset.href, "_blank", "noopener"); return; }
+    sheet(null, plan.find(p => p.id === b.dataset.id));
+  });
+  if(!firstDone){ firstDone = true;
+    if(deep){ const d = deep; deep = null; sheet({ day:d.day >= 1 && d.day <= trip.days ? d.day : todayN(), slot:"morning", text:d.text, link:d.link }); }
+  }
+  if(!hashDone){ hashDone = true;
+    const id = location.hash.replace(/[^\w-]/g, "");   // re-find each time: the cards get redrawn as data arrives
+    if(id) [60, 700, 2000].forEach(ms => setTimeout(() => document.getElementById(id)?.scrollIntoView({ block:"start" }), ms)); }
+}
+
+/* add (preset) or edit (item) */
+function sheet(pre, item){
+  const v = item ? { day:+item.day, slot:item.slot, text:item.text, time:item.time || "", link:item.link || "" } : { day:todayN(), slot:"morning", text:"", time:"", link:"", ...pre };
+  let slot = v.slot, armed = false;
+  const ds = tripDays(trip);
+  const sh = openSheet(`<h3>${item ? "Change this" : "Add to the plan"}</h3>
+    <label class="f" for="tx">What's happening?</label><input class="in" id="tx" value="${esc(v.text)}" placeholder="e.g. Walk to the lookout" autocomplete="off">
+    <div class="row"><div><label class="f" for="tm">Time (optional)</label><input class="in" type="time" id="tm" value="${esc(v.time)}"></div>
+    <div><label class="f" for="dy">Day</label><select class="sel" id="dy">${ds.map(d => `<option value="${d.n}"${d.n === v.day ? " selected" : ""}>${esc(dayLabel(d))}${d.iso === XMAS_DAY ? " 🎄" : ""}</option>`).join("")}</select></div></div>
+    <label class="f">When in the day</label><div class="slots" id="sl">${SLOTS.map(s => `<button type="button" data-k="${s.key}" class="${s.key === slot ? "on" : ""}"><b>${s.glyph}</b>${s.label}</button>`).join("")}</div>
+    <label class="f" for="lk">Link (optional)</label><input class="in" id="lk" type="url" inputmode="url" value="${esc(v.link)}" placeholder="https://…">
+    <div class="acts">${item ? '<button class="btn red" id="del" style="flex:none;background:transparent;color:var(--red);border:1.5px solid var(--red)">Delete</button>' : '<button class="btn ghost" id="no">Cancel</button>'}<button class="btn green" id="go">${item ? "Save" : "Add"}</button></div>`);
+  const q = s => sh.el.querySelector(s);
+  q("#sl").querySelectorAll("button").forEach(b => b.onclick = () => { slot = b.dataset.k; q("#sl").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); });
+  if(q("#no")) q("#no").onclick = () => closeSheet();
+  q("#go").onclick = async () => {
+    const text = q("#tx").value.trim(); if(!text) return toast("Say what's happening first");
+    const data = { day:+q("#dy").value, slot, text, time:q("#tm").value, link:q("#lk").value.trim() };
+    closeSheet();
+    try{
+      if(item) await col("planner").update(item.id, data);
+      else { celebrate("planner"); await col("planner").add(data); }
+    }catch(e){ toast("Couldn't save — " + e.message); }
+  };
+  if(item) q("#del").onclick = async () => {
+    const b = q("#del");
+    if(!armed){ armed = true; b.textContent = "Really delete?"; b.style.background = "var(--red)"; b.style.color = "#fff"; return; }
+    closeSheet();
+    try{ await col("planner").remove(item.id); }catch(e){ toast("Couldn't delete — " + e.message); }
+  };
+}
+$("add").onclick = () => trip && sheet({ day:todayN(), slot:"morning" });
+
+watchTrip(t => { trip = t; paint(); });
+onPeople(paint);
+col("planner").subscribe(r => { plan = r; paint(); });
+col("meals").subscribe(r => { meals = r; paint(); });
+col("signups").subscribe(r => { signups = r; paint(); });
+
+/* ---------- the family itinerary: one tap loads the plan, the comps, the dinners and the bring-list ---------- */
+let itinV = null;           // null = don't know yet, 0 = never loaded
+const paintItin = () => {
+  $("itin").classList.toggle("hide", itinV === null || itinV >= ITIN_VERSION);
+  if(itinV >= 2 && itinV < ITIN_VERSION){     // already loaded once — this is just what's new or changed
+    const fresh = [...ITINERARY, ...ITIN_EVENTS, ...ITIN_DINNERS, ...ITIN_GEAR].filter(x => (x.v || 2) > itinV);
+    const adds = fresh.filter(x => !x.was), chg = fresh.filter(x => x.was);
+    $("itinTitle").textContent = "Itinerary update";
+    $("itinText").textContent = "The family itinerary has been updated: " +
+      [chg.length ? `${chg.length} change${chg.length === 1 ? "" : "s"} (new organisers and times)` : "", adds.length ? `${adds.length} new thing${adds.length === 1 ? "" : "s"}` : ""].filter(Boolean).join(" and ") +
+      ". Anything someone has already edited by hand is left alone.";
+    $("itinGo").textContent = "Apply the update";
+  }
+};
+settings("itinerary").subscribe(d => { itinV = d && d.loaded ? (d.v || 1) : 0; paintItin(); });
+$("itinGo").onclick = async () => {
+  if(!trip) return;
+  const start = new Date(trip.start + "T00:00:00");
+  const slotFor = t => !t ? "evening" : t < "12:00" ? "morning" : t < "17:00" ? "noon" : "evening";
+  const btn = $("itinGo"); btn.disabled = true; btn.textContent = "Loading…";
+  const from = itinV || 0, upgrade = from >= 2, isNew = x => (x.v || 2) > from;
+  let added = 0, changed = 0, kept = 0;
+  /* one rule for every list: a change (was:{…}) only lands on a row nobody has touched; a brand-new entry is
+     added if it isn't there; and on an update nothing that was deleted comes back. */
+  const apply = async (name, rows, x, makeNew, patch) => {
+    const row = rows.find(r => r.id === x.id);
+    if(upgrade && x.was){
+      if(!row) return;                                                   // someone deleted it — leave it gone
+      if(Object.keys(x.was).every(k => (row[k] || "") === x.was[k])){ await col(name).update(x.id, patch); changed++; }
+      else if(!Object.keys(x.was).every(k => (row[k] || "") === (patch[k] || ""))) kept++;   // already up to date doesn't count
+      return;
+    }
+    if(!row){ await col(name).set(x.id, makeNew); added++; }
+  };
+  try{
+    // an earlier, shorter version of the itinerary may be in the plan — swap it out
+    if(from < 2) for(const old of plan.filter(p => p.src === "itinerary" && String(p.id).startsWith("it-"))) await col("planner").remove(old.id);
+    const have = name => new Promise(res => { let done = false; col(name).subscribe(rows => { if(!done){ done = true; res(rows); } }); });
+    const [evs, mls, shop] = await Promise.all([have("events"), have("meals"), have("shopping")]);
+    let n = 0;
+    for(const x of ITINERARY.filter(isNew)){
+      const day = Math.round((new Date(x.date + "T00:00:00") - start) / 86400000) + 1;
+      if(day < 1 || day > trip.days) continue;
+      const slot = x.slot || slotFor(x.time);
+      await apply("planner", plan, x,
+        { day, slot, text: x.text, time: x.time, link: x.link || "", src:"itinerary", by:"", createdAt: Date.now() + (n++) },
+        { text: x.text, time: x.time, slot });
+    }
+    for(const e of ITIN_EVENTS.filter(isNew)){
+      const { id, v:_v, was:_w, ...v } = e;
+      await apply("events", evs, e, { ...v, teams:[], status:"upcoming", results:[], src:"itinerary", by:"", createdAt: Date.now() }, { note: e.note });
+    }
+    for(const d of ITIN_DINNERS.filter(isNew)){
+      const { id, v:_v, was:_w, ...v } = d;
+      await apply("meals", mls, d, { kind:"dinner", hh:"", ...v, src:"itinerary", by:"", createdAt: Date.now() }, { what: d.what });
+    }
+    for(const g of ITIN_GEAR.filter(isNew)){
+      const { id, v:_v, was:_w, ...v } = g;
+      await apply("shopping", shop, g, { ...v, qty:"", list:"other", buyer:"", done:false, doneBy:"", src:"itinerary", by:"", createdAt: Date.now() }, { text: g.text });
+    }
+    await settings("itinerary").save({ loaded:true, v: ITIN_VERSION, by: me.id, at: Date.now() });
+    jingle();
+    toast(upgrade ? `Update done — ${changed} changed, ${added} added${kept ? `, ${kept} left alone (edited by hand)` : ""}`
+                  : `Itinerary loaded — the plan, the comps, the dinners and the bring-list`, 5000);
+  }catch(e){ toast("Couldn't load it — " + e.message); btn.disabled = false; btn.textContent = "Load the itinerary"; }
+};
+}
+</script>
+</body>
+</html>

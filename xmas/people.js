@@ -1,0 +1,45 @@
+/* ============================================================
+   Christmas at Bateau Bay — who's coming.
+   Straight from the family RSVP sheet. Dates, cabins and notes
+   can be changed in the app (Who's coming → tap a family), and
+   extra people can be added from the front page.
+   ============================================================ */
+
+/* id, the names, when they arrive and leave, cabin or caravan */
+export const HOUSEHOLDS = [
+  { id:"h01", people:["Lauren","Daisy","Brendon"],               arrive:"2026-12-21", leave:"2026-12-28", stay:"Cabin",   note:"" },
+  { id:"h02", people:["Topsy"],                                  arrive:"2026-12-23", leave:"2026-12-28", stay:"Cabin",   note:"" },
+  { id:"h03", people:["Mikayla","Flynn"],                        arrive:"2026-12-21", leave:"2026-12-28", stay:"Cabin",   note:"Mikayla is happy to run the club / be an organiser" },
+  { id:"h04", people:["Holli","Nia"],                            arrive:"2026-12-21", leave:"2026-12-28", stay:"Cabin",   note:"" },
+  { id:"h05", people:["Sam","Caprice"],                          arrive:"2026-12-23", leave:"2026-12-27", stay:"Cabin",   note:"Sam's girlfriend is coming 26th–28th" },
+  { id:"h06", people:["Gemma","Georgia","Tayla"],                arrive:"2026-12-23", leave:"2026-12-28", stay:"Cabin",   note:"" },
+  { id:"h07", people:["Kay","Roy","Mark"],                       arrive:"2026-12-23", leave:"2026-12-28", stay:"Cabin",   note:"" },
+  { id:"h08", people:["Trudi","Clint","Jack"],                   arrive:"2026-12-23", leave:"2026-12-30", stay:"Cabin",   note:"" },
+  { id:"h09", people:["Kristy","Jason","Nate","Charlie"],        arrive:"2026-12-23", leave:"2026-12-28", stay:"Caravan", note:"" },
+  { id:"h10", people:["Ken","Lynda"],                            arrive:"2026-12-23", leave:"2026-12-28", stay:"Cabin",   note:"" },
+  { id:"h11", people:["Adam","Sunny","Jack"],                    arrive:"2026-12-23", leave:"2026-12-28", stay:"Cabin",   note:"" },
+  { id:"h12", people:["Sally","Steve","Mila","Zara"],            arrive:"2026-12-24", leave:"2026-12-28", stay:"Caravan", note:"" },
+  { id:"h13", people:["Shawn","Prue","Cooper","Isla","Josh"],    arrive:"2026-12-23", leave:"2026-12-28", stay:"Cabin",   note:"" },
+  { id:"h14", people:["Lochie","Anna"],                          arrive:"2026-12-23", leave:"2026-12-26", stay:"Cabin",   note:"Lochie is bringing dinner rolls and an activity. Here until the 26th." }
+];
+
+/* one colour per family, used for dots, bars and ladders */
+export const HH_COLOURS = ["#D8352A","#1F8A5B","#F2B33D","#1AA5B8","#FF7A59","#8E5BD0","#2C86C3",
+                           "#E77FA0","#5A9E3A","#C97A1E","#0E7C86","#B0447A","#4A6FD0","#A4563B"];
+
+/* Christmas lunch — who's bringing what, from the family food list.
+   Loaded into the meal roster the first time someone taps "Start with the family list". */
+export const XMAS_FOOD = [
+  { dish:"Hams",                              who:"Chattertons" },
+  { dish:"Chickens × 5",                      who:"Townsends" },
+  { dish:"Prawns × 5 kg?",                    who:"Rostrons" },
+  { dish:"Pasta salad",                       who:"Lynda and Prue" },
+  { dish:"Salads × 5",                        who:"Each family" },
+  { dish:"Rice dish",                         who:"Lynda and Trudi" },
+  { dish:"Potato bakes / vegie bakes × 3",    who:"Gemma and Lauren" },
+  { dish:"Dinner rolls",                      who:"Lochie" },
+  { dish:"Desserts × 3",                      who:"Kay and Kristy" },
+  { dish:"Trifle",                            who:"Topsy" },
+  { dish:"Snacks & nibbles",                  who:"All families" },
+  { dish:"Boxing Day breakfast cook-up — bacon, eggs etc", who:"All families", meal:"boxing" }
+];
