@@ -9,7 +9,7 @@
    ============================================================ */
 import { HOUSEHOLDS as BASE_HH, HH_COLOURS } from "./people.js";
 
-export const BUILD = "x33";
+export const BUILD = "x34";
 
 export const FIREBASE = {
   apiKey: "AIzaSyB1NnJlvpL_dv7aPrAeFGtl5MM1oSa1YPk",
@@ -283,7 +283,9 @@ export const STAR = {
   keen:     [3,  "Keen",                 ""],
   wish:     [5,  "Wish list updated",    "Santa's taking notes"],
   guess:    [5,  "Guess in",             "Kay's keeping score"],
-  checkin:  [5,  "Checked in",           "the family knows where you are"]
+  checkin:  [5,  "Checked in",           "the family knows where you are"],
+  song:     [3,  "Song asked for",       "turn it up"],
+  tune:     [5,  "On the playlist",      "camp tunes"]
 };
 
 let _ac = null;
@@ -1167,7 +1169,7 @@ export function boot(page){
     zs.forEach(z => io.observe(z)); }, 0);
   promptWatch(page);
   if(page !== "traffic.html") track(page);
-  musicButton();
+  if(page !== "music.html") musicButton();   // no carols over the Spotify player
   if(sharingOn()) startSharing();          // "Share my location" carries on across every page while the site's open
   else locationNotice(page);               // first time signed in on this phone: explain, then ask
   if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});

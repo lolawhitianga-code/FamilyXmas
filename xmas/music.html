@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12303B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Family Xmas">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+<title>Camp tunes · Christmas at Bateau Bay</title>
+<style>
+.player{padding:0;overflow:hidden;background:#121212;border-color:#121212}
+.player iframe{display:block;width:100%;height:352px;border:0}
+.btns{display:flex;gap:8px;margin:10px 0 4px}
+.btns .btn{flex:1;min-height:48px}
+.btn.spot{background:#1DB954;border-color:#1DB954;color:#fff}
+.qa{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.qa .in{min-width:0}
+.qa .full{grid-column:1/-1}
+.song{display:flex;gap:12px;align-items:center;padding:10px 12px 10px 14px}
+.song .body{flex:1;min-width:0}
+.song .tx{font-weight:600;font-size:16px;overflow-wrap:anywhere;cursor:pointer}
+.song .ar{font-weight:400;color:var(--ink-soft)}
+.song.ok .tx{opacity:.6}
+.meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:5px;align-items:center;font-size:13px;color:var(--ink-soft)}
+.meta .chip{min-height:32px}
+details.fold{margin:16px 0 8px}
+details.fold summary{cursor:pointer;font-weight:600;padding:12px 4px;font-size:15px}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="back" href="home.html">← Home</a>
+  <p class="eyebrow">One big playlist</p>
+  <h1 class="wordmark">Camp tunes</h1>
+  <p class="sub">The family's songs for the week</p>
+</header>
+
+<main>
+  <div id="play"><div class="empty">Loading…</div></div>
+
+  <h2 class="sec">Ask for a song</h2>
+  <p class="muted small" style="margin:-4px 0 10px">No Spotify? Put it here and someone will add it.</p>
+  <form class="qa" id="qa" autocomplete="off">
+    <input class="in" id="qt" aria-label="Song" placeholder="Song">
+    <input class="in" id="qr" aria-label="Artist" placeholder="Artist">
+    <select class="in full" id="qf" aria-label="What's it for"></select>
+    <button class="btn green full" type="submit">Ask for it</button>
+  </form>
+  <div id="list" style="margin-top:12px"></div>
+
+  <div class="foot" style="display:flex;justify-content:center;margin-top:22px">
+    <button class="chip" id="setUp">⚙️ Set the playlist (organisers)</button>
+  </div>
+  <p class="buildstamp">build x34</p>
+</main>
+
+<script type="module">
+import { boot, me, col, settings, heroFromWall, onPeople, pname, esc, celebrate, openSheet, closeSheet, toast, askPin } from "./app.js";
+
+if(boot("music.html")){
+const $ = id => document.getElementById(id);
+heroFromWall();
+const FOR = ["Any time", "Hawaiian night 24 Dec", "Christmas lunch 25 Dec", "Got Talent 25 Dec", "Pool & beach"];
+$("qf").innerHTML = FOR.map(f => `<option>${esc(f)}</option>`).join("");
+let songs = [], music = null, foldOpen = false, shownId = null;
+const sorry = e => toast("Couldn't save — " + e.message);
+
+/* Spotify links: open.spotify.com/playlist/<id>?si=… (the invite link is the same with &pt=…) or a spotify.link short link */
+const playlistId = u => { const m = /^https:\/\/open\.spotify\.com\/(?:intl-[a-z-]+\/)?(?:embed\/)?playlist\/([A-Za-z0-9]{10,40})/.exec((u || "").trim()); return m ? m[1] : null; };
+const okLink = u => /^https:\/\/(open\.spotify\.com|spotify\.link)\//.test((u || "").trim());
+const searchLink = s => "https://open.spotify.com/search/" + encodeURIComponent([s.title, s.artist].filter(Boolean).join(" "));
+
+function paintPlayer(){
+  const id = music && playlistId(music.playlistUrl);
+  if(!id){ shownId = null; $("play").innerHTML = `<div class="card empty">No playlist yet — an organiser can set one at the bottom of this page. Song requests still work.</div>`; return; }
+  const join = music.joinUrl && okLink(music.joinUrl) ? music.joinUrl : "";
+  if(id + join === shownId) return;   // don't reload the player (and stop the song) every time a request comes in
+  shownId = id + join;
+  $("play").innerHTML = `<div class="card player"><iframe title="The family playlist on Spotify" loading="lazy"
+      src="https://open.spotify.com/embed/playlist/${id}?utm_source=generator"
+      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe></div>
+    <div class="btns"><a class="btn spot" href="https://open.spotify.com/playlist/${id}" target="_blank" rel="noopener">Open in Spotify</a>
+      ${join ? `<a class="btn ghost" href="${esc(join)}" target="_blank" rel="noopener">➕ Join &amp; add songs</a>` : ""}</div>
+    <p class="muted small">Logged in to Spotify on this phone: full songs. Not logged in: 30-second samples. Needs signal.</p>`;
+}
+
+function row(s){
+  return `<div class="tag song${s.added ? " ok" : ""}"><div class="body">
+    <div class="tx" data-edit="${s.id}" role="button" tabindex="0">${esc(s.title)}${s.artist ? ` <span class="ar">– ${esc(s.artist)}</span>` : ""}</div>
+    <div class="meta">${s.forWhat && s.forWhat !== FOR[0] ? `<span class="pill gold">${esc(s.forWhat)}</span>` : ""}
+      <span>asked by ${esc(pname(s.by))}</span>
+      ${s.added ? `<span>· added by ${esc(pname(s.addedBy))}</span>`
+        : `<a class="chip" href="${searchLink(s)}" target="_blank" rel="noopener">🔎 Find it</a><button class="chip" data-add="${s.id}">✓ Added</button>`}</div></div></div>`;
+}
+function render(){
+  paintPlayer();
+  const xs = songs.slice().sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+  const todo = xs.filter(s => !s.added), done = xs.filter(s => s.added).reverse();
+  $("list").innerHTML = (todo.length ? todo.map(row).join("") : `<div class="empty">${xs.length ? "Every request is on the playlist 🎉" : "No requests yet — ask for one above"}</div>`) +
+    (done.length ? `<details class="fold"${foldOpen ? " open" : ""}><summary>On the playlist (${done.length})</summary>${done.map(row).join("")}</details>` : "");
+  const d = $("list").querySelector("details"); if(d) d.addEventListener("toggle", () => { foldOpen = d.open; });
+}
+
+$("qa").addEventListener("submit", async e => {
+  e.preventDefault();
+  const title = $("qt").value.trim(); if(!title){ $("qt").focus(); return; }
+  const v = { title, artist:$("qr").value.trim(), forWhat:$("qf").value, added:false, addedBy:"" };
+  $("qt").value = ""; $("qr").value = ""; $("qt").focus();
+  celebrate("song");
+  try{ await col("songs").add(v); }catch(err){ sorry(err); }
+});
+
+$("list").addEventListener("click", e => {
+  const a = e.target.closest("[data-add]");
+  if(a){ celebrate("tune"); col("songs").update(a.dataset.add, { added:true, addedBy:me.id }).catch(sorry); return; }
+  const ed = e.target.closest("[data-edit]"); if(ed) editSheet(songs.find(x => x.id === ed.dataset.edit));
+});
+$("list").addEventListener("keydown", e => { if(e.key === "Enter" && e.target.matches("[data-edit]")) e.target.click(); });
+
+function editSheet(s){
+  if(!s) return;
+  const sh = openSheet(`<h3>Song request</h3>
+    <label class="f" for="et">Song</label><input class="in" id="et" value="${esc(s.title)}">
+    <label class="f" for="ea">Artist</label><input class="in" id="ea" value="${esc(s.artist || "")}">
+    <label class="f" for="ef">What’s it for?</label><select class="in" id="ef">${FOR.map(f => `<option${f === s.forWhat ? " selected" : ""}>${esc(f)}</option>`).join("")}</select>
+    ${s.added ? `<label class="f"><input type="checkbox" id="eu"> Not on the playlist after all</label>` : ""}
+    <div class="acts"><button class="btn red" id="del">Delete</button><button class="btn ghost" id="no">Cancel</button><button class="btn green" id="ok">Save</button></div>`);
+  const q = x => sh.el.querySelector(x); let armed = false;
+  q("#no").onclick = () => closeSheet();
+  q("#del").onclick = async () => {
+    if(s.by !== me.id && !(await askPin("Only the person who asked can delete this, or an organiser."))) return;
+    if(!armed){ armed = true; q("#del").textContent = "Really delete?"; return; }
+    closeSheet(); try{ await col("songs").remove(s.id); }catch(e){ sorry(e); }
+  };
+  q("#ok").onclick = async () => {
+    const title = q("#et").value.trim(); if(!title){ toast("Which song?"); return; }
+    const v = { title, artist:q("#ea").value.trim(), forWhat:q("#ef").value };
+    if(q("#eu") && q("#eu").checked){ v.added = false; v.addedBy = ""; }
+    closeSheet(); try{ await col("songs").update(s.id, v); }catch(e){ sorry(e); }
+  };
+}
+
+$("setUp").addEventListener("click", async () => {
+  if(!(await askPin("Setting the family playlist is for the organisers."))) return;
+  const sh = openSheet(`<h3>Set the playlist</h3>
+    <p class="muted small">In Spotify, on the playlist: <b>Share → Copy link</b> and paste it first.
+      Then the person-plus icon → <b>Invite collaborators</b> → copy, and paste that second.</p>
+    <label class="f" for="pu">Playlist link</label><input class="in" id="pu" inputmode="url" placeholder="https://open.spotify.com/playlist/…" value="${esc(music && music.playlistUrl || "")}">
+    <label class="f" for="ju">Invite link (so people can add songs)</label><input class="in" id="ju" inputmode="url" placeholder="https://open.spotify.com/playlist/…&pt=…" value="${esc(music && music.joinUrl || "")}">
+    <div class="acts"><button class="btn ghost" id="no">Cancel</button><button class="btn green" id="ok">Save</button></div>`);
+  const q = x => sh.el.querySelector(x);
+  q("#no").onclick = () => closeSheet();
+  q("#ok").onclick = async () => {
+    let pu = q("#pu").value.trim(); const ju = q("#ju").value.trim();
+    if(!playlistId(pu) && playlistId(ju)) pu = ju;          // only the invite link pasted: it carries the playlist too
+    if(!playlistId(pu)){ toast("That doesn't look like a Spotify playlist link"); return; }
+    if(ju && !okLink(ju)){ toast("The invite link needs to be a Spotify link"); return; }
+    closeSheet();
+    try{ await settings("music").save({ playlistUrl:pu, joinUrl:ju, setBy:me.id, setAt:Date.now() }); toast("Playlist set"); }catch(e){ sorry(e); }
+  };
+});
+
+onPeople(render);
+settings("music").subscribe(m => { music = m; render(); });
+col("songs").subscribe(r => { songs = r; render(); });
+}
+</script>
+</body>
+</html>

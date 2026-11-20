@@ -1,6 +1,6 @@
 # Plan: shared Spotify playlist ("Camp tunes")
 
-Status: plan only, nothing built yet. 20 Nov 2026.
+Status: built 20 Nov 2026 (build x34). Lola: one big playlist, no clean-songs line.
 
 ## What it is
 
@@ -56,8 +56,8 @@ two do not play over each other. The mute chip on Home already covers the music 
 Done looks like: paste a real playlist link with the PIN, the player shows on two phones; a request made
 on one phone shows on the other within a few seconds; ticking Added moves it into the fold for both.
 
-## Open questions for Lola
+## Decided by Lola
 
-- One playlist for the week, or a second one for Christmas Day? (Plan above: one playlist, the
-  "What's it for" tag on requests covers the Hawaiian night and Got Talent.)
-- Clean versions only? With kids at camp, the request form could carry a line "Keep it clean – kids about".
+- One big playlist for the week. The "What's it for" tag on requests covers the
+  Hawaiian night and Got Talent.
+- No clean-songs-only line.
