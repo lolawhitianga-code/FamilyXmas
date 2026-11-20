@@ -6,7 +6,7 @@
    anyone can edit, move or delete.
    ids never change — they stop anything being added twice.
    ============================================================ */
-export const ITIN_VERSION = 5;
+export const ITIN_VERSION = 6;
 /* Anything added after the first load carries v: the version it arrived in. When the site already has an
    older version loaded, the Planner offers to load just the newer bits — it never re-adds things people deleted.
    An entry with was:{…} is a CHANGE to something already loaded: it's only applied if nobody has edited it since. */
@@ -42,7 +42,7 @@ export const ITINERARY = [
   { id:"i2-25-1400", date:"2026-12-25", time:"14:00", text:"Christmas Day cricket match — organisers: Shawn, Cooper & Nate" },
   { id:"i2-25-1500", date:"2026-12-25", time:"15:00", text:"Cocktails & slushies — organisers: Trudi, Sam & Sally", v:4, was:{ text:"Cocktails & slushies" } },
   { id:"i2-25-1600", date:"2026-12-25", time:"16:00", text:"Christmas bingo finishes" },
-  { id:"i2-25-1800", date:"2026-12-25", time:"18:00", text:"Townsends Got Talent show — hosts: Ken & Kay. Bring a special talent: music, juggling, dance, poem, story…" },
+  { id:"i2-25-1800", date:"2026-12-25", time:"18:00", text:"Townsends Got Talent show — hosts: Ken & Kay. Every family must do a family heritage dance! Plus bring a special talent: music, juggling, dance, poem, story…", v:6, was:{ text:"Townsends Got Talent show — hosts: Ken & Kay. Bring a special talent: music, juggling, dance, poem, story…" } },
   // ---- Saturday 26 December — Boxing Day
   { id:"i2-26-0500", date:"2026-12-26", time:"06:00", text:"Barocas & deep breathe work, followed by a sunrise beach swim — organisers: Sally & Prue", v:4, was:{ text:"Sunrise yoga & meditation — organisers: Trudi & Sally" } },
   { id:"i2-26-0700", date:"2026-12-26", time:"07:00", text:"Bacon & egg cook-up and leftovers" },
@@ -75,7 +75,7 @@ export const ITIN_EVENTS = [
   { id:"ev-dressed",  name:"Best dressed — Christmas attire", emoji:"🎅", date:"2026-12-25", time:"07:00", where:"",              sides:"people", note:"Christmas attire theme" },
   { id:"ev-bingo",    name:"Christmas bingo",                emoji:"🎱", date:"2026-12-25", time:"09:00", where:"",              sides:"people", note:"Runs 9am–4pm. Organisers: Mikayla, Charlie, Georgie & Mila" },
   { id:"ev-cricket",  name:"Christmas Day cricket match",    emoji:"🏏", date:"2026-12-25", time:"14:00", where:"",              sides:"teams",  note:"Organisers: Shawn, Cooper & Nate" },
-  { id:"ev-talent",   name:"Townsends Got Talent",           emoji:"🎤", date:"2026-12-25", time:"18:00", where:"",              sides:"people", note:"Hosts: Ken & Kay. Bring a special talent" },
+  { id:"ev-talent",   name:"Townsends Got Talent",           emoji:"🎤", date:"2026-12-25", time:"18:00", where:"",              sides:"families", note:"Hosts: Ken & Kay. Every family must do a family heritage dance! Plus bring a special talent", v:6, was:{ sides:"people", note:"Hosts: Ken & Kay. Bring a special talent" } },
   { id:"ev-race",     name:"The Amazing Race hunt",          emoji:"🏁", date:"2026-12-26", time:"15:00", where:"",              sides:"teams",  note:"Organisers: Gem & Tayla. Bring phones, swimmers, money and snacks" },
   { id:"ev-bowls",    name:"Chicken Run bowls competition",  emoji:"🥏", date:"2026-12-27", time:"09:00", where:"Bowling Club",  sides:"teams",  note:"Bowls attire please. Organisers: Ken, Chatto, Adam & Jack" },
   { id:"ev-olympics", name:"Townsend Family Olympics",       emoji:"🏅", date:"2026-12-27", time:"14:00", where:"",              sides:"teams",  note:"Organisers: Mikayla, Josh & Steve W", v:4, was:{ note:"Organisers: Mikayla, Josh & Sam" } },

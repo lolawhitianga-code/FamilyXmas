@@ -204,7 +204,10 @@ $("itinGo").onclick = async () => {
     }
     for(const e of ITIN_EVENTS.filter(isNew)){
       const { id, v:_v, was:_w, ...v } = e;
-      await apply("events", evs, e, { ...v, teams:[], status:"upcoming", results:[], src:"itinerary", by:"", createdAt: Date.now() }, { note: e.note });
+      // a change carries every field named in was:{…}; switching who competes (sides) clears the scoreboard, like the edit sheet does
+      const patch = e.was ? Object.fromEntries(Object.keys(e.was).map(k => [k, e[k]])) : { note: e.note };
+      if(patch.sides) Object.assign(patch, { teams:[], status:"upcoming", results:[] });
+      await apply("events", evs, e, { ...v, teams:[], status:"upcoming", results:[], src:"itinerary", by:"", createdAt: Date.now() }, patch);
     }
     for(const d of ITIN_DINNERS.filter(isNew)){
       const { id, v:_v, was:_w, ...v } = d;
