@@ -151,7 +151,7 @@ body.mine #full, body.mine .pokiebar, body.mine .pokiefloat, body.mine #quiet{di
     <a class="chip" href="traffic.html">📈 Who's been on (organisers)</a>
   </div>
 
-  <p class="buildstamp">build x42</p>
+  <p class="buildstamp">build x43</p>
 </main>
 
 <script type="module">
@@ -251,10 +251,10 @@ setInterval(paintCountdown, 3600000);
    JUST SHOW ME MY STUFF — one switch, and the home page becomes
    a short list of only what has your name (or your family's) on
    it: jobs on the itinerary, meals you're cooking, dishes you're
-   bringing, what you've signed up for, comps you're in, and where
-   your family stands on money. Everything else steps out of the way.
+   bringing, what you've signed up for, comps you're in.
+   Everything else steps out of the way.
    ============================================================ */
-let events = [], shopping = [], expenses = [], santa = null;
+let events = [], shopping = [], santa = null;
 /* the itinerary and food list use nicknames — match those too */
 const ALIASES = { Gemma:["Gem"], Georgia:["Georgie"], Brendon:["Bren","Brendan"], Holli:["Holly"], Lynda:["Linda"], Lochie:["Lockie"], Steve:["Steve W"] };
 const fam = () => household(me.hh).members || [];
@@ -306,15 +306,6 @@ function paintMine(){
   const famRows = [];
   const nights = hh.arrive && hh.leave ? Math.round((fromIso(hh.leave) - fromIso(hh.arrive)) / 86400000) : 0;
   famRows.push({ g:"🏕️", text: `${fmtDay(fromIso(hh.arrive))} → ${fmtDay(fromIso(hh.leave))}`, sub: [nights + " nights", hh.stay, hh.site ? "Site " + hh.site : ""].filter(Boolean).join(" · "), href:"crew.html" });
-  let paid = 0, share = 0;
-  expenses.forEach(e => { const amt = Number(e.amount) || 0, split = e.split || [];
-    if(e.paidBy === me.hh) paid += amt;
-    if(split.includes(me.hh)){
-      if(e.mode === "heads"){ const tot = split.reduce((n, id) => n + (household(id).members || []).length, 0); share += tot ? amt * fam().length / tot : 0; }
-      else share += amt / split.length;
-    } });
-  const bal = Math.round((paid - share) * 100) / 100;
-  if(expenses.length) famRows.push({ g:"💸", text: bal > 0.004 ? `Your family is owed ${aud(bal)}` : bal < -0.004 ? `Your family owes ${aud(-bal)}` : "All square on money", sub: `Paid ${aud(paid)} · share ${aud(share)}`, href:"money.html" });
   if(santa){ const inn = santa.in && santa.in[me.id];
     const sg = santa.state === "playing" ? "on" : santa.state === "done" ? "done" : "open";
     const got = sg === "done" && Array.isArray(santa.gifts) && santa.gifts.find(g => g.holder === me.id);
@@ -353,7 +344,6 @@ watchTrip(paintMine); onPeople(paintMine);
 ["planner", "meals", "signups", "scores"].forEach(n => col(n).subscribe(paintMine));
 col("events").subscribe(r => { events = r; paintMine(); });
 col("shopping").subscribe(r => { shopping = r; paintMine(); });
-col("expenses").subscribe(r => { expenses = r; paintMine(); });
 settings("santa").subscribe(s => { santa = s; paintMine(); });
 setMine(localStorage.getItem("xmas_mine_" + me.id) === "1");
 
