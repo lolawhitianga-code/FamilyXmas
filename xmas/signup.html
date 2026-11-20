@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12303B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Family Xmas">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Sign-up sheet · Christmas at Bateau Bay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+<style>
+.act h3{font-family:'Fraunces',serif;font-size:20px;margin:0 0 3px;line-height:1.15}
+.act .l{font-size:14px;color:var(--ink-soft);margin:2px 0}
+.act .l b{color:var(--ink);font-weight:600}
+.act .sp{margin-left:6px;vertical-align:middle}
+.names{display:block;width:100%;text-align:left;background:var(--sand);border:1px dashed var(--line);border-radius:10px;padding:9px 11px;margin:9px 0 0;font-size:14px;min-height:40px}
+.act .acts2{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.imin{flex:1 1 100%;font-size:18px;padding:14px 16px;border-radius:14px;border:2px solid var(--green);background:#fff;color:var(--green)}
+.imin[aria-pressed="true"]{background:var(--green);color:#fff}
+.imin:disabled{border-color:var(--line);color:var(--ink-soft);background:var(--sand-deep)}
+.chips2{display:flex;flex-wrap:wrap;gap:7px;margin:4px 0 2px}
+.emo{font-size:22px;width:50px;height:46px;justify-content:center;padding:0}
+.hhl{font-family:'DM Mono',monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin:12px 0 5px}
+.pk{display:inline-flex;align-items:center;gap:6px;margin:0 6px 6px 0;min-height:40px}
+.who{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px dashed var(--line);font-size:15px}
+.who:first-child{border-top:0}
+.who > span:not(.dot){flex:1}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="back" href="home.html">← Home</a>
+  <p class="eyebrow">Put your name down</p>
+  <h1 class="wordmark">Sign-up sheet</h1>
+  <p class="sub" id="sub">&nbsp;</p>
+</header>
+
+<main>
+  <div class="days" id="days"></div>
+  <div id="list"></div>
+  <p class="buildstamp">build x30</p>
+</main>
+<button class="fab" id="add" aria-label="Add an activity">+</button>
+
+<script type="module">
+import { boot, me, col, watchTrip, tripDays, fmtDay, fmtLong, fromIso, XMAS_DAY, heroFromWall,
+         households, household, person, onPeople, pname, badge, esc, celebrate, toast,
+         openSheet, closeSheet, askPin } from "./app.js";
+
+if(boot("signup.html")){
+const $ = id => document.getElementById(id);
+heroFromWall();
+
+const EMOJIS = ["✋","🧒","🎲","🐦","🌅","🎳","🎄","🏖️","🎣","🍹","🚶","🎨"];
+const CHIPS = [
+  { title:"Kids' club with Mikayla", emoji:"🧒", note:"Mikayla is happy to run the club." },
+  { title:"Lochie's activity", emoji:"🎲", note:"Lochie is bringing an activity. Here until the 26th." },
+  { title:"Pelican feeding at The Entrance (3:30pm Wed/Sat/Sun)", emoji:"🐦", date:"2026-12-23", time:"15:30", where:"The Entrance waterfront", note:"Runs 3:30pm on Wednesdays, Saturdays and Sundays." },
+  { title:"Crackneck lookout sunrise walk", emoji:"🌅", time:"05:30", where:"Crackneck Lookout" },
+  { title:"Barefoot bowls at the bowlo", emoji:"🎳", where:"The bowlo" },
+  { title:"Carols & lights walk", emoji:"🎄", date:"2026-12-24", time:"19:30" }
+];
+let trip = null, items = [], sel = "all", whoRefresh = null;
+const sc = col("signups");
+
+const left = a => a.spots > 0 ? a.spots - (a.in || []).length : Infinity;
+const spotsTxt = a => a.spots > 0 ? (left(a) <= 0 ? "Full" : `${left(a)} spot${left(a) === 1 ? "" : "s"} left`) : "No limit";
+const fmtTime = t => { if(!t) return ""; const [h, m] = t.split(":").map(Number); return `${h % 12 || 12}${m ? ":" + String(m).padStart(2, "0") : ""}${h < 12 ? "am" : "pm"}`; };
+const dayNo = iso => trip ? tripDays(trip).findIndex(d => d.iso === iso) + 1 : 0;
+const live = id => items.find(x => x.id === id);
+
+function paintDays(){
+  if(!trip) return;
+  $("days").innerHTML = `<button data-d="all" class="${sel === "all" ? "on" : ""}"><b>All</b><span>days</span></button>` +
+    tripDays(trip).map(d => `<button data-d="${d.iso}" class="${d.iso === XMAS_DAY ? "xmas" : ""} ${sel === d.iso ? "on" : ""}"><b>${d.date.getDate()}</b><span>${d.date.toLocaleDateString("en-NZ", { weekday:"short" })}</span></button>`).join("");
+}
+function card(a){
+  const inn = a.in || [], mine = inn.includes(me.id), full = left(a) <= 0;
+  const nm = inn.map(pname), shown = nm.slice(0, 3).join(", ") + (nm.length > 3 ? ` +${nm.length - 3}` : "");
+  const n = dayNo(a.date), famIn = household(me.hh).members.every(p => inn.includes(p.id));
+  const when = [a.date ? fmtLong(fromIso(a.date)) : "", fmtTime(a.time), a.where].filter(Boolean).map(esc).join(" · ");
+  return `<div class="tag ${full ? "red" : "green"} act" data-id="${a.id}">
+    <h3>${esc(a.emoji || "✋")} ${esc(a.title)}<span class="pill ${full ? "red" : "green"} sp">${spotsTxt(a)}</span></h3>
+    <div class="l">📅 ${when || "Day to be decided"}</div>
+    <div class="l">Run by <b>${esc(pname(a.host))}</b></div>
+    ${a.cost ? `<div class="l">💲 ${esc(a.cost)}</div>` : ""}${a.bring ? `<div class="l">🎒 Bring: ${esc(a.bring)}</div>` : ""}${a.note ? `<div class="l">${esc(a.note)}</div>` : ""}
+    <button class="names" data-a="who">${inn.length ? `<b>${inn.length} in:</b> ${esc(shown)}` : `<span class="muted">Nobody yet. Be the first.</span>`}</button>
+    <div class="acts2"><button class="btn imin" data-a="in" aria-pressed="${mine}" ${full && !mine ? "disabled" : ""}>${mine ? "✓ I'm in" : full ? "Full" : "I'm in"}</button>
+      ${!famIn && !(full) ? `<button class="btn small ghost" data-a="fam">👨‍👩‍👧 Add my family</button>` : ""}
+      <a class="chip" href="planner.html?add=${encodeURIComponent(a.title)}${n ? "&day=" + n : ""}">🗓️ Add to planner</a>
+      <button class="btn small ghost" data-a="edit">Edit</button></div></div>`;
+}
+function paint(){
+  paintDays();
+  const all = [...items].sort((a, b) => (a.date || "9999").localeCompare(b.date || "9999") || (a.time || "").localeCompare(b.time || "") || (a.createdAt || 0) - (b.createdAt || 0));
+  const xs = sel === "all" ? all : all.filter(a => a.date === sel);
+  $("sub").textContent = items.length ? `${items.length} activit${items.length === 1 ? "y" : "ies"} on` : "What do you fancy doing?";
+  $("list").innerHTML = xs.length ? xs.map(card).join("") : items.length ? `<div class="empty">Nothing on this day yet. Tap + to add something.</div>`
+    : `<div class="card"><p style="margin:0 0 4px"><b>Nothing on yet.</b> Start with an idea:</p><div class="chips2">${CHIPS.map((c, i) => `<button class="chip" data-q="${i}">${c.emoji} ${esc(c.title)}</button>`).join("")}</div></div>`;
+}
+watchTrip(t => { trip = t; paint(); });
+onPeople(paint);
+sc.subscribe(r => { items = r; paint(); whoRefresh && whoRefresh(); });
+
+$("days").addEventListener("click", e => { const b = e.target.closest("[data-d]"); if(b){ sel = b.dataset.d; paint(); } });
+$("add").onclick = () => actSheet(null);
+$("list").addEventListener("click", async e => {
+  const q = e.target.closest("[data-q]"); if(q) return actSheet(null, CHIPS[+q.dataset.q]);
+  const b = e.target.closest("[data-a]"); if(!b) return;
+  const a = live(b.closest("[data-id]").dataset.id); if(!a) return;
+  const act = b.dataset.a;
+  if(act === "who") return whoSheet(a.id);
+  if(act === "edit"){ if(a.host === me.id || await askPin("Only the host or an organiser can change this.")) actSheet(a); return; }
+  const cur = a.in || [];
+  try{
+    if(act === "in"){
+      if(b.getAttribute("aria-pressed") === "true"){ b.setAttribute("aria-pressed", "false"); await sc.update(a.id, { in:cur.filter(x => x !== me.id) }); }
+      else { if(left(a) <= 0) return toast("Sorry, that one's full"); celebrate("signup"); b.setAttribute("aria-pressed", "true"); await sc.update(a.id, { in:[...cur.filter(x => x !== me.id), me.id] }); }
+    } else if(act === "fam"){
+      const want = household(me.hh).members.map(p => p.id).filter(id => !cur.includes(id));
+      const room = left(a), add = want.slice(0, room === Infinity ? want.length : Math.max(0, room));
+      if(!add.length) return toast("Sorry, that one's full");
+      celebrate("signup");
+      if(add.length < want.length) toast(`Only room for ${add.length} — the rest didn't fit`);
+      await sc.update(a.id, { in:[...cur, ...add] });
+    }
+  }catch(err){ toast("Couldn't save — " + err.message); }
+});
+
+/* ----- who's in ----- */
+function whoSheet(id){
+  let canRemove = (live(id) || {}).host === me.id;
+  const sh = openSheet(`<h3 id="wt"></h3><div id="wl"></div><h3 style="font-size:17px;margin-top:16px">Put someone else down</h3>
+    <p class="muted small" style="margin:0">Kids and grandparents might not have the site. Tap to add them.</p><div id="wp"></div>
+    <div class="acts"><button class="btn" id="wd">Done</button></div>`, () => { whoRefresh = null; });
+  const el = sh.el, q = s => el.querySelector(s);
+  const paintW = () => {
+    const a = live(id); if(!a) return closeSheet();
+    const inn = a.in || [];
+    q("#wt").textContent = `${a.emoji || "✋"} ${a.title}`;
+    q("#wl").innerHTML = (inn.length ? inn.map(pid => `<div class="who">${badge(pid)}<span>${esc(pname(pid))}</span><button class="btn small ghost" data-r="${pid}">${pid === me.id ? "Leave" : "Remove"}</button></div>`).join("")
+      : `<div class="empty">Nobody yet</div>`) + (canRemove || inn.every(p => p === me.id) ? "" : `<p class="muted small">Only the host or an organiser can remove other people.</p>`);
+    q("#wp").innerHTML = households().map(h => { const rest = h.members.filter(p => !inn.includes(p.id));
+      return rest.length ? `<div class="hhl">${badge(h.id)} ${esc(h.name)}</div>` + rest.map(p => `<button class="chip pk" data-p="${p.id}">+ ${esc(p.label)}</button>`).join("") : ""; }).join("") || `<div class="empty">Everyone's in!</div>`;
+  };
+  paintW(); whoRefresh = paintW;
+  q("#wd").onclick = closeSheet;
+  q("#wl").onclick = async e => {
+    const b = e.target.closest("[data-r]"); if(!b) return;
+    const a = live(id), pid = b.dataset.r;
+    if(pid !== me.id && !canRemove){ if(!(await askPin("Only the host or an organiser can remove someone else."))) return; canRemove = true; }
+    try{ await sc.update(id, { in:(a.in || []).filter(x => x !== pid) }); }catch(err){ toast("Couldn't save — " + err.message); }
+  };
+  q("#wp").onclick = async e => {
+    const b = e.target.closest("[data-p]"); if(!b) return;
+    const a = live(id); if(left(a) <= 0) return toast("Sorry, that one's full");
+    if(b.dataset.p === me.id) celebrate("signup");
+    try{ await sc.update(id, { in:[...(a.in || []), b.dataset.p] }); }catch(err){ toast("Couldn't save — " + err.message); }
+  };
+}
+
+/* ----- add / edit ----- */
+function actSheet(a, preset){
+  const v = a || preset || {};
+  let emoji = v.emoji || "✋";
+  const days = trip ? tripDays(trip) : [];
+  const dflt = v.date || (sel !== "all" ? sel : "");
+  const sh = openSheet(`<h3>${a ? "Edit activity" : "Add an activity"}</h3>
+    <label class="f" for="at">What is it?</label><input class="in" id="at" maxlength="80" value="${esc(v.title || "")}" placeholder="e.g. Cards at the camp kitchen">
+    <label class="f">Pick a picture</label><div class="chips2" id="emo">${EMOJIS.map(x => `<button type="button" class="chip emo" data-e="${x}">${x}</button>`).join("")}</div>
+    <div class="row"><div><label class="f" for="ad">Day</label><select class="in" id="ad">${days.map(d => `<option value="${d.iso}" ${dflt === d.iso ? "selected" : ""}>${esc(fmtDay(d.date))}</option>`).join("")}</select></div>
+      <div><label class="f" for="atm">Time</label><input class="in" id="atm" type="time" value="${esc(v.time || "")}"></div></div>
+    <label class="f" for="aw">Where</label><input class="in" id="aw" maxlength="60" value="${esc(v.where || "")}">
+    <div class="row"><div><label class="f" for="as">Spots</label><input class="in" id="as" inputmode="numeric" value="${v.spots > 0 ? v.spots : ""}" placeholder="No limit"></div>
+      <div><label class="f" for="ac">Cost</label><input class="in" id="ac" maxlength="40" value="${esc(v.cost || "")}" placeholder="Free"></div></div>
+    <label class="f" for="ab">What to bring</label><input class="in" id="ab" maxlength="80" value="${esc(v.bring || "")}" placeholder="Hat, sunscreen…">
+    <label class="f" for="an">Note</label><textarea class="in" id="an" maxlength="300">${esc(v.note || "")}</textarea>
+    <div class="acts">${a ? `<button class="btn ghost" id="adel">Delete</button>` : ""}<button class="btn red" id="aok">${a ? "Save" : "Add activity"}</button></div>`);
+  const el = sh.el, q = s => el.querySelector(s);
+  const paintE = () => el.querySelectorAll("[data-e]").forEach(b => b.classList.toggle("on", b.dataset.e === emoji));
+  paintE();
+  q("#emo").onclick = e => { const b = e.target.closest("[data-e]"); if(b){ emoji = b.dataset.e; paintE(); } };
+  q("#aok").onclick = async () => {
+    const title = q("#at").value.trim(); if(!title) return toast("What's the activity?");
+    const sp = parseInt(q("#as").value, 10);
+    const data = { title, emoji, date:q("#ad").value, time:q("#atm").value, where:q("#aw").value.trim(), spots: sp > 0 ? sp : 0, cost:q("#ac").value.trim(), bring:q("#ab").value.trim(), note:q("#an").value.trim() };
+    try{
+      if(a){ await sc.update(a.id, data); closeSheet(); }
+      else { celebrate("activity"); closeSheet(); await sc.add({ ...data, host:me.id, in:[] }); }
+    }catch(err){ toast("Couldn't save — " + err.message); }
+  };
+  if(a) q("#adel").onclick = async function(){
+    if(!this.dataset.sure){ this.dataset.sure = 1; this.textContent = "Really delete?"; this.classList.add("red"); return; }
+    try{ await sc.remove(a.id); closeSheet(); }catch(err){ toast("Couldn't delete — " + err.message); }
+  };
+}
+}
+</script>
+</body>
+</html>

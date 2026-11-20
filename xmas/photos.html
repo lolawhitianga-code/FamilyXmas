@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12303B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Family Xmas">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Photos — Christmas at Bateau Bay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+<style>
+.filters{display:flex;gap:7px;overflow-x:auto;padding:2px 2px 12px;margin:0 -2px;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.filters .chip{flex:none;padding:8px 13px;font-size:14px;font-family:inherit}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+.cell{position:relative;aspect-ratio:1/1;border-radius:10px;overflow:hidden;background:var(--sand-deep)}
+.cell > button.pic{display:block;width:100%;height:100%;border:0;padding:0;background:none}
+.cell img{width:100%;height:100%;object-fit:cover;display:block}
+.cell .more{position:absolute;right:4px;top:4px;width:34px;height:34px;border-radius:50%;border:0;background:rgba(18,48,59,.62);color:#fff;font-size:18px;line-height:1;display:grid;place-items:center}
+.cell .cap{position:absolute;left:0;right:0;bottom:0;padding:14px 6px 4px;font-size:11px;color:#fff;background:linear-gradient(transparent,rgba(18,48,59,.75));white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+.invite{text-align:center;padding:34px 18px;background:#fff;border:2px dashed var(--line);border-radius:18px}
+.invite .big{font-size:54px;line-height:1}
+.invite h3{font-family:'Fraunces',serif;font-size:22px;margin:10px 0 4px}
+.thumbs{display:flex;gap:6px;overflow-x:auto;padding:4px 0}
+.thumbs img{width:62px;height:62px;object-fit:cover;border-radius:9px;flex:none}
+.per{display:flex;gap:8px;align-items:center;margin:6px 0}
+.per img{width:48px;height:48px;object-fit:cover;border-radius:8px;flex:none}
+.chk{display:flex;align-items:center;gap:10px;margin:12px 0 2px;font-size:15px}
+.chk input{width:22px;height:22px;flex:none}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="back" href="home.html">← Home</a>
+  <p class="eyebrow">On the wall</p>
+  <h1 class="wordmark">Photos</h1>
+  <p class="sub" id="sub">&nbsp;</p>
+</header>
+
+<main>
+  <div class="filters" id="filters"></div>
+  <div id="body"><div class="empty">Loading…</div></div>
+  <input type="file" id="file" class="vh-file" accept="image/*" multiple>
+  <label class="fab" id="add" for="file" aria-label="Add photos">📸</label>
+  <p class="buildstamp">build x30</p>
+</main>
+
+<script type="module">
+import { boot, me, col, watchTrip, heroFromWall, tripDays, fmtDay, fmtLong, fromIso, todayIso, onPeople,
+         pname, esc, celebrate, toast, openSheet, closeSheet, lightbox, compressImage, askPin } from "./app.js";
+
+if(boot("photos.html")){
+const $ = id => document.getElementById(id);
+heroFromWall();
+const wall = col("wall");
+let rows = [], trip = null, filter = "all";
+
+const defDay = () => {
+  const t = todayIso(); if(!trip) return t;
+  const d = tripDays(trip), a = d[0].iso, z = d[d.length - 1].iso; return t < a ? a : t > z ? z : t;
+};
+const dayLabel = iso => { try{ return fmtDay(fromIso(iso)); }catch(e){ return iso; } };
+
+function paint(){
+  const sorted = [...rows].sort((a, b) => (b.day || "").localeCompare(a.day || "") || (b.createdAt || 0) - (a.createdAt || 0));
+  const days = [...new Set(rows.map(r => r.day).filter(Boolean))].sort();
+  if(filter !== "all" && filter !== "mine" && !days.includes(filter)) filter = "all";
+  $("sub").textContent = rows.length ? `${rows.length} photo${rows.length === 1 ? "" : "s"} on the wall` : "Nothing up yet";
+  $("filters").innerHTML = rows.length ? [["all", "All"], ["mine", "Mine"], ...days.map(d => [d, dayLabel(d)])]
+    .map(([k, l]) => `<button class="chip${filter === k ? " on" : ""}" data-f="${k}">${esc(l)}</button>`).join("") : "";
+  const shown = sorted.filter(r => filter === "all" ? true : filter === "mine" ? r.who === me.id : r.day === filter);
+  if(!rows.length){
+    $("body").innerHTML = `<div class="invite"><div class="big">📸</div><h3>Be the first on the wall</h3>
+      <p class="muted">Snap or pick a few photos of the beach, the cabin, the kids, the cricket — anything.</p>
+      <label class="btn red" for="file">Add the first photo</label></div>`;
+    return;
+  }
+  if(!shown.length){ $("body").innerHTML = `<div class="empty">No photos here yet</div>`; return; }
+  $("body").innerHTML = `<div class="grid">` + shown.map(r =>
+    `<div class="cell"><button class="pic" data-id="${esc(r.id)}" aria-label="Open photo"><img src="${r.data}" alt="${esc(r.caption || "Photo")}" loading="lazy"></button>
+     <button class="more" data-more="${esc(r.id)}" aria-label="Edit photo">⋯</button>${r.caption ? `<div class="cap">${esc(r.caption)}</div>` : ""}</div>`).join("") + `</div>`;
+}
+$("filters").addEventListener("click", e => { const b = e.target.closest("[data-f]"); if(b){ filter = b.dataset.f; paint(); } });
+$("body").addEventListener("click", async e => {
+  const more = e.target.closest("[data-more]"), pic = e.target.closest("[data-id]");
+  if(more){
+    const r = rows.find(x => x.id === more.dataset.more); if(!r) return;
+    if(r.who !== me.id && !(await askPin("Only whoever put the photo up can change it — or an organiser."))) return;
+    editSheet(r);
+  } else if(pic){
+    const r = rows.find(x => x.id === pic.dataset.id); if(r) lightbox(r.data, [r.caption, pname(r.who)].filter(Boolean).join(" — "));
+  }
+});
+
+/* ---------- upload ---------- */
+$("file").addEventListener("change", async () => {
+  const files = [...$("file").files]; $("file").value = ""; if(!files.length) return;
+  const out = [];
+  for(let i = 0; i < files.length; i++){
+    toast(`Shrinking ${i + 1} of ${files.length}…`, 8000);
+    try{ out.push(await compressImage(files[i])); }catch(e){ toast(e.message); }
+  }
+  if(!out.length) return;
+  toast(`${out.length} ready`, 1200);
+  uploadSheet(out);
+});
+
+function uploadSheet(imgs){
+  const many = imgs.length > 1;
+  const sh = openSheet(`<h3>${many ? imgs.length + " photos" : "Add your photo"}</h3>
+    <div class="thumbs">${imgs.map(s => `<img src="${s}" alt="">`).join("")}</div>
+    <label class="f" for="pc">Caption (optional)</label><input class="in" id="pc" maxlength="100" placeholder="What's happening?">
+    <label class="f" for="pd">Day</label><input class="in" id="pd" type="date" value="${defDay()}">
+    ${many ? `<label class="chk"><input type="checkbox" id="same" checked> Same caption and day for all</label><div id="pers" class="hide">${imgs.map((s, i) =>
+      `<div class="per"><img src="${s}" alt=""><input class="in" data-i="${i}" maxlength="100" placeholder="Caption for photo ${i + 1}"></div>`).join("")}</div>` : ""}
+    <div class="acts"><button class="btn ghost" id="no">Cancel</button><button class="btn green" id="ok">Put ${many ? "them" : "it"} up</button></div>`);
+  const q = s => sh.el.querySelector(s);
+  if(many) q("#same").onchange = () => { q("#pers").classList.toggle("hide", q("#same").checked); };
+  q("#no").onclick = closeSheet;
+  q("#ok").onclick = async () => {
+    const day = q("#pd").value || defDay(), cap = q("#pc").value.trim(), same = !many || q("#same").checked;
+    const caps = imgs.map((_, i) => same ? cap : (q(`[data-i="${i}"]`).value.trim() || cap));
+    closeSheet(); celebrate("photo");
+    try{
+      for(let i = 0; i < imgs.length; i++) await wall.add({ data:imgs[i], caption:caps[i], day, who:me.id, bg:true });
+      toast(imgs.length > 1 ? "Photos are up" : "Photo is up");
+    }catch(e){ toast("Couldn't save — " + e.message); }
+  };
+}
+
+/* ---------- edit ---------- */
+function editSheet(r){
+  const sh = openSheet(`<h3>Photo</h3>
+    <div class="thumbs"><img src="${r.data}" alt="" style="width:100%;height:150px"></div>
+    <label class="f" for="ec">Caption</label><input class="in" id="ec" maxlength="100" value="${esc(r.caption || "")}">
+    <label class="f" for="ed">Day</label><input class="in" id="ed" type="date" value="${esc(r.day || defDay())}">
+    <label class="chk"><input type="checkbox" id="eb" ${r.bg !== false ? "checked" : ""}> Use as a header background</label>
+    <p class="muted small" style="margin:2px 0 0">Put up by ${esc(pname(r.who))}</p>
+    <div class="acts"><button class="btn red" id="del">Delete</button><button class="btn green" id="ok">Save</button></div>`);
+  const q = s => sh.el.querySelector(s); let armed = false;
+  q("#ok").onclick = async () => {
+    const v = { caption:q("#ec").value.trim(), day:q("#ed").value || r.day, bg:q("#eb").checked };
+    closeSheet(); try{ await wall.update(r.id, v); }catch(e){ toast("Couldn't save — " + e.message); }
+  };
+  q("#del").onclick = async () => {
+    if(!armed){ armed = true; q("#del").textContent = "Really delete?"; return; }
+    closeSheet(); try{ await wall.remove(r.id); toast("Photo deleted"); }catch(e){ toast("Couldn't delete — " + e.message); }
+  };
+}
+
+watchTrip(t => { trip = t; });
+onPeople(paint);
+wall.subscribe(r => { rows = r; paint(); });
+}
+</script>
+</body>
+</html>

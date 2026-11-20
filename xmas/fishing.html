@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12303B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Family Xmas">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Fishing comp · Christmas at Bateau Bay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+<style>
+.hero{padding:0;overflow:hidden;border:0;background:linear-gradient(160deg,#12303B,#1AA5B8);color:#fff}
+.hero img{width:100%;max-height:260px;object-fit:cover;display:block;cursor:pointer}
+.hero .in2{padding:14px 16px 16px}
+.hero .big{font-family:'Fraunces',serif;font-weight:900;font-size:54px;line-height:.95}
+.hero .big small{font-size:22px;font-weight:700}
+.hero .sp{font-size:18px;font-weight:600;margin-top:4px}
+.hero .who{opacity:.9;font-size:14px;margin-top:2px}
+.hero .crown{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.85;margin-bottom:6px}
+.lr{display:flex;align-items:center;gap:9px;padding:8px 0;border-top:1px dashed var(--line);font-size:14.5px}
+.lr:first-child{border-top:0}
+.lr .nm{flex:1;min-width:0}
+.lr .nm small{display:block;color:var(--ink-soft);font-size:12.5px}
+.lr .v{font-family:'DM Mono',monospace;font-size:13.5px;flex:none}
+.pos{font-family:'Fraunces',serif;font-weight:900;font-size:18px;width:24px;text-align:center;color:var(--gold);flex:none}
+.cat{display:flex;gap:11px;align-items:center;cursor:pointer}
+.cat .th{width:58px;height:58px;border-radius:10px;object-fit:cover;flex:none;background:var(--sand-deep);display:grid;place-items:center;font-size:26px}
+.cat .tx{flex:1;min-width:0}
+.cat .tx b{font-size:16px}
+.cat .tx small{display:block;color:var(--ink-soft);font-size:12.5px}
+.cat .cm{font-family:'Fraunces',serif;font-weight:900;font-size:22px;flex:none}
+.hhl{font-family:'DM Mono',monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin:10px 0 5px}
+.pk{display:inline-flex;align-items:center;gap:6px;margin:0 6px 6px 0}
+.shop{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px dashed var(--line)}
+.shop:first-of-type{border-top:0}
+.shop .t{flex:1;min-width:0;font-size:14.5px}
+.shop .t small{display:block;color:var(--ink-soft)}
+.prev{max-width:100%;max-height:180px;border-radius:10px;margin-top:8px;display:block}
+.tgl{display:flex;align-items:center;gap:10px;width:100%;border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:11px 13px;margin-top:12px;font-size:15px;text-align:left}
+.tgl[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:#fff}
+.rules p{margin:0 0 8px}
+.rules a{color:var(--sea);font-weight:600}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="back" href="home.html">← Home</a>
+  <p class="eyebrow">Biggest catch of the week</p>
+  <h1 class="wordmark">Fishing comp</h1>
+  <p class="sub" id="sub">&nbsp;</p>
+</header>
+
+<main>
+  <h2 class="sec">Biggest fish</h2>
+  <div id="hero"></div>
+
+  <div id="boards"></div>
+
+  <h2 class="sec">All the catches</h2>
+  <div id="list"></div>
+
+  <h2 class="sec">Rules</h2>
+  <div class="card rules">
+    <div id="rulesTxt"></div>
+    <p class="small"><a href="https://www.dpi.nsw.gov.au/fishing/recreational/fishing-rules-and-regs/saltwater-bag-and-size-limits" target="_blank" rel="noopener">NSW size and bag limits</a> ·
+      <a href="https://www.dpi.nsw.gov.au/fishing/recreational/recreational-fishing-fee" target="_blank" rel="noopener">NSW fishing licence (fee)</a></p>
+    <p class="small muted">Most adults need to pay the NSW recreational fishing fee before wetting a line — check the link.</p>
+    <button class="btn small ghost" id="editRules">Edit the rules</button>
+  </div>
+
+  <h2 class="sec">Tackle shops</h2>
+  <div class="card" id="shops"></div>
+
+  <p class="buildstamp">build x30</p>
+</main>
+<button class="fab" id="add" aria-label="Log a catch">+</button>
+
+<script type="module">
+import { boot, me, col, settings, heroFromWall, households, people, household, person, onPeople, pname, badge, esc,
+         celebrate, toast, openSheet, closeSheet, askPin, compressImage, lightbox, mapsLink, fmtDay, fromIso, todayIso } from "./app.js";
+import { PLACES } from "./places.js";
+
+if(boot("fishing.html")){
+const $ = id => document.getElementById(id);
+heroFromWall();
+
+const SPECIES = ["Bream","Dusky flathead","Sand whiting","Tailor","Luderick (blackfish)","Australian salmon","Trevally","Flounder","Leatherjacket","Squid","Blue swimmer crab","Other"];
+const SPOTS = ["Off the beach at camp","Bateau Bay rocks","The Entrance channel","Tuggerah Lake","Long Jetty","Terrigal Haven"];
+const DEFAULT_RULES = "Measure on a flat board, nose to tail. Photo or it didn't happen. Kids' fish count double for bragging.";
+let fish = [], rules = null;
+const fc = col("fish");
+
+const cmTxt = n => (Math.round(n * 10) / 10).toString();
+const ts = f => (f.date || "") + "|" + String(f.createdAt || 0).padStart(15, "0");
+const newest = (a, b) => ts(b).localeCompare(ts(a));
+
+function paint(){
+  const ok = fish.filter(f => isFinite(f.cm));
+  $("sub").textContent = ok.length ? `${ok.length} fish on the board` : "No fish yet. Someone has to be first.";
+  const big = [...ok].sort((a, b) => b.cm - a.cm)[0];
+  $("hero").innerHTML = big ? `<div class="card hero" data-id="${big.id}">${big.photo ? `<img src="${big.photo}" alt="" data-lb="${big.id}">` : ""}
+    <div class="in2"><div class="crown">👑 Biggest so far</div><div class="big">${cmTxt(big.cm)}<small> cm</small></div>
+    <div class="sp">${esc(big.species)}${big.released ? " · let go" : ""}</div><div class="who">${badge(big.who)} ${esc(pname(big.who))}${big.where ? " · " + esc(big.where) : ""}</div></div></div>`
+    : `<div class="empty card">Nothing caught yet. Tap + to log the first one.</div>`;
+
+  let b = "";
+  if(ok.length){
+    const bySp = {}; ok.forEach(f => { const k = f.species; if(!bySp[k] || f.cm > bySp[k].cm) bySp[k] = f; });
+    const sp = Object.values(bySp).sort((a, b) => b.cm - a.cm);
+    b += `<h2 class="sec">Biggest by species</h2><div class="card">` + sp.map(f => `<div class="lr"><span class="nm"><b>${esc(f.species)}</b><small>${badge(f.who)} ${esc(pname(f.who))}</small></span><span class="v">${cmTxt(f.cm)} cm</span></div>`).join("") + `</div>`;
+    const byP = {}; ok.forEach(f => { byP[f.who] = (byP[f.who] || 0) + 1; });
+    const pp = Object.entries(byP).sort((a, b) => b[1] - a[1]).slice(0, 8);
+    b += `<h2 class="sec">Most fish</h2><div class="card">` + pp.map(([id, n], i) => `<div class="lr"><span class="pos">${i === 0 ? "👑" : i + 1}</span><span class="nm">${badge(id)} ${esc(pname(id))}</span><span class="v">${n} fish</span></div>`).join("") + `</div>`;
+    const byH = {}; ok.forEach(f => { const h = person(f.who).hh; if(h) byH[h] = (byH[h] || 0) + 1; });
+    const hh = Object.entries(byH).sort((a, b) => b[1] - a[1]);
+    b += `<h2 class="sec">Family tally</h2><div class="card">` + hh.map(([id, n], i) => `<div class="lr"><span class="pos">${i === 0 ? "👑" : i + 1}</span><span class="nm">${badge(id)} ${esc(household(id).name)}</span><span class="v">${n} fish</span></div>`).join("") + `</div>`;
+  }
+  $("boards").innerHTML = b;
+  $("list").innerHTML = fish.length ? [...fish].sort(newest).map(f => `<div class="tag card-ish cat" data-id="${f.id}">
+      ${f.photo ? `<img class="th" src="${f.photo}" alt="" data-lb="${f.id}">` : `<span class="th">🐟</span>`}
+      <div class="tx"><b>${esc(f.species)}</b>${f.released ? ` <span class="pill green">let go</span>` : ""}<small>${badge(f.who)} ${esc(pname(f.who))} · ${f.date ? esc(fmtDay(fromIso(f.date))) : ""}</small>
+      ${f.where || f.bait ? `<small>${esc([f.where, f.bait].filter(Boolean).join(" · "))}</small>` : ""}</div><span class="cm">${cmTxt(f.cm)}<small style="font-size:12px"> cm</small></span></div>`).join("")
+    : `<div class="empty">Catches show up here.</div>`;
+  $("rulesTxt").innerHTML = `<p>${esc((rules && rules.text) || DEFAULT_RULES).replace(/\n/g, "<br>")}</p>`;
+}
+const shops = PLACES.filter(p => p.kind === "fish");
+$("shops").innerHTML = shops.map(p => `<div class="shop"><div class="t"><b>${esc(p.name)}</b><small>${esc(p.blurb || "")}</small></div>
+  <a class="chip" href="${mapsLink(p.name + ", " + p.address, p.place_id)}" target="_blank" rel="noopener">📍 Map</a></div>`).join("") || `<div class="empty">No shops listed.</div>`;
+
+fc.subscribe(r => { fish = r; paint(); });
+settings("fishrules").subscribe(r => { rules = r; paint(); });
+onPeople(paint);
+
+document.querySelector("main").addEventListener("click", e => {
+  const lb = e.target.closest("[data-lb]");
+  if(lb){ const f = fish.find(x => x.id === lb.dataset.lb); if(f){ e.stopPropagation(); lightbox(f.photo, `${f.species} · ${cmTxt(f.cm)} cm · ${pname(f.who)}`); } return; }
+  const c = e.target.closest("[data-id]"); if(c){ const f = fish.find(x => x.id === c.dataset.id); if(f) catchSheet(f); }
+});
+$("add").onclick = () => catchSheet(null);
+$("editRules").onclick = async () => {
+  if(!(await askPin("Only the organisers can change the fishing rules."))) return;
+  const sh = openSheet(`<h3>Fishing rules</h3><label class="f" for="rt">Rules</label><textarea class="in" id="rt" maxlength="600" style="min-height:130px">${esc((rules && rules.text) || DEFAULT_RULES)}</textarea>
+    <div class="acts"><button class="btn ghost" id="rno">Cancel</button><button class="btn red" id="rok">Save</button></div>`);
+  sh.el.querySelector("#rno").onclick = closeSheet;
+  sh.el.querySelector("#rok").onclick = async () => {
+    try{ await settings("fishrules").save({ text: sh.el.querySelector("#rt").value.trim() || DEFAULT_RULES }); closeSheet(); }
+    catch(err){ toast("Couldn't save — " + err.message); }
+  };
+};
+
+function catchSheet(f){
+  let who = f ? f.who : me.id, photo = f ? f.photo || "" : "", released = f ? !!f.released : false;
+  const sh = openSheet(`<h3>${f ? "Edit catch" : "Log a catch"} 🎣</h3>
+    <label class="f">Who caught it?</label><button class="btn ghost wide" id="whoB" type="button"></button><div id="whoL" class="hide"></div>
+    <label class="f" for="sp">Species</label><input class="in" id="sp" list="spl" maxlength="40" value="${esc(f ? f.species : "")}" placeholder="Pick or type">
+    <datalist id="spl">${SPECIES.map(s => `<option value="${esc(s)}">`).join("")}</datalist>
+    <div class="row"><div><label class="f" for="cm">Length (cm)</label><input class="in" id="cm" inputmode="decimal" value="${f ? esc(f.cm) : ""}" placeholder="e.g. 34.5"></div>
+      <div><label class="f" for="dt">Date</label><input class="in" id="dt" type="date" value="${esc(f ? f.date : todayIso())}"></div></div>
+    <label class="f" for="wh">Where</label><input class="in" id="wh" list="whl" maxlength="60" value="${esc(f ? f.where : "")}" placeholder="Pick or type">
+    <datalist id="whl">${SPOTS.map(s => `<option value="${esc(s)}">`).join("")}</datalist>
+    <label class="f" for="bt">Bait or lure</label><input class="in" id="bt" maxlength="60" value="${esc(f ? f.bait : "")}" placeholder="e.g. Pilchard, soft plastic">
+    <label class="f">Photo (optional)</label><input type="file" id="ph" accept="image/*"><img class="prev ${photo ? "" : "hide"}" id="pv" src="${photo}" alt="">
+    <button class="tgl" id="rel" type="button" aria-pressed="${released}"><span>🌊</span><span>Let it go</span></button>
+    <label class="f" for="nt">Note</label><textarea class="in" id="nt" maxlength="300" placeholder="The story…">${esc(f ? f.note : "")}</textarea>
+    <div class="acts">${f ? `<button class="btn ghost" id="del">Delete</button>` : ""}<button class="btn red" id="ok">${f ? "Save" : "Add catch"}</button></div>`);
+  const el = sh.el, q = s => el.querySelector(s);
+  const paintWho = () => { q("#whoB").innerHTML = `${badge(who)} ${esc(pname(who))}${who === me.id ? " (you)" : ""} · change`; };
+  paintWho();
+  q("#whoB").onclick = () => {
+    const l = q("#whoL"); if(!l.classList.contains("hide")) return l.classList.add("hide");
+    l.innerHTML = households().map(h => `<div class="hhl">${badge(h.id)} ${esc(h.name)}</div>` + h.members.map(p => `<button type="button" class="chip pk ${p.id === who ? "on" : ""}" data-w="${p.id}">${esc(p.label)}</button>`).join("")).join("");
+    l.classList.remove("hide");
+  };
+  q("#whoL").onclick = e => { const b = e.target.closest("[data-w]"); if(b){ who = b.dataset.w; paintWho(); q("#whoL").classList.add("hide"); } };
+  q("#rel").onclick = function(){ this.setAttribute("aria-pressed", this.getAttribute("aria-pressed") !== "true"); released = this.getAttribute("aria-pressed") === "true"; };
+  q("#ph").onchange = async e => {
+    const file = e.target.files[0]; if(!file) return;
+    try{ photo = await compressImage(file); q("#pv").src = photo; q("#pv").classList.remove("hide"); }catch(err){ toast("Couldn't read that photo"); }
+  };
+  q("#ok").onclick = async () => {
+    const species = q("#sp").value.trim(), cm = parseFloat(q("#cm").value.replace(",", "."));
+    if(!species) return toast("What did you catch?");
+    if(!(cm > 0) || cm > 400) return toast("How long was it, in cm?");
+    const data = { species, cm, who, where:q("#wh").value.trim(), bait:q("#bt").value.trim(), date:q("#dt").value || todayIso(), photo, released, note:q("#nt").value.trim() };
+    try{
+      if(f){ await fc.update(f.id, data); closeSheet(); }
+      else { celebrate("catch"); closeSheet(); await fc.add(data); }
+    }catch(err){ toast("Couldn't save — " + err.message); }
+  };
+  if(f) q("#del").onclick = async function(){
+    if(!this.dataset.sure){ this.dataset.sure = 1; this.textContent = "Really delete?"; this.classList.add("red"); return; }
+    try{ await fc.remove(f.id); closeSheet(); }catch(err){ toast("Couldn't delete — " + err.message); }
+  };
+}
+}
+</script>
+</body>
+</html>

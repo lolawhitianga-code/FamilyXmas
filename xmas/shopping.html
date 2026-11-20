@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12303B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Family Xmas">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Shopping &amp; esky · Christmas at Bateau Bay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+<style>
+.stick{position:sticky;top:0;z-index:30;background:var(--sand);padding:6px 0 8px;margin:0 -14px 8px;padding-left:14px;padding-right:14px;box-shadow:0 8px 10px -10px rgba(18,48,59,.4)}
+.seg{display:flex;background:var(--sand-deep);border-radius:16px;padding:4px;gap:4px;margin:0 0 10px}
+.seg button{flex:1;border:0;background:transparent;border-radius:12px;padding:9px 2px;font-weight:600;font-size:14.5px;line-height:1.1;min-height:48px}
+.seg button[aria-selected="true"]{background:var(--ink);color:var(--sand);box-shadow:var(--shadow)}
+.seg button small{display:block;font-family:'DM Mono',monospace;font-size:10px;font-weight:400;letter-spacing:.06em;margin-top:3px;opacity:.85}
+.qa{display:flex;gap:8px}
+.qa .in{min-width:0}
+#qt{flex:1 1 auto} #qq{flex:0 0 70px;width:70px}
+.qa .btn{flex:none;min-height:46px}
+.item{display:flex;gap:12px;align-items:center;padding:10px 12px 10px 14px}
+.tick{flex:none;width:50px;height:50px;border-radius:50%;border:2.5px solid var(--line);background:#fff;font-size:24px;line-height:1;color:transparent;padding:0}
+.tick[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:#fff}
+.item .body{flex:1;min-width:0}
+.item .tx{font-weight:600;font-size:16px;overflow-wrap:anywhere;cursor:pointer}
+.item.ok .tx{text-decoration:line-through;opacity:.55}
+.item .qty{font-family:'DM Mono',monospace;font-size:12px;color:var(--ink-soft);margin-left:6px;font-weight:400}
+.meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:5px;align-items:center;font-size:13px;color:var(--ink-soft)}
+.chip.get{border-style:dashed;border-color:var(--coral);background:#FFF0EA;min-height:32px}
+details.troll{margin:16px 0 8px}
+details.troll summary{cursor:pointer;font-weight:600;padding:12px 4px;font-size:15px}
+.shop{display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px dashed var(--line)}
+.shop:first-of-type{border-top:0}
+.shop .t{flex:1;min-width:0} .shop .t b{display:block;font-size:15px}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="back" href="home.html">← Home</a>
+  <p class="eyebrow">The big shop</p>
+  <h1 class="wordmark">Shopping &amp; esky</h1>
+  <p class="sub">Write it down, tick it off</p>
+</header>
+
+<main>
+  <div class="stick">
+    <div class="seg" role="tablist" id="seg">
+      <button role="tab" data-l="food" id="t-food"></button>
+      <button role="tab" data-l="drinks" id="t-drinks"></button>
+      <button role="tab" data-l="other" id="t-other"></button>
+    </div>
+    <form class="qa" id="qa" autocomplete="off">
+      <input class="in" id="qt" aria-label="What do we need?" placeholder="What do we need?" enterkeyhint="done">
+      <input class="in" id="qq" aria-label="How many" placeholder="Qty">
+      <button class="btn green" type="submit">Add</button>
+    </form>
+  </div>
+  <div id="list"></div>
+  <h2 class="sec">Shops nearby</h2>
+  <div class="card" id="shops"></div>
+  <p class="buildstamp">build x30</p>
+</main>
+
+<script type="module">
+import { boot, me, col, heroFromWall, people, onPeople, pname, esc, celebrate, openSheet, closeSheet, toast, askPin, mapsLink } from "./app.js";
+import { PLACES } from "./places.js";
+
+if(boot("shopping.html")){
+const $ = id => document.getElementById(id);
+heroFromWall();
+const LISTS = { food:["🥗 Food","Food"], drinks:["🧊 Drinks & ice","Drinks & ice"], other:["🧺 Everything else","Everything else"] };
+let items = [], tab = "food", trollOpen = false;
+const sorry = e => toast("Couldn't save \u2014 " + e.message);
+const inList = l => items.filter(i => (i.list || "food") === l).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+
+function row(i){
+  return `<div class="tag item${i.done ? " ok" : ""}"><button class="tick" data-tick="${i.id}" aria-pressed="${!!i.done}" aria-label="Got ${esc(i.text)}">\u2713</button>
+    <div class="body"><div class="tx" data-edit="${i.id}" role="button" tabindex="0">${esc(i.text)}${i.qty ? `<span class="qty">${esc(i.qty)}</span>` : ""}</div>
+    <div class="meta">${i.forWhat ? `<span class="pill gold">${esc(i.forWhat)}</span>` : ""}
+    ${i.done && i.doneBy ? `<span>Got by ${esc(pname(i.doneBy))}</span>` : i.buyer ? `<span>\ud83d\uded2 ${esc(pname(i.buyer))} is getting it</span>` : i.done ? "" : `<button class="chip get" data-get="${i.id}">I\u2019ll get it</button>`}</div></div></div>`;
+}
+function render(){
+  document.querySelectorAll("#seg button").forEach(b => {
+    const l = b.dataset.l, left = inList(l).filter(i => !i.done).length;
+    b.innerHTML = `${LISTS[l][1]}<small>${left} to get</small>`; b.setAttribute("aria-selected", String(l === tab));
+  });
+  $("qt").placeholder = tab === "food" ? "e.g. prawns, ham, mangoes" : tab === "drinks" ? "e.g. ice, beer, lemonade" : "e.g. sunscreen, bin bags";
+  const xs = inList(tab), todo = xs.filter(i => !i.done), done = xs.filter(i => i.done);
+  $("list").innerHTML = (todo.length ? todo.map(row).join("") : `<div class="empty">${xs.length ? "All sorted! \ud83c\udf89" : "Nothing on the list yet \u2014 type above"}</div>`) +
+    (done.length ? `<details class="troll"${trollOpen ? " open" : ""}><summary>In the trolley (${done.length})</summary>${done.map(row).join("")}
+      <button class="btn ghost wide" id="clear">Clear the trolley</button></details>` : "");
+  const d = $("list").querySelector("details"); if(d) d.addEventListener("toggle", () => { trollOpen = d.open; });
+}
+
+$("qa").addEventListener("submit", async e => {
+  e.preventDefault();
+  const text = $("qt").value.trim(); if(!text){ $("qt").focus(); return; }
+  const v = { text, qty:$("qq").value.trim(), list:tab, forWhat:"", buyer:"", done:false, doneBy:"" };
+  $("qt").value = ""; $("qq").value = ""; $("qt").focus();
+  celebrate("shopping");
+  try{ await col("shopping").add(v); }catch(err){ sorry(err); }
+});
+
+$("list").addEventListener("click", async e => {
+  const t = e.target;
+  const tk = t.closest("[data-tick]");
+  if(tk){
+    const on = tk.getAttribute("aria-pressed") !== "true"; tk.setAttribute("aria-pressed", String(on));
+    const id = tk.dataset.tick, it = items.find(x => x.id === id);
+    if(on){
+      celebrate("bought");
+      const left = inList(it ? (it.list || "food") : tab).filter(i => !i.done && i.id !== id).length;
+      if(left === 0) setTimeout(() => celebrate("alldone"), 1800);
+    }
+    col("shopping").update(id, { done:on, doneBy: on ? me.id : "" }).catch(sorry); return;
+  }
+  const g = t.closest("[data-get]");
+  if(g){ col("shopping").update(g.dataset.get, { buyer:me.id }).catch(sorry); return; }
+  if(t.closest("#clear")){
+    const gone = inList(tab).filter(i => i.done); if(!gone.length) return;
+    if(!(await askPin("Clearing the trolley removes ticked items for everyone."))) return;
+    try{ await Promise.all(gone.map(i => col("shopping").remove(i.id))); toast("Trolley cleared"); }catch(err){ sorry(err); }
+    return;
+  }
+  const ed = t.closest("[data-edit]"); if(ed) editSheet(items.find(x => x.id === ed.dataset.edit));
+});
+$("list").addEventListener("keydown", e => { if(e.key === "Enter" && e.target.matches("[data-edit]")) e.target.click(); });
+
+function editSheet(i){
+  if(!i) return;
+  const sh = openSheet(`<h3>Edit item</h3>
+    <label class="f" for="et">What</label><input class="in" id="et" value="${esc(i.text)}">
+    <div class="row"><div><label class="f" for="eq">How many</label><input class="in" id="eq" value="${esc(i.qty || "")}"></div>
+    <div><label class="f" for="el">Which list</label><select class="in" id="el">${Object.keys(LISTS).map(k => `<option value="${k}"${(i.list || "food") === k ? " selected" : ""}>${LISTS[k][1]}</option>`).join("")}</select></div></div>
+    <label class="f" for="ef">What\u2019s it for?</label><input class="in" id="ef" value="${esc(i.forWhat || "")}" placeholder="Christmas lunch, Boxing Day brekky\u2026">
+    <label class="f" for="eb">Who\u2019s getting it</label>
+    <select class="in" id="eb"><option value="">Nobody yet</option>${people().map(p => `<option value="${p.id}"${p.id === i.buyer ? " selected" : ""}>${esc(p.label)}</option>`).join("")}</select>
+    <div class="acts"><button class="btn red" id="del">Delete</button><button class="btn ghost" id="no">Cancel</button><button class="btn green" id="ok">Save</button></div>`);
+  const q = s => sh.el.querySelector(s); let armed = false;
+  q("#no").onclick = () => closeSheet();
+  q("#del").onclick = async () => {
+    if(!armed){ armed = true; q("#del").textContent = "Really delete?"; return; }
+    closeSheet(); try{ await col("shopping").remove(i.id); }catch(e){ sorry(e); }
+  };
+  q("#ok").onclick = async () => {
+    const text = q("#et").value.trim(); if(!text){ toast("What is it?"); return; }
+    const v = { text, qty:q("#eq").value.trim(), list:q("#el").value, forWhat:q("#ef").value.trim(), buyer:q("#eb").value };
+    closeSheet(); try{ await col("shopping").update(i.id, v); }catch(e){ sorry(e); }
+  };
+}
+
+document.querySelectorAll("#seg button").forEach(b => b.addEventListener("click", () => { tab = b.dataset.l; trollOpen = false; render(); }));
+$("shops").innerHTML = PLACES.filter(p => p.kind === "shop").map(p => `<div class="shop"><div class="t"><b>${esc(p.name)}</b><span class="muted small">${esc(p.blurb || "")}</span></div>
+  <a class="chip" href="${mapsLink(p.name + ", " + p.address, p.place_id)}" target="_blank" rel="noopener">\ud83d\udccd Map</a></div>`).join("");
+onPeople(render);
+col("shopping").subscribe(r => { items = r; render(); });
+}
+</script>
+</body>
+</html>

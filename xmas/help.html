@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12303B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Family Xmas">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>If it goes wrong — Christmas at Bateau Bay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+<style>
+.sos{display:flex;flex-direction:column;align-items:center;text-align:center;text-decoration:none;color:#fff;background:linear-gradient(180deg,#E8402F,#B8211A);
+  border-radius:20px;padding:22px 16px;margin:0 0 6px;box-shadow:0 6px 0 #7E130E,0 14px 26px -10px rgba(150,30,20,.7)}
+.sos small{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;opacity:.9}
+.sos b{font-family:'Fraunces',serif;font-weight:900;font-size:44px;line-height:1.05}
+.sos span{font-size:14px;opacity:.95}
+.sosnote{text-align:center;font-size:13px;margin:8px 0 4px}
+.meet{border:2px solid var(--red);background:#FFF3F0}
+.meet h3{margin:0 0 4px}
+.meet .m{font-family:'Fraunces',serif;font-weight:900;font-size:26px;line-height:1.15;color:var(--red)}
+.hd{display:flex;align-items:center;gap:12px}
+.hd .t{flex:1;min-width:0}
+.hd .t b{display:block;font-size:16px}
+.hd .t span{display:block;font-size:13px;color:var(--ink-soft)}
+.call{flex:none}
+.card h3{font-family:'Fraunces',serif;font-size:19px;margin:0 0 6px}
+.card ul{margin:6px 0 8px;padding-left:20px} .card li{margin:5px 0}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+.chips .chip{padding:8px 13px;font-size:14px}
+.cnt{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px dashed var(--line)}
+.cnt:first-of-type{border-top:0}
+.cnt .t{flex:1;min-width:0}
+.cnt .t b{display:block;font-weight:600}
+.cnt .t span{font-family:'DM Mono',monospace;font-size:13px;color:var(--ink-soft)}
+.cnt .ed{border:0;background:none;font-size:13px;color:var(--ink-soft);text-decoration:underline;padding:8px 4px}
+.hh{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin:14px 0 2px}
+.hh:first-child{margin-top:0}
+</style></head>
+<body>
+<header class="top">
+  <a class="back" href="home.html">← Home</a>
+  <p class="eyebrow">Just in case</p>
+  <h1 class="wordmark">If it goes wrong</h1>
+  <p class="sub">Numbers and plans, all in one place</p>
+</header>
+
+<main>
+  <a class="sos" href="tel:000"><small>Emergency</small><b>Call 000</b><span>Police, fire, ambulance</span></a>
+  <p class="sosnote muted">112 also works from a mobile phone.</p>
+
+  <div id="meetBox"></div>
+
+  <h2 class="sec">The camp</h2>
+  <div class="card" id="camp"></div>
+
+  <h2 class="sec">Advice lines</h2>
+  <div class="card" id="lines"></div>
+
+  <h2 class="sec">Nearest emergency department</h2>
+  <div class="card" id="er"></div>
+
+  <h2 class="sec">At the beach</h2>
+  <div class="card">
+    <h3>🏖️ Beach safety</h3>
+    <ul>
+      <li><b>Swim between the red and yellow flags.</b></li>
+      <li>Bateau Bay Beach out the front of camp isn't patrolled. Shelly Beach and Toowoon Bay have surf clubs.</li>
+      <li><b>Caught in a rip?</b> Stay calm, float, and raise an arm so someone sees you.</li>
+      <li><b>Bluebottle sting?</b> Rinse with seawater, pick off any tentacles, then soak in hot water (as hot as is comfortable) for 20 minutes.</li>
+    </ul>
+    <div class="chips"><a class="chip" href="https://beachsafe.org.au" target="_blank" rel="noopener">🚩 Flags and conditions: beachsafe.org.au</a></div>
+  </div>
+
+  <h2 class="sec">Summer</h2>
+  <div class="card">
+    <h3>☀️ Hot weather and fire</h3>
+    <ul>
+      <li>Slip, slop, slap: shirt, sunscreen, hat.</li>
+      <li>Keep water up to the oldies and the littlies.</li>
+      <li>On a total fire ban day, no fires, no campfires, no gas barbecues outside.</li>
+    </ul>
+    <div class="chips">
+      <a class="chip" href="https://www.rfs.nsw.gov.au/fire-information/fdr-and-tobans" target="_blank" rel="noopener">🔥 Fire danger and total fire bans</a>
+      <a class="chip" href="https://www.nsw.gov.au/emergency/hazards-near-me-app" target="_blank" rel="noopener">📱 Hazards Near Me NSW app</a>
+    </div>
+  </div>
+
+  <h2 class="sec">Family plan</h2>
+  <div class="card">
+    <h3>🧒 Lost kid plan</h3>
+    <div id="plan"></div>
+    <div class="chips"><button class="chip" id="editPlan">✏️ Edit the plan</button></div>
+  </div>
+
+  <h2 class="sec">Who's got a phone number?</h2>
+  <div class="card" id="contacts"><div class="empty">Loading…</div></div>
+  <button class="btn red wide" id="addC">+ Add a phone number</button>
+
+  <p class="buildstamp">build x30</p>
+</main>
+
+<script type="module">
+import { boot, me, col, settings, heroFromWall, households, household, people, person, pname, onPeople, badge, esc,
+         toast, openSheet, closeSheet, mapsLink } from "./app.js";
+import { CAMP, PLACES } from "./places.js";
+
+if(boot("help.html")){
+const $ = id => document.getElementById(id);
+heroFromWall();
+const num = p => String(p || "").replace(/[^\d+]/g, "");
+const callChip = (p, l) => `<a class="chip" href="tel:${num(p)}">📞 ${esc(l || p)}</a>`;
+const mapChip = (name, addr, pid) => `<a class="chip" href="${mapsLink(name + ", " + addr, pid)}" target="_blank" rel="noopener">📍 Map</a>`;
+const callBtn = p => `<a class="btn green call" href="tel:${num(p)}">Call</a>`;
+
+$("camp").innerHTML = `<div class="hd"><div class="t"><b>${esc(CAMP.name)}</b><span>Reception: ${esc(CAMP.reception)}</span><span>${esc(CAMP.address)}</span></div>${callBtn(CAMP.phone)}</div>
+  <div class="chips">${callChip(CAMP.phone)}${mapChip(CAMP.name, CAMP.address, CAMP.place_id)}</div>`;
+
+const LINES = [
+  ["Healthdirect", "1800 022 222", "Nurse advice, 24 hours a day, 7 days"],
+  ["Poisons Information", "13 11 26", "Swallowed something odd? Call straight away"],
+  ["Police Assistance Line", "131 444", "Non-urgent police matters"],
+  ["NRMA roadside", "13 11 11", "Breakdown or flat battery"]
+];
+$("lines").innerHTML = LINES.map(([n, p, d]) => `<div class="cnt"><div class="t"><b>${n}</b><span>${p}</span><div class="muted small" style="font-family:inherit">${d}</div></div>${callBtn(p)}</div>`).join("");
+
+const er = PLACES.find(p => p.kind === "help");
+if(er){
+  const drive = (er.blurb.match(/about[^.]*drive/i) || ["a short drive away"])[0];
+  $("er").innerHTML = `<div class="hd"><div class="t"><b>🏥 ${esc(er.name)}</b><span>${esc(er.address)}</span></div>${er.phone ? callBtn(er.phone) : ""}</div>
+    <p style="margin:8px 0 0"><b>${esc(drive.charAt(0).toUpperCase() + drive.slice(1))}.</b> <span class="muted">${esc(er.blurb)}</span></p>
+    <div class="chips">${er.phone ? callChip(er.phone) : ""}${mapChip(er.name, er.address, er.place_id)}</div>`;
+}
+
+/* ---------- lost kid plan ---------- */
+let plan = null;
+const helpDoc = settings("help");
+function paintPlan(){
+  const meet = (plan && plan.meet || "").trim(), notes = (plan && plan.notes || "").trim();
+  $("meetBox").innerHTML = meet ? `<div class="card meet"><h3>🧒 If someone's lost, meet at</h3><div class="m">${esc(meet)}</div>${notes ? `<p style="margin:8px 0 0;white-space:pre-wrap">${esc(notes)}</p>` : ""}</div>` : "";
+  $("plan").innerHTML = meet || notes ? `<p style="margin:0"><b>Meet at:</b> ${esc(meet || "not set")}</p>${notes ? `<p style="white-space:pre-wrap;margin:6px 0 0">${esc(notes)}</p>` : ""}`
+    : `<p class="muted" style="margin:0">Nothing set yet. Pick a spot everyone knows, like the camp kitchen, so a lost kid knows where to go.</p>`;
+}
+helpDoc.subscribe(r => { plan = r; paintPlan(); });
+$("editPlan").onclick = () => {
+  const sh = openSheet(`<h3>Lost kid plan</h3>
+    <label class="f" for="pm">Where do we meet if someone's lost?</label><input class="in" id="pm" maxlength="80" placeholder="e.g. The camp kitchen" value="${esc(plan && plan.meet || "")}">
+    <label class="f" for="pn">Family notes (allergies, who to call, anything useful)</label><textarea class="in" id="pn" maxlength="500">${esc(plan && plan.notes || "")}</textarea>
+    <p class="muted small">Everyone at camp can see this. Please don't put card numbers or passwords here.</p>
+    <div class="acts"><button class="btn ghost" id="no">Cancel</button><button class="btn green" id="ok">Save</button></div>`);
+  sh.el.querySelector("#no").onclick = closeSheet;
+  sh.el.querySelector("#ok").onclick = async () => {
+    const v = { meet:sh.el.querySelector("#pm").value.trim(), notes:sh.el.querySelector("#pn").value.trim() };
+    closeSheet(); try{ await helpDoc.save(v); toast("Saved"); }catch(e){ toast("Couldn't save — " + e.message); }
+  };
+};
+
+/* ---------- phone numbers ---------- */
+const cc = col("contacts"); let rows = [];
+function paintContacts(){
+  if(!rows.length){ $("contacts").innerHTML = `<div class="empty">No numbers yet. Add yours, and anyone in your family who has a mobile.</div>`; return; }
+  $("contacts").innerHTML = households().map(h => {
+    const mine = rows.filter(r => person(r.person).hh === h.id); if(!mine.length) return "";
+    return `<div class="hh">${badge(h.id)} ${esc(h.name)}</div>` + mine.map(r => `<div class="cnt"><div class="t"><b>${esc(pname(r.person))}</b><span>${esc(r.phone)}</span></div>
+      <a class="chip" href="tel:${num(r.phone)}">📞 Call</a><a class="chip" href="sms:${num(r.phone)}">💬 Text</a><button class="ed" data-id="${esc(r.id)}">Edit</button></div>`).join("");
+  }).join("");
+}
+$("contacts").addEventListener("click", e => { const b = e.target.closest("[data-id]"); if(b) form(rows.find(r => r.id === b.dataset.id)); });
+$("addC").onclick = () => form(null);
+function form(r){
+  const sh = openSheet(`<h3>${r ? "Edit number" : "Add a phone number"}</h3>
+    <label class="f" for="cp">Whose number?</label><select class="in" id="cp">${households().map(h => `<optgroup label="${esc(h.name)}">${h.members.map(p =>
+      `<option value="${esc(p.id)}"${p.id === (r ? r.person : me.id) ? " selected" : ""}>${esc(p.label)}</option>`).join("")}</optgroup>`).join("")}</select>
+    <label class="f" for="cn">Mobile number</label><input class="in" id="cn" type="tel" inputmode="tel" placeholder="04xx xxx xxx" value="${esc(r ? r.phone : "")}">
+    <div class="acts">${r ? `<button class="btn red" id="del">Delete</button>` : `<button class="btn ghost" id="no">Cancel</button>`}<button class="btn green" id="ok">Save</button></div>`);
+  const q = s => sh.el.querySelector(s);
+  if(q("#no")) q("#no").onclick = closeSheet;
+  if(r){ let armed = false; q("#del").onclick = async () => {
+    if(!armed){ armed = true; q("#del").textContent = "Really delete?"; return; }
+    closeSheet(); try{ await cc.remove(r.id); }catch(e){ toast("Couldn't delete — " + e.message); } }; }
+  q("#ok").onclick = async () => {
+    const phone = q("#cn").value.trim(), pid = q("#cp").value;
+    if(num(phone).replace("+", "").length < 8) return toast("That number looks too short");
+    closeSheet();
+    try{ if(r) await cc.update(r.id, { person:pid, phone }); else await cc.add({ person:pid, phone }); toast("Saved"); }
+    catch(e){ toast("Couldn't save — " + e.message); }
+  };
+}
+onPeople(paintContacts);
+cc.subscribe(r => { rows = r; paintContacts(); });
+}
+</script>
+</body>
+</html>
