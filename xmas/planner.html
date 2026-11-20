@@ -42,6 +42,10 @@
 .slots button{flex:1;border:1.5px solid var(--line);background:#fff;border-radius:11px;padding:9px 4px;font-size:13px;line-height:1.25}
 .slots button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
 .slots button b{display:block;font-size:18px;font-weight:400}
+.planlinks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:14px}
+.planlinks a{background:linear-gradient(160deg,#FFF3F0,#FFE1DC);border:1px solid #F3B9B2;border-radius:14px;padding:10px 4px 9px;text-align:center;text-decoration:none;box-shadow:0 1px 0 rgba(18,48,59,.06)}
+.planlinks a b{display:block;font-size:24px;line-height:1.1;font-weight:400}
+.planlinks a span{display:block;font-size:12.5px;font-weight:500;margin-top:4px;line-height:1.2}
 </style>
 </head>
 <body>
@@ -52,6 +56,11 @@
   <p class="sub" id="sub">&nbsp;</p>
 </header>
 <main>
+  <nav class="planlinks">
+    <a href="food.html"><b>🍤</b><span>Meals &amp; Christmas lunch</span></a>
+    <a href="food.html#happy"><b>🍹</b><span>Happy hour</span></a>
+    <a href="signup.html"><b>✋</b><span>Sign-up sheet</span></a>
+  </nav>
   <div class="card hide" id="itin" style="border-left:5px solid var(--gold)">
     <b style="font-family:'Fraunces',serif;font-size:18px" id="itinTitle">The family itinerary</b>
     <p class="small muted" style="margin:4px 0 10px" id="itinText">Load the Townsend Family Christmas itinerary (23–28 Dec) in one go: the day-by-day plan, the competitions, the dinners and the bring-list. After that anyone can change any of it.</p>
@@ -59,7 +68,7 @@
   </div>
   <div id="days"><div class="empty">Loading…</div></div>
   <button class="fab" id="add" aria-label="Add">+</button>
-  <p class="buildstamp">build x38</p>
+  <p class="buildstamp">build x39</p>
 </main>
 <script type="module">
 import { boot, me, col, watchTrip, heroFromWall, tripDays, tripDayToday, fmtDay, todayIso, XMAS_DAY, SLOTS, households, household, onPeople,
