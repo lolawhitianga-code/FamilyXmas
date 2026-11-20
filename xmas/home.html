@@ -32,6 +32,7 @@
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .top{padding-top:calc(22px + env(safe-area-inset-top))}
 .hi{font-size:15px;margin:10px 0 0;opacity:.95;text-shadow:0 1px 8px rgba(18,48,59,.7)}
+.notyou{display:inline-block;margin-top:3px;font-size:13px;color:inherit;opacity:.85;text-shadow:0 1px 8px rgba(18,48,59,.7)}
 
 .camp{display:flex;align-items:center;gap:14px}
 .camp .n{font-family:'Fraunces',serif;font-weight:900;font-size:46px;line-height:.9;color:var(--red);flex:none;min-width:58px;text-align:center}
@@ -110,6 +111,7 @@ body.mine #full, body.mine .pokiebar, body.mine .pokiefloat, body.mine #quiet{di
   <div class="logo"><picture><source srcset="logo-clear.webp" type="image/webp"><img src="logo-clear.png" alt="Townsend Family Christmas 2026 — Bateau Bay NSW" width="900" height="626"></picture></div>
   <p class="sub" id="countdown">&nbsp;</p>
   <p class="hi" id="hi"></p>
+  <a class="notyou" href="index.html">Not you?</a>
 </header>
 
 <main>
@@ -153,14 +155,13 @@ body.mine #full, body.mine .pokiebar, body.mine .pokiefloat, body.mine #quiet{di
   <div class="foot">
     <button class="chip" id="mute"></button>
     <button class="chip hide" id="quiet"></button>
-    <a class="chip" href="index.html">Not you?</a>
     <button class="chip" id="homeScreen">📲 Add to home screen</button>
     <button class="chip" id="share">📤 Share the link</button>
     <a class="chip" href="traffic.html">📈 Who's been on (organisers)</a>
     <button class="chip" id="showPick">✨ Today's showcase (organisers)</button>
   </div>
 
-  <p class="buildstamp">build x44</p>
+  <p class="buildstamp">build x45</p>
 </main>
 
 <script type="module">
