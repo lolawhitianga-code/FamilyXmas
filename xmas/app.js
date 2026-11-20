@@ -9,7 +9,7 @@
    ============================================================ */
 import { HOUSEHOLDS as BASE_HH, HH_COLOURS } from "./people.js";
 
-export const BUILD = "x37";
+export const BUILD = "x38";
 
 export const FIREBASE = {
   apiKey: "AIzaSyB1NnJlvpL_dv7aPrAeFGtl5MM1oSa1YPk",
@@ -649,7 +649,7 @@ const NAV = [
   ["chat.html",    "💬", "Chat"],
   ["planner.html", "🗓️", "Plan"],
   ["food.html",    "🍤", "Food"],
-  ["games.html",   "🏆", "Games"],
+  ["fun.html",     "🏆", "Games"],
   ["photos.html",  "📸", "Photos"],
   ["#game",        "🎰", "Pokies"]
 ];

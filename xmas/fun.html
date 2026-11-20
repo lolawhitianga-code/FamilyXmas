@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12303B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Family Xmas">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Games &amp; Awards · Christmas at Bateau Bay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+<style>
+.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.tiles a{background:#fff;border:1px solid var(--line);border-radius:15px;padding:16px 8px 14px;text-align:center;text-decoration:none;
+  box-shadow:0 1px 0 rgba(18,48,59,.06);transition:transform .12s ease}
+.tiles a:hover{transform:translateY(-2px)}
+.tiles a b{display:block;font-size:32px;line-height:1.1;font-weight:400}
+.tiles a span{font-size:15px;font-weight:500;display:block;margin-top:6px;line-height:1.2}
+.tiles a.festive{background:linear-gradient(160deg,#FFF3F0,#FFE1DC);border-color:#F3B9B2}
+.tiles a.comp{background:linear-gradient(160deg,#F1FAF4,#DDF2E5);border-color:#B5DDC5}
+.foot{display:flex;justify-content:center;margin-top:18px}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="back" href="home.html">← Home</a>
+  <p class="eyebrow">Comps, prizes &amp; fun</p>
+  <h1 class="wordmark">Games &amp; Awards</h1>
+</header>
+
+<main>
+  <div class="tiles">
+    <a href="games.html" class="comp"><b>🏆</b><span>Tournaments</span></a>
+    <a href="santa.html" class="festive"><b>🎁</b><span>Secret Santa</span></a>
+    <a href="fishing.html" class="comp"><b>🎣</b><span>Fishing comp</span></a>
+    <a href="awards.html" class="comp"><b>🏅</b><span>Daily awards</span></a>
+    <a href="stars.html"><b>⭐</b><span>Gold stars</span></a>
+    <a href="places.html"><b>🏖️</b><span>Things to do</span></a>
+    <a href="casino.html" data-casino><b>🎰</b><span>The casino</span></a>
+  </div>
+
+  <div class="foot"><button class="chip" id="mute"></button></div>
+  <p class="buildstamp">build x38</p>
+</main>
+
+<script type="module">
+import { boot, heroFromWall, isMuted, setMuted } from "./app.js";
+
+if(boot("fun.html")){
+  heroFromWall();
+  const mute = document.getElementById("mute");
+  const paintMute = () => mute.textContent = isMuted() ? "🔇 Sound off" : "🔊 Sound on";
+  paintMute(); mute.onclick = () => { setMuted(!isMuted()); paintMute(); };
+}
+</script>
+</body>
+</html>
