@@ -1,0 +1,37 @@
+# Uploads this repo to the website (public_html/xmas) by FTP whenever main changes.
+# FTP login is kept in the repo's Actions secrets: FTP_SERVER, FTP_USERNAME, FTP_PASSWORD.
+# Only files that changed since the last upload are sent. Files on the site that
+# never came from this repo (whatever is already in xmas) are left alone.
+name: Upload to website
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: website-upload-xmas
+  cancel-in-progress: false
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Upload to public_html/xmas
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          security: loose
+          server-dir: ./xmas/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            .github/**
+            README.md
+            CLAUDE.md
+            .claude/**
