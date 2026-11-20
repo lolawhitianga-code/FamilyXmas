@@ -80,10 +80,12 @@ const playlistId = u => { const m = /^https:\/\/open\.spotify\.com\/(?:intl-[a-z
 const okLink = u => /^https:\/\/(open\.spotify\.com|spotify\.link)\//.test((u || "").trim());
 const searchLink = s => "https://open.spotify.com/search/" + encodeURIComponent([s.title, s.artist].filter(Boolean).join(" "));
 
+/* Lola's playlist, shown until an organiser sets a different one */
+const DEFAULT_PLAYLIST = "https://open.spotify.com/playlist/1yeQ7ZxY3umlNnHw4bchcN";
 function paintPlayer(){
-  const id = music && playlistId(music.playlistUrl);
+  const id = playlistId(music && music.playlistUrl) || playlistId(DEFAULT_PLAYLIST);
   if(!id){ shownId = null; $("play").innerHTML = `<div class="card empty">No playlist yet — an organiser can set one at the bottom of this page. Song requests still work.</div>`; return; }
-  const join = music.joinUrl && okLink(music.joinUrl) ? music.joinUrl : "";
+  const join = music && music.joinUrl && okLink(music.joinUrl) ? music.joinUrl : "";
   if(id + join === shownId) return;   // don't reload the player (and stop the song) every time a request comes in
   shownId = id + join;
   $("play").innerHTML = `<div class="card player"><iframe title="The family playlist on Spotify" loading="lazy"
@@ -155,7 +157,7 @@ $("setUp").addEventListener("click", async () => {
   const sh = openSheet(`<h3>Set the playlist</h3>
     <p class="muted small">In Spotify, on the playlist: <b>Share → Copy link</b> and paste it first.
       Then the person-plus icon → <b>Invite collaborators</b> → copy, and paste that second.</p>
-    <label class="f" for="pu">Playlist link</label><input class="in" id="pu" inputmode="url" placeholder="https://open.spotify.com/playlist/…" value="${esc(music && music.playlistUrl || "")}">
+    <label class="f" for="pu">Playlist link</label><input class="in" id="pu" inputmode="url" placeholder="https://open.spotify.com/playlist/…" value="${esc(music && music.playlistUrl || DEFAULT_PLAYLIST)}">
     <label class="f" for="ju">Invite link (so people can add songs)</label><input class="in" id="ju" inputmode="url" placeholder="https://open.spotify.com/playlist/…&pt=…" value="${esc(music && music.joinUrl || "")}">
     <div class="acts"><button class="btn ghost" id="no">Cancel</button><button class="btn green" id="ok">Save</button></div>`);
   const q = x => sh.el.querySelector(x);
