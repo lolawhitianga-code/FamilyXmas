@@ -82,10 +82,11 @@ const searchLink = s => "https://open.spotify.com/search/" + encodeURIComponent(
 
 /* Lola's playlist, shown until an organiser sets a different one */
 const DEFAULT_PLAYLIST = "https://open.spotify.com/playlist/1yeQ7ZxY3umlNnHw4bchcN";
+const DEFAULT_JOIN = "https://open.spotify.com/playlist/1yeQ7ZxY3umlNnHw4bchcN?si=ReM0aar9Qmefy4bBJ1ljvQ&pt=e096ae584b2a0ff22c79e7fa6d4bb568";
 function paintPlayer(){
   const id = playlistId(music && music.playlistUrl) || playlistId(DEFAULT_PLAYLIST);
   if(!id){ shownId = null; $("play").innerHTML = `<div class="card empty">No playlist yet — an organiser can set one at the bottom of this page. Song requests still work.</div>`; return; }
-  const join = music && music.joinUrl && okLink(music.joinUrl) ? music.joinUrl : "";
+  const join = music && music.joinUrl && okLink(music.joinUrl) ? music.joinUrl : (music && playlistId(music.playlistUrl) && playlistId(music.playlistUrl) !== playlistId(DEFAULT_PLAYLIST) ? "" : DEFAULT_JOIN);
   if(id + join === shownId) return;   // don't reload the player (and stop the song) every time a request comes in
   shownId = id + join;
   $("play").innerHTML = `<div class="card player"><iframe title="The family playlist on Spotify" loading="lazy"
@@ -158,7 +159,7 @@ $("setUp").addEventListener("click", async () => {
     <p class="muted small">In Spotify, on the playlist: <b>Share → Copy link</b> and paste it first.
       Then the person-plus icon → <b>Invite collaborators</b> → copy, and paste that second.</p>
     <label class="f" for="pu">Playlist link</label><input class="in" id="pu" inputmode="url" placeholder="https://open.spotify.com/playlist/…" value="${esc(music && music.playlistUrl || DEFAULT_PLAYLIST)}">
-    <label class="f" for="ju">Invite link (so people can add songs)</label><input class="in" id="ju" inputmode="url" placeholder="https://open.spotify.com/playlist/…&pt=…" value="${esc(music && music.joinUrl || "")}">
+    <label class="f" for="ju">Invite link (so people can add songs)</label><input class="in" id="ju" inputmode="url" placeholder="https://open.spotify.com/playlist/…&pt=…" value="${esc(music && music.joinUrl || DEFAULT_JOIN)}">
     <div class="acts"><button class="btn ghost" id="no">Cancel</button><button class="btn green" id="ok">Save</button></div>`);
   const q = x => sh.el.querySelector(x);
   q("#no").onclick = () => closeSheet();
