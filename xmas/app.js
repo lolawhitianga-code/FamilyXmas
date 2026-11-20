@@ -9,7 +9,7 @@
    ============================================================ */
 import { HOUSEHOLDS as BASE_HH, HH_COLOURS } from "./people.js";
 
-export const BUILD = "x41";
+export const BUILD = "x42";
 
 export const FIREBASE = {
   apiKey: "AIzaSyB1NnJlvpL_dv7aPrAeFGtl5MM1oSa1YPk",
@@ -1144,7 +1144,7 @@ export async function checkIn(places){
 
 /* Straight after someone signs in (once per person, per phone): say plainly what's about to happen, then
    tap OK → the phone's own "Allow location?" box. Saying no here, or on the phone's box, is fine —
-   they can switch it on later on the Where's Wally page. */
+   they can switch it on later on the Where's Sally page. */
 function locationNotice(page){
   if(!me || !navigator.geolocation || page === "traffic.html") return;
   const key = "xmas_locask_" + me.id;
@@ -1154,14 +1154,14 @@ function locationNotice(page){
     const sh = openSheet(`<div style="text-align:center;font-size:44px;line-height:1;margin:4px 0 6px">📍</div>
       <h3 style="text-align:center">Your location</h3>
       <p style="margin:0 0 10px">Hi ${esc(me.name)}! When you tap <b>OK</b>, your phone will ask if this website can use your location.</p>
-      <p style="margin:0 0 10px">If you say <b>Allow</b>, the family can see where you are on the <b>Where's Wally?</b> map while you have this site open — handy for finding each other at the beach or the club.</p>
-      <p class="banner" style="margin:0 0 4px">🔒 Only the family on this website can see it. It isn't shared with anyone else, and you can turn it off any time on the Where's Wally? page.</p>
+      <p style="margin:0 0 10px">If you say <b>Allow</b>, the family can see where you are on the <b>Where's Sally?</b> map while you have this site open — handy for finding each other at the beach or the club.</p>
+      <p class="banner" style="margin:0 0 4px">🔒 Only the family on this website can see it. It isn't shared with anyone else, and you can turn it off any time on the Where's Sally? page.</p>
       <div class="acts"><button class="btn red wide" id="locOk">OK</button></div>
       <p style="text-align:center;margin:10px 0 0"><button id="locNo" style="background:none;border:0;color:var(--ink-soft);text-decoration:underline;text-underline-offset:3px;font-size:14px">Don't share my location</button></p>`);
     const done = () => { try{ localStorage.setItem(key, String(Date.now())); }catch(e){} };
     sh.el.querySelector("#locOk").onclick = async () => { done(); closeSheet();
       try{ await setSharing(true); toast("Thanks! If your phone asks, tap Allow.", 4000); }catch(e){ toast("Couldn't turn it on — " + e.message); } };
-    sh.el.querySelector("#locNo").onclick = () => { done(); closeSheet(); toast("No worries. You can switch it on later on the Where's Wally? page.", 4200); };
+    sh.el.querySelector("#locNo").onclick = () => { done(); closeSheet(); toast("No worries. You can switch it on later on the Where's Sally? page.", 4200); };
   }, 700);
 }
 
