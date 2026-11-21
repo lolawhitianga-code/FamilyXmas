@@ -1,7 +1,7 @@
 /* Christmas at Bateau Bay — offline shell.
    Bump CACHE when you change a page and want everyone to pick it up. */
 
-const CACHE = "xmas-x53";
+const CACHE = "xmas-x54";
 
 const SHELL = [
   "./", "./index.html", "./home.html", "./fun.html", "./crew.html", "./planner.html", "./places.html", "./food.html", "./shopping.html",
@@ -12,7 +12,7 @@ const SHELL = [
 
 // live data must never be served from cache
 const LIVE = ["firestore.googleapis.com", "firebaseinstallations.googleapis.com", "identitytoolkit.googleapis.com",
-              "securetoken.googleapis.com", "firebase"];
+              "securetoken.googleapis.com", "firebase", "country.is", "ipapi.co"];
 
 self.addEventListener("install", e => {
   // one at a time, so one missing file doesn't stop the rest being cached

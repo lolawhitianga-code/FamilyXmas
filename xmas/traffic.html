@@ -62,8 +62,9 @@
     <h2 class="sec">Most-used pages</h2><div class="card" id="pages"></div>
     <h2 class="sec">Phones and computers</h2><div class="card" id="devs"></div>
     <h2 class="sec">Shared devices</h2><div class="card" id="shared"></div>
+    <h2 class="sec">Countries</h2><div class="card" id="geo"></div>
     <h2 class="sec">Latest visits</h2><div class="card" id="recent"></div>
-    <p class="small muted" style="margin-top:12px">Time is how long the site was actually on screen, counted in 15-second steps, so very quick looks show as under a minute. A visit ends after 30 minutes away. Counting started when this version of the site went up, and the casino games aren't counted.</p>
+    <p class="small muted" style="margin-top:12px">Time is how long the site was actually on screen, counted in 15-second steps, so very quick looks show as under a minute. A visit ends after 30 minutes away. Country comes from the internet address, so a VPN or Apple Private Relay can show the wrong one. Counting started when this version of the site went up, and the casino games aren't counted.</p>
   </div>
   <p class="buildstamp">build x49</p>
 </main>
@@ -136,8 +137,24 @@ function paint(){
       <small>All, in order of first use (visits): ${all}</small></div>`; }).join("")
     : `<div class="empty">No device has been used by more than one person${range === "all" ? "" : " in this period"}</div>`;
 
+  // countries: one count per device (its latest country), plus anyone blocked
+  const flag = cc => cc ? String.fromCodePoint(...[...cc].map(c => 127397 + c.charCodeAt(0))) : "";
+  const CN = { AU:"Australia", NZ:"New Zealand" };
+  const devCc = {}; [...vs].sort((a, b) => a.start - b.start).forEach(v => { if(v.cc) devCc[v.dev] = v.cc; });
+  const byCc = {}; Object.values(devCc).forEach(cc => byCc[cc] = (byCc[cc] || 0) + 1);
+  const unknownDevs = new Set(vs.map(v => v.dev)).size - Object.keys(devCc).length;
+  const blocked = vs.filter(v => v.blocked || (v.cc && !["AU","NZ"].includes(v.cc)));
+  const bDev = {}; blocked.forEach(v => { const d = bDev[v.dev] = bDev[v.dev] || { cc:v.cc, kind:v.kind, who:new Set(), n:0, last:0, let:false };
+    d.n++; if(v.who) d.who.add(v.who); d.last = Math.max(d.last, v.last || v.start); d.let = d.let || !!v.let; d.cc = v.cc || d.cc; });
+  $("geo").innerHTML = (Object.entries(byCc).sort((a, b) => b[1] - a[1]).map(([cc, n]) => `<span class="pill" style="margin:0 6px 6px 0">${flag(cc)} ${esc(CN[cc] || cc)} × ${n}</span>`).join("") || `<span class="muted">No countries recorded yet</span>`) +
+    `<p class="small muted" style="margin:8px 0 0">Devices. ${unknownDevs} not known yet (visits from before this was added, or the lookup failed — those are let in).</p>` +
+    `<h3 style="font-size:15px;margin:14px 0 4px">Outside Australia / NZ</h3>` +
+    (Object.keys(bDev).length ? Object.entries(bDev).sort((a, b) => b[1].last - a[1].last).map(([dev, d]) => `<div class="pr"><span style="font-size:22px">${flag(d.cc) || "❓"}</span><div class="nm"><b>${esc(d.cc || "?")} · ${esc(d.kind || "Device")} …${esc(String(dev).slice(-4))}</b>
+      <small>${d.who.size ? [...d.who].map(id => esc(pname(id))).join(", ") : "No name picked"} · ${d.n} visit${d.n === 1 ? "" : "s"} · ${d.let ? "let in with PIN" : "blocked"}</small></div><div class="tt">${ago(d.last)}</div></div>`).join("")
+      : `<div class="empty">Nobody from outside Australia / NZ${range === "all" ? "" : " in this period"}</div>`);
+
   $("recent").innerHTML = [...vs].sort((a, b) => b.start - a.start).slice(0, 25).map(v => `<div class="pr">${v.who ? badge(v.who) : '<span class="dot" style="background:#ccc"></span>'}<div class="nm"><b>${v.who ? esc(pname(v.who)) : "Someone (no name picked)"}</b>
-      <small>${esc(new Date(v.start).toLocaleString("en-NZ", { weekday:"short", day:"numeric", month:"short", hour:"numeric", minute:"2-digit" }))} · ${esc(v.kind || "")} · ${v.views || 0} pages</small></div>
+      <small>${esc(new Date(v.start).toLocaleString("en-NZ", { weekday:"short", day:"numeric", month:"short", hour:"numeric", minute:"2-digit" }))} · ${esc(v.kind || "")}${v.cc ? " · " + flag(v.cc) + " " + esc(v.cc) : ""}${v.blocked ? " · blocked" : ""} · ${v.views || 0} pages</small></div>
       <div class="tt">${dur(v.secs || 0)}</div></div>`).join("") || `<div class="empty">No visits yet</div>`;
 }
 $("range").addEventListener("click", e => { const b = e.target.closest("[data-r]"); if(b){ range = b.dataset.r; paint(); } });

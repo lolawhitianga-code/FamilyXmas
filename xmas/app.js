@@ -1302,9 +1302,9 @@ function inAppEscape(ua, ios, steps){
    VISITS — so the organisers can see who's been using the site.
    One record per visit (a visit ends after 30 minutes away):
    who, which device, when it started, how long the page was
-   actually on screen, and which pages. Shown on traffic.html,
-   behind the organiser PIN. No location, no contents — just
-   that they were here.
+   actually on screen, which pages and which country (see the
+   country check below). Shown on traffic.html, behind the
+   organiser PIN. No contents — just that they were here.
    ============================================================ */
 const VISIT_GAP = 30 * 60000;
 let _visit = null, _ticks = 0;
@@ -1317,6 +1317,53 @@ function sendVisit(){
   const { sid, ...v } = _visit;
   col("visits").set(sid, v).catch(() => {});
 }
+/* ============================================================
+   COUNTRY CHECK — the site is for family in Australia and New
+   Zealand. Each device's country is looked up from its internet
+   address (country only, kept on the phone for 6 hours) and saved
+   on its visits. Anyone outside AU/NZ gets a "not available" screen.
+   An organiser can let a device in with the PIN (family overseas or
+   on a VPN). If the lookup fails we let them in rather than lock
+   family out.
+   ============================================================ */
+const GEO_OK = ["AU", "NZ"], GEO_KEY = "xmas_geo", GEO_PASS = "xmas_geo_ok";
+let _geo = null;
+async function lookupCountry(){
+  try{ const g = JSON.parse(localStorage.getItem(GEO_KEY) || "null"); if(g && g.cc && Date.now() - g.at < 6 * 3600000) return g.cc; }catch(e){}
+  const tries = [
+    async () => (await (await fetch("https://api.country.is/", { cache:"no-store" })).json()).country,
+    async () => (await (await fetch("https://ipapi.co/country/", { cache:"no-store" })).text())
+  ];
+  for(const t of tries){
+    try{ const cc = String(await withTimeout(t(), 6000) || "").trim().toUpperCase();
+      if(/^[A-Z]{2}$/.test(cc)){ try{ localStorage.setItem(GEO_KEY, JSON.stringify({ cc, at:Date.now() })); }catch(e){} return cc; } }catch(e){}
+  }
+  return "";
+}
+const geoAllowed = cc => !cc || GEO_OK.includes(cc) || localStorage.getItem(GEO_PASS) === "1";
+function blockScreen(cc){
+  if(document.getElementById("geoBlock")) return;
+  const d = document.createElement("div"); d.id = "geoBlock";
+  d.style.cssText = "position:fixed;inset:0;z-index:2147483000;background:#12303B;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px;font-family:Outfit,system-ui,sans-serif";
+  d.innerHTML = `<div style="font-size:54px">🎄</div><h1 style="font-family:Fraunces,serif;margin:10px 0 8px">Not available here</h1>
+    <p style="max-width:320px;opacity:.85;line-height:1.45">This is a private family site, only open in Australia and New Zealand.</p>
+    <p style="max-width:320px;opacity:.6;font-size:13px">Family and overseas or on a VPN? Ask an organiser to let this phone in.</p>
+    <button id="geoPin" style="margin-top:14px;border:0;border-radius:999px;padding:10px 18px;background:#F2B33D;color:#12303B;font-weight:700">Organiser PIN</button>`;
+  document.body.appendChild(d); document.documentElement.style.overflow = "hidden";
+  d.querySelector("#geoPin").onclick = async () => {
+    d.style.zIndex = "10"; const ok = await askPin("Let this device in from outside Australia / NZ (" + cc + ")."); d.style.zIndex = "2147483000";
+    if(ok){ localStorage.setItem(GEO_PASS, "1"); if(_visit){ _visit.blocked = false; _visit.let = true; sendVisit(); } d.remove(); document.documentElement.style.overflow = ""; }
+  };
+}
+function checkCountry(){
+  (_geo = _geo || lookupCountry()).then(cc => {
+    if(_visit && cc && _visit.cc !== cc){ _visit.cc = cc; }
+    const ok = geoAllowed(cc);
+    if(_visit){ _visit.blocked = !ok; if(ok && cc && !GEO_OK.includes(cc)) _visit.let = true; if(cc) sendVisit(); }
+    if(!ok) blockScreen(cc);
+  });
+}
+
 /** Count this page view. boot() calls it; the front page calls it too (with nobody signed in yet). */
 export function track(page){
   const who = me ? me.id : "";
@@ -1326,7 +1373,7 @@ export function track(page){
           start: Date.now(), last: Date.now(), secs: 0, views: 0, pages: {} };
   if(who) v.who = who;                                  // picked a name part-way through the visit
   v.views++; const p = (page || "").replace(".html", "") || "front"; v.pages[p] = (v.pages[p] || 0) + 1;
-  _visit = v; sendVisit();
+  _visit = v; sendVisit(); checkCountry();
   if(track.on) return; track.on = true;
   setInterval(() => { if(document.hidden || !_visit) return; _visit.secs += 15; saveVisitLocal(); if(++_ticks % 4 === 0) sendVisit(); }, 15000);
   addEventListener("pagehide", sendVisit);
