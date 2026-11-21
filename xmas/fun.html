@@ -26,6 +26,8 @@
 .tiles a span{font-size:15px;font-weight:500;display:block;margin-top:6px;line-height:1.2}
 .tiles a.festive{background:linear-gradient(160deg,#FFF3F0,#FFE1DC);border-color:#F3B9B2}
 .tiles a.comp{background:linear-gradient(160deg,#F1FAF4,#DDF2E5);border-color:#B5DDC5}
+.tiles a.game{background:linear-gradient(160deg,#FFF8E6,#FCEBC0);border-color:#E9CF8A}
+.tiles a.game small{display:block;font-size:12.5px;color:var(--ink-soft);margin-top:3px;line-height:1.25}
 .foot{display:flex;justify-content:center;margin-top:18px}
 </style>
 </head>
@@ -48,18 +50,33 @@
     <a href="casino.html" data-casino><b>🎰</b><span>The casino</span></a>
   </div>
 
+  <div data-casino>
+    <h2 class="sec">Fun games</h2>
+    <div class="tiles" id="family-games">
+      <a class="game" data-file="sally_steves_aussie_adventure.html" href="../Casino/sally_steves_aussie_adventure.html"><b>🦘</b><span>Sally</span><small>Sally &amp; Steve's Aussie Adventure</small></a>
+      <a class="game" data-file="exterminator.html" href="../Casino/exterminator.html"><b>🪳</b><span>Adam</span><small>Exterminator!!!</small></a>
+      <a class="game" data-file="poppy_roys_fishing_trip.html" href="../Casino/poppy_roys_fishing_trip.html"><b>🐟</b><span>Roy</span><small>Poppy Roy's Fishing Trip</small></a>
+      <a class="game" data-file="lochie_josh_olympics.html" href="../Casino/lochie_josh_olympics.html"><b>🏅</b><span>Lochie</span><small>Lochie, Cooper &amp; Josh's Olympics</small></a>
+      <a class="game" data-file="lucky_lauren.html" href="../Casino/lucky_lauren.html" style="grid-column:1/-1"><b>🍀</b><span>Lucky Lauren</span><small>The family pokie machine</small></a>
+    </div>
+  </div>
+
   <div class="foot"><button class="chip" id="mute"></button></div>
-  <p class="buildstamp">build x50</p>
+  <p class="buildstamp">build x58</p>
 </main>
 
 <script type="module">
-import { boot, heroFromWall, isMuted, setMuted } from "./app.js";
+import { boot, heroFromWall, isMuted, setMuted, GAMES, gameUrl } from "./app.js";
 
 if(boot("fun.html")){
   heroFromWall();
   const mute = document.getElementById("mute");
   const paintMute = () => mute.textContent = isMuted() ? "🔇 Sound off" : "🔊 Sound on";
   paintMute(); mute.onclick = () => { setMuted(!isMuted()); paintMute(); };
+  // the games live in /Casino/ or beside the Bali pages — gameUrl knows which, so point each tile there
+  const fix = a => { const g = GAMES.find(x => x.file === a.dataset.file); if(g) a.href = gameUrl(g); };
+  document.querySelectorAll("#family-games a").forEach(fix);
+  document.getElementById("family-games").addEventListener("click", e => { const a = e.target.closest("a"); if(a) fix(a); }, true);
 }
 </script>
 </body>
