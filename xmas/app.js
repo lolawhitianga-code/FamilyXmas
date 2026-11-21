@@ -465,7 +465,16 @@ const CASINO_FB = {
   appId: "1:368932704623:web:7332b0c8163f18026d589a"
 };
 const TRIP_ACCOUNT = /^(x|r)-/;                 // casino usernames made by a trip site
-let _casinoLink = null, _casinoReady = false;
+let _casinoLink = null, _casinoReady = false, _casinoDb = null;
+/** The casino's own Firestore (loaded once). */
+function casinoDb(){
+  if(!_casinoDb) _casinoDb = Promise.all([
+    import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"),
+    import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js")
+  ]).then(([{ initializeApp }, fs]) => ({ fs, db: fs.getFirestore(initializeApp(CASINO_FB, "casino")) }))
+    .catch(e => { _casinoDb = null; throw e; });
+  return _casinoDb;
+}
 /** Make sure this phone is signed in to the casino as the person signed in here. Safe to call often. */
 export function linkCasino(){
   if(_casinoLink) return _casinoLink;
@@ -476,11 +485,7 @@ export function linkCasino(){
     let cur = null; try{ cur = JSON.parse(localStorage.getItem("cc_session") || "null"); }catch(e){}
     if(cur && cur.username && !TRIP_ACCOUNT.test(cur.username)) return;          // their own casino account — hands off
     if(cur && cur.username === want && localStorage.getItem(flag) === want) return;   // already done on this phone
-    const [{ initializeApp }, fs] = await Promise.all([
-      import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"),
-      import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js")
-    ]);
-    const db = fs.getFirestore(initializeApp(CASINO_FB, "casino"));
+    const { db, fs } = await casinoDb();
     const ref = fs.doc(db, "accounts", want);
     const snap = await withTimeout(fs.getDoc(ref), 6000);
     if(!snap.exists()){
@@ -498,6 +503,94 @@ export function linkCasino(){
   })().catch(e => { console.warn("casino sign-in didn't go through:", e && e.message); _casinoLink = null; })
       .finally(() => { _casinoReady = true; });
   return _casinoLink;
+}
+
+/* ============================================================
+   🎟️ THE RAFFLE — everyone "wins" the raffle: $2,000 added to
+   their casino balance, once each, the next time they open the
+   app. The payout is marked on the casino account itself
+   ("raffle2026"), inside a transaction, so two phones can never
+   pay the same person twice. It goes to whichever casino account
+   this phone plays on. People who've switched the pokies off
+   are left out. If the casino can't be reached it simply tries
+   again on the next page.
+   ============================================================ */
+const RAFFLE = { key: "raffle2026", amount: 2000 };
+let _raffleBusy = false;
+async function raffleWin(page){
+  if(!me || noPokies() || _raffleBusy) return;
+  const seen = "xmas_raffle_" + me.id;
+  if(localStorage.getItem(seen)) return;
+  _raffleBusy = true;
+  try{
+    await linkCasino();
+    let cur = null; try{ cur = JSON.parse(localStorage.getItem("cc_session") || "null"); }catch(e){}
+    const user = cur && cur.username;
+    if(!user || (TRIP_ACCOUNT.test(user) && user !== "x-" + me.id)) return;   // not signed in as them yet — next time
+    const { db, fs } = await casinoDb();
+    const ref = fs.doc(db, "accounts", user);
+    const res = await withTimeout(fs.runTransaction(db, async t => {
+      const snap = await t.get(ref);
+      if(!snap.exists()) return null;
+      const d = snap.data();
+      if(d[RAFFLE.key]) return { paid: false };
+      const balance = (Number(d.balanceFree) || 0) + RAFFLE.amount;
+      t.update(ref, { balanceFree: balance, [RAFFLE.key]: Date.now() });
+      return { paid: true, balance };
+    }), 10000);
+    if(!res) return;
+    localStorage.setItem(seen, user);
+    if(res.paid) rafflePopup(res.balance, page);
+  }catch(e){ console.warn("raffle didn't go through:", e && e.message); }
+  finally{ _raffleBusy = false; }
+}
+function rafflePopup(balance, page){
+  if(document.getElementById("raffle")) return;
+  if(!document.getElementById("raffle-css")){
+    const st = document.createElement("style"); st.id = "raffle-css";
+    st.textContent = `#raffle{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:16px;overflow:hidden;background:rgba(10,43,31,.72);animation:rf-in .25s ease}
+@keyframes rf-in{from{opacity:0}}
+#raffle .box{position:relative;z-index:1;width:100%;max-width:400px;max-height:92vh;overflow:auto;text-align:center;color:#fff;border-radius:20px;padding:0 18px 18px;
+ background:linear-gradient(160deg,#7A1E1A,#4B0F2E 55%,#2A0A3A);box-shadow:0 0 0 3px #FFD166,0 0 0 5px #9C6C14,0 0 40px rgba(255,209,102,.5);animation:rf-pop .5s cubic-bezier(.2,1.5,.4,1)}
+@keyframes rf-pop{from{transform:scale(.6) rotate(-4deg);opacity:0}}
+#raffle .tape{margin:0 -18px 14px;padding:8px 10px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.2em;font-weight:500;color:#2A0A0A;
+ background:repeating-linear-gradient(-45deg,#FFD166 0 14px,#E2A93B 14px 28px)}
+#raffle .big{font-size:46px;line-height:1;margin:4px 0}
+#raffle h3{font-family:'Fraunces',serif;font-weight:900;font-size:26px;line-height:1.1;margin:4px 0 2px;color:#FFD166}
+#raffle .amt{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(54px,18vw,72px);line-height:1;margin:6px 0 8px;color:#FFD166;
+ text-shadow:0 3px 0 #9C6C14,0 0 26px rgba(255,209,102,.6);animation:rf-glow 1.2s ease-in-out infinite alternate}
+@keyframes rf-glow{to{text-shadow:0 3px 0 #9C6C14,0 0 40px rgba(255,209,102,.95)}}
+#raffle p{margin:0 auto 8px;max-width:30ch;font-size:15px;opacity:.95}
+#raffle .bal{display:inline-block;font-family:'DM Mono',monospace;font-size:13px;background:rgba(0,0,0,.28);border:1px solid rgba(255,209,102,.5);border-radius:999px;padding:6px 12px;margin:2px 0 14px;color:#FFE9B0}
+#raffle .go{display:block;background:linear-gradient(180deg,#FFD166,#E2A93B);color:#2A0A0A;font-weight:700;font-size:22px;padding:18px 20px;border-radius:999px;text-decoration:none;
+ box-shadow:0 5px 0 #9C6C14,0 12px 22px -6px rgba(0,0,0,.6)}
+#raffle .go:active{transform:translateY(3px);box-shadow:0 2px 0 #9C6C14}
+#raffle .later{display:block;margin:14px auto 0;background:none;border:0;color:#FFE9B0;font-size:13.5px;text-decoration:underline;text-underline-offset:3px}
+#raffle .conf{position:absolute;z-index:2;top:-20px;width:8px;height:14px;border-radius:2px;pointer-events:none;animation:rf-fall linear forwards}
+@keyframes rf-fall{to{transform:translateY(110vh) rotate(720deg)}}`;
+    document.head.appendChild(st);
+  }
+  const first = String(me.name || "").split(" ")[0];
+  const el = document.createElement("div"); el.id = "raffle"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "You won the raffle");
+  el.innerHTML = `<div class="box"><div class="tape">🎟️ RAFFLE WINNER 🎟️</div>
+    <div class="big">🎉</div>
+    <h3>${first ? esc(first) + ", you" : "You"} won the raffle!</h3>
+    <div class="amt">$2,000</div>
+    <p>We've added $2,000 to your casino balance. Go and spend it on the pokies and tables.</p>
+    <div class="bal">Your balance now: $${Number(balance).toLocaleString("en-NZ")}</div>
+    <a class="go" href="casino.html">🎰 Go to the casino →</a>
+    <button type="button" class="later">Later</button></div>`;
+  document.body.appendChild(el);
+  const colours = ["#FFD166", "#D8352A", "#1F8A5B", "#fff", "#E2A93B"];
+  for(let i = 0; i < 40; i++){
+    const c = document.createElement("i"); c.className = "conf";
+    c.style.cssText = `left:${Math.random() * 100}%;background:${colours[i % colours.length]};animation-duration:${2 + Math.random() * 2.5}s;animation-delay:${Math.random() * 1.2}s`;
+    el.appendChild(c);
+  }
+  try{ jingle(); }catch(e){}
+  const close = () => el.remove();
+  el.querySelector(".later").onclick = close;
+  el.querySelector(".go").onclick = e => { if(page === "casino.html"){ e.preventDefault(); close(); } };
 }
 
 /* ---------- heading to the casino ----------
@@ -976,7 +1069,7 @@ function promptWatch(page){
   const last = +(sessionStorage.getItem("xmas_kfile_at") || 0);
   if(Date.now() - last < 45000 || Math.random() > 0.36) return;
   setTimeout(async () => {
-    if(document.getElementById("xmas-sheet") || document.querySelector(".lightbox") || document.getElementById("kfile") || document.hidden) return;
+    if(document.getElementById("xmas-sheet") || document.querySelector(".lightbox") || document.getElementById("kfile") || document.getElementById("raffle") || document.hidden) return;
     sessionStorage.setItem("xmas_kfile_at", String(Date.now()));
     const wantBaby = Math.random() < 0.8;
     if(wantBaby && await guessBaby()) return;
@@ -1349,7 +1442,7 @@ export function boot(page){
   document.body.appendChild(nav);
   watchChat();                             // 💬 unread count on the nav, and a pop-up when someone messages you
   startShowcase(page);                     // today's app: strips, floating button and the last nav slot
-  if(!quiet) linkCasino(); else _casinoReady = true;
+  if(!quiet){ linkCasino(); setTimeout(() => raffleWin(page), 1200); } else _casinoReady = true;
   promptWatch(page);
   if(page !== "traffic.html") track(page);
   if(page !== "music.html") musicButton();   // no carols over the Spotify player
