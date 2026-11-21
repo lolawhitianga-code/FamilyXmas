@@ -38,6 +38,10 @@
 .pg{display:flex;align-items:center;gap:8px;font-size:13.5px;padding:3px 0}
 .pg span{width:92px;flex:none}.pg i{display:block;height:10px;border-radius:5px;background:var(--gold)}.pg b{font-family:'DM Mono',monospace;font-size:11px;font-weight:400}
 .seg{display:flex;gap:6px;margin:0 0 10px;flex-wrap:wrap}
+.sd{padding:10px 0;border-top:1px dashed var(--line)}.sd:first-child{border-top:0}
+.sd>b{display:block;font-size:15px;font-weight:600}.sd>small{display:block;font-size:12px;color:var(--ink-soft);margin-bottom:4px}
+.sd .fl{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:13.5px;margin:4px 0}
+.sd .fl span{font-family:'DM Mono',monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);padding-top:2px}
 </style>
 </head>
 <body>
@@ -57,6 +61,7 @@
     <h2 class="sec">Haven't logged in yet</h2><div class="card"><div class="never" id="never"></div></div>
     <h2 class="sec">Most-used pages</h2><div class="card" id="pages"></div>
     <h2 class="sec">Phones and computers</h2><div class="card" id="devs"></div>
+    <h2 class="sec">Shared devices</h2><div class="card" id="shared"></div>
     <h2 class="sec">Latest visits</h2><div class="card" id="recent"></div>
     <p class="small muted" style="margin-top:12px">Time is how long the site was actually on screen, counted in 15-second steps, so very quick looks show as under a minute. A visit ends after 30 minutes away. Counting started when this version of the site went up, and the casino games aren't counted.</p>
   </div>
@@ -113,6 +118,24 @@ function paint(){
   const apps = new Set(vs.filter(v => v.app).map(v => v.dev)).size, anon = new Set(vs.filter(v => !v.who).map(v => v.dev)).size;
   $("devs").innerHTML = (Object.entries(kinds).sort((a, b) => b[1] - a[1]).map(([k, n]) => `<span class="pill" style="margin:0 6px 6px 0">${esc(k)} × ${n}</span>`).join("") || `<span class="muted">Nothing yet</span>`) +
     `<p class="small muted" style="margin:8px 0 0">${apps} added to a home screen · ${anon} opened the front page without picking a name</p>`;
+  // devices used by more than one person: who was on it first, most and last
+  const when = t => new Date(t).toLocaleString("en-NZ", { weekday:"short", day:"numeric", month:"short", hour:"numeric", minute:"2-digit" });
+  const byDev = {}; known.forEach(v => { const d = byDev[v.dev] = byDev[v.dev] || { kind:v.kind, ppl:{} };
+    const p = d.ppl[v.who] = d.ppl[v.who] || { n:0, secs:0, first:Infinity, last:0 };
+    p.n++; p.secs += v.secs || 0; p.first = Math.min(p.first, v.start); p.last = Math.max(p.last, v.last || v.start); });
+  const shared = Object.entries(byDev).map(([dev, d]) => ({ dev, kind:d.kind, ppl:Object.entries(d.ppl) })).filter(d => d.ppl.length > 1)
+    .sort((a, b) => b.ppl.length - a.ppl.length || Math.max(...b.ppl.map(x => x[1].last)) - Math.max(...a.ppl.map(x => x[1].last)));
+  $("shared").innerHTML = shared.length ? shared.map(d => {
+    const first = d.ppl.reduce((a, b) => b[1].first < a[1].first ? b : a), last = d.ppl.reduce((a, b) => b[1].last > a[1].last ? b : a);
+    const most = d.ppl.reduce((a, b) => b[1].n > a[1].n || (b[1].n === a[1].n && b[1].secs > a[1].secs) ? b : a);
+    const all = [...d.ppl].sort((a, b) => a[1].first - b[1].first).map(([id, p]) => `${esc(pname(id))} (${p.n})`).join(", ");
+    return `<div class="sd"><b>${esc(d.kind || "Device")} · ${d.ppl.length} people</b><small>Device …${esc(String(d.dev).slice(-4))}</small>
+      <div class="fl"><span>First</span><div>${badge(first[0])} ${esc(pname(first[0]))} <small class="muted">${esc(when(first[1].first))}</small></div>
+      <span>Most</span><div>${badge(most[0])} ${esc(pname(most[0]))} <small class="muted">${most[1].n} visit${most[1].n === 1 ? "" : "s"} · ${dur(most[1].secs)}</small></div>
+      <span>Last</span><div>${badge(last[0])} ${esc(pname(last[0]))} <small class="muted">${esc(when(last[1].last))}</small></div></div>
+      <small>All, in order of first use (visits): ${all}</small></div>`; }).join("")
+    : `<div class="empty">No device has been used by more than one person${range === "all" ? "" : " in this period"}</div>`;
+
   $("recent").innerHTML = [...vs].sort((a, b) => b.start - a.start).slice(0, 25).map(v => `<div class="pr">${v.who ? badge(v.who) : '<span class="dot" style="background:#ccc"></span>'}<div class="nm"><b>${v.who ? esc(pname(v.who)) : "Someone (no name picked)"}</b>
       <small>${esc(new Date(v.start).toLocaleString("en-NZ", { weekday:"short", day:"numeric", month:"short", hour:"numeric", minute:"2-digit" }))} · ${esc(v.kind || "")} · ${v.views || 0} pages</small></div>
       <div class="tt">${dur(v.secs || 0)}</div></div>`).join("") || `<div class="empty">No visits yet</div>`;
