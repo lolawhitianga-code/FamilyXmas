@@ -419,7 +419,7 @@ export const GAMES = [
   { name:"The Lost Spring",          file:"lost_spring.html",             kind:"fun",    tag:"Five hidden pools, only some hot enough to soak in." },
   { name:"Exterminator!!!",          file:"exterminator.html",            kind:"fun",    tag:"Bank anytime, but watch out for the Benda." },
   { name:"Sally & Steve's Aussie Adventure", file:"sally_steves_aussie_adventure.html", kind:"fun", tag:"Cash out before Steve's had enough." },
-  { name:"Lochie Cooper & Josh's Olympics", file:"lochie_josh_olympics.html", kind:"fun", tag:"Back Lochie or Josh, then sprint, hurdle, long jump or throw the discus." }
+  { name:"Lochie, Cooper & Josh's Olympics", file:"lochie_josh_olympics.html", kind:"fun", tag:"Back Lochie, Cooper or Josh, then sprint, hurdle, long jump or throw the discus." }
 ];
 /* The games sit either in /Casino/ or beside the Bali pages — we check once which, and remember. */
 let _casino = sessionStorage.getItem("xmas_casino") || "../Casino/";
