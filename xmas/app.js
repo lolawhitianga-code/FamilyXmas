@@ -1013,6 +1013,21 @@ export function installCard(parent, dark = false){
 .installsteps li{counter-increment:s;display:flex;gap:11px;align-items:flex-start;padding:10px 0;border-top:1px dashed #EAD9BC;font-size:16px;line-height:1.35}
 .installsteps li::before{content:counter(s);flex:none;width:28px;height:28px;border-radius:50%;background:#12303B;color:#fff;display:grid;place-items:center;font-weight:700;font-size:14px}
 .installsteps svg{width:20px;height:20px;vertical-align:-4px;margin:0 2px}`;
+    // the front page doesn't load app.css, so give the "how to" sheet its own look there
+    if(!document.querySelector('link[href*="app.css"]')) st.textContent += `
+#xmas-scrim{position:fixed;inset:0;background:rgba(18,48,59,.45);z-index:70}
+#xmas-sheet{position:fixed;left:0;right:0;bottom:0;z-index:71;background:#FFF7EA;color:#12303B;text-align:left;font-family:'Outfit',system-ui,sans-serif;font-size:16px;line-height:1.45;
+ border-radius:20px 20px 0 0;max-height:88vh;overflow:auto;padding:16px 16px calc(20px + env(safe-area-inset-bottom));max-width:640px;margin:0 auto;box-shadow:0 -12px 40px -10px rgba(18,48,59,.45)}
+#xmas-sheet *{box-sizing:border-box}
+#xmas-sheet h3{font-family:'Fraunces',serif;font-weight:700;font-size:22px;margin:4px 0 6px;color:#12303B}
+#xmas-sheet .grab{width:44px;height:5px;border-radius:5px;background:#EAD9BC;margin:0 auto 10px}
+#xmas-sheet .acts{display:flex;gap:10px;margin-top:16px} #xmas-sheet .acts .btn{flex:1}
+#xmas-sheet .btn{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:12px;padding:11px 16px;font:600 15px 'Outfit',system-ui,sans-serif;background:#12303B;color:#FFF7EA;text-decoration:none}
+#xmas-sheet .btn.ghost{background:transparent;color:#12303B;border:1.5px solid #EAD9BC} #xmas-sheet .btn.wide{width:100%}
+#xmas-sheet .banner{background:#FFF1D0;border:1px solid #F2B33D;border-radius:12px;padding:10px 12px;font-size:13.5px;margin:0 0 14px}
+#xmas-sheet .muted{color:#3E5A63;opacity:.8} #xmas-sheet .small{font-size:13px}
+#xmas-toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);z-index:95;background:#12303B;color:#FFF7EA;border-radius:12px;padding:10px 16px;font-size:14px;max-width:90vw;text-align:center}
+#xmas-toast.hide{display:none}`;
     document.head.appendChild(st);
   }
   if(parent === null) return;
@@ -1029,7 +1044,7 @@ export const onHomeScreen = isStandalone;
  *  Resolves true if it was installed there and then. */
 export async function addToHomeScreen(){
     const ua = navigator.userAgent, ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-    const iosOther = ios && /CriOS|FxiOS|EdgiOS/.test(ua), inApp = /FBAN|FBAV|Instagram|WhatsApp|Line\//.test(ua);
+    const iosOther = ios && /CriOS|FxiOS|EdgiOS/.test(ua), inApp = /FBAN|FBAV|FB_IAB|FBIOS|Messenger|Instagram|WhatsApp|Line\//.test(ua);
     if(_installEvt){ _installEvt.prompt(); const r = await _installEvt.userChoice.catch(() => null); _installEvt = null; return !!(r && r.outcome === "accepted"); }
     if(!document.getElementById("install-css")) installCard(null);      // load the styles
     const share = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>`;
@@ -1037,13 +1052,43 @@ export async function addToHomeScreen(){
       ? [iosOther ? `Tap the <b>Share</b> button ${share} (in the address bar at the top).` : `Tap the <b>Share</b> button ${share} at the bottom of Safari.`,
          `Scroll down and tap <b>Add to Home Screen</b>.`, `Tap <b>Add</b>. Look for the Christmas logo on your home screen.`]
       : [`Tap the <b>⋮</b> menu at the top right of your browser.`, `Tap <b>Add to Home screen</b> (or <b>Install app</b>).`, `Tap <b>Add</b>. Look for the Christmas logo on your home screen.`];
-    openSheet(`<h3>Add to your home screen</h3>${inApp ? `<p class="banner">You're inside another app's browser. First tap <b>⋯</b> or <b>Open in ${ios ? "Safari" : "browser"}</b>, then come back to this.</p>` : ""}<p class="muted small">It takes about ten seconds and you only do it once.</p>
+    if(inApp){ inAppEscape(ua, ios, steps); return false; }
+    openSheet(`<h3>Add to your home screen</h3><p class="muted small">It takes about ten seconds and you only do it once.</p>
       <ol class="installsteps">${steps.map(s => `<li><span>${s}</span></li>`).join("")}</ol>
-      <p class="muted small" style="margin-top:10px">Opened this from WhatsApp and can't see those buttons? Tap <b>Open in browser</b> (or the ⋮ / compass button) first.</p>
       <div class="acts"><button class="btn" id="insOk">Got it</button></div>`).el.querySelector("#insOk").onclick = closeSheet;
     return false;
 }
 
+
+/** Inside Messenger / Facebook / Instagram's own browser there is no "Add to Home Screen", and on iPhone the
+ *  ⋯ menu often has no "Open in Safari" either. So: a button that jumps straight to Safari (x-safari-https,
+ *  iOS 17+) or Chrome (intent://, Android), plus "Copy link" to paste into Safari by hand. */
+function inAppEscape(ua, ios, steps){
+  const app = /Messenger|Orca-Android|FB_IAB\/MESSENGER/i.test(ua) ? "Messenger" : /Instagram/.test(ua) ? "Instagram" : /WhatsApp/.test(ua) ? "WhatsApp" : /FBAN|FBAV|FB_IAB|FBIOS/.test(ua) ? "Facebook" : "another app";
+  const u = new URL(location.href); ["fbclid", "mibextid"].forEach(k => u.searchParams.delete(k)); u.hash = "";
+  const link = u.href, browser = ios ? "Safari" : "Chrome";
+  const jump = ios ? "x-safari-" + link
+    : `intent://${u.host}${u.pathname}${u.search}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(link)};end`;
+  const sh = openSheet(`<h3>Add to your home screen</h3>
+    <p class="banner">You opened this inside <b>${app}</b>. Its browser can't add to your home screen, so open the site in <b>${browser}</b> first.</p>
+    <a class="btn wide" href="${esc(jump)}" style="display:block;text-align:center;text-decoration:none">Open in ${browser}</a>
+    <p class="muted small" style="margin:12px 0 6px">Didn't open? Copy the link, open ${browser}, tap the address bar, paste and go.</p>
+    <input id="insLink" readonly value="${esc(link)}" style="width:100%;font-size:14px;padding:9px 10px;border:1.5px solid #EAD9BC;border-radius:10px;margin-bottom:8px">
+    <button class="btn ghost wide" id="insCopy">Copy link</button>
+    <p class="muted small" style="margin:14px 0 0">Then, in ${browser}:</p>
+    <ol class="installsteps">${steps.map(s => `<li><span>${s}</span></li>`).join("")}</ol>
+    <p class="muted small" style="margin-top:6px">You might need to tap your name again in ${browser} - that's normal.</p>
+    <div class="acts"><button class="btn" id="insOk">Close</button></div>`);
+  const inp = sh.el.querySelector("#insLink");
+  inp.onfocus = () => inp.select();
+  sh.el.querySelector("#insCopy").onclick = async () => {
+    let ok = false;
+    try{ await navigator.clipboard.writeText(link); ok = true; }catch(e){}
+    if(!ok){ inp.focus(); inp.setSelectionRange(0, link.length); try{ ok = document.execCommand("copy"); }catch(e){} }
+    toast(ok ? `Link copied. Now open ${browser} and paste it.` : "Press and hold the link above, then Copy.");
+  };
+  sh.el.querySelector("#insOk").onclick = closeSheet;
+}
 /* ============================================================
    VISITS — so the organisers can see who's been using the site.
    One record per visit (a visit ends after 30 minutes away):
