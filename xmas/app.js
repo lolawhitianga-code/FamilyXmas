@@ -9,7 +9,7 @@
    ============================================================ */
 import { HOUSEHOLDS as BASE_HH, HH_COLOURS, SURNAMES } from "./people.js";
 
-export const BUILD = "x49";
+export const BUILD = "x50";
 
 export const FIREBASE = {
   apiKey: "AIzaSyB1NnJlvpL_dv7aPrAeFGtl5MM1oSa1YPk",
@@ -1675,7 +1675,8 @@ export function campDay(at = new Date()){
 }
 let _show = (() => { try{ return JSON.parse(localStorage.getItem("xmas_showcase") || "null") || {}; }catch(e){ return {}; } })();
 /** The saved showcase settings: { app, mode, day, off } */
-export const showcaseSettings = () => ({ app:"", mode:"", day:"", off:[], ..._show });
+/* the casino has the floating button every day, so by default it sits out of the daily mix for the strips */
+export const showcaseSettings = () => ({ app:"", mode:"", day:"", ..._show, off: Array.isArray(_show.off) ? _show.off : ["pokies"] });
 export const saveShowcase = v => settings("showcase").save(v);
 
 /** Can this person be shown this app? (no pokies for those who've asked; no trauma pop-ins for those who've turned it off) */
@@ -1764,8 +1765,9 @@ function watchDropzones(){
 function paintShowcase(force = false){
   const page = _showPage; if(!page) return;
   const a = showcaseOn();
-  if(!force && _shown && a && _shown.id === a.id) return;
-  _shown = a;
+  const key = (a ? a.id : "") + "/" + (noPokies() ? "quiet" : "casino");   // the strips' app, and whether the floating casino is shown
+  if(!force && _shown === key) return;
+  _shown = key;
   document.querySelectorAll(".showbit").forEach(el => el.remove());
   const nav = document.querySelector("nav.nav");
   if(!a){ watchDropzones(); return; }
@@ -1792,13 +1794,16 @@ function paintShowcase(force = false){
     const stamp = main.querySelector(".buildstamp"), low = showBar(a, pick());
     if(stamp) main.insertBefore(low, stamp); else main.appendChild(low);
   }
-  // the floating button — the pokie machine stays on the casino page (it spins up a random game); other apps leave it off their own page
-  if(!own || a.id === "pokies"){
+  // the floating button is always the casino (Lola wants it promoted every day); people who've asked
+  // for no pokies get today's app there instead. The pokie machine stays on the casino page (it spins up
+  // a random game); any other app leaves it off its own page.
+  const pokies = showcaseApp("pokies"), fa = canSee(pokies) ? pokies : a;
+  if(page !== fa.page || fa.id === "pokies"){
     const f = document.createElement("a");
-    f.className = "pokiefloat showbit" + (a.id === "pokies" ? " show-casino lever" : ""); f.href = a.page; f.style.cssText = themeVars(a);
-    if(a.id === "pokies"){ f.dataset.game = ""; f.setAttribute("aria-label", "Play a random casino game"); }
-    else f.setAttribute("aria-label", "Open " + a.name);
-    f.innerHTML = (a.pic ? `<img class="pic" src="${a.pic}" alt="">` : `<span class="win">${reels(a, "<i>", "</i>", .7, .25)}</span>`) + `<span class="lbl">${esc(a.lbl)}</span>`;
+    f.className = "pokiefloat showbit" + (fa.id === "pokies" ? " show-casino lever" : ""); f.href = fa.page; f.style.cssText = themeVars(fa);
+    if(fa.id === "pokies"){ f.dataset.game = ""; f.setAttribute("aria-label", "Play a random casino game"); }
+    else f.setAttribute("aria-label", "Open " + fa.name);
+    f.innerHTML = (fa.pic ? `<img class="pic" src="${fa.pic}" alt="">` : `<span class="win">${reels(fa, "<i>", "</i>", .7, .25)}</span>`) + `<span class="lbl">${esc(fa.lbl)}</span>`;
     document.body.appendChild(f);
   }
   watchDropzones();

@@ -161,7 +161,7 @@ body.mine #full, body.mine .pokiebar, body.mine .pokiefloat, body.mine #quiet{di
     <button class="chip" id="showPick">✨ Today's showcase (organisers)</button>
   </div>
 
-  <p class="buildstamp">build x49</p>
+  <p class="buildstamp">build x50</p>
 </main>
 
 <script type="module">
@@ -394,7 +394,7 @@ $("showPick").addEventListener("click", async () => {
     const a = showcaseOn(isoDate(d), true); return a ? `${fmtDay(d)} ${a.icon}` : ""; }).join(" · "); };
   const sh = openSheet(`<h3>Today's showcase</h3>
     <p class="muted small" style="margin:0">${now ? `Today it's <b>${now.icon} ${esc(now.name)}</b> — ${now.why === "organiser" ? (s.mode === "keep" ? "picked by an organiser, until changed" : "picked by an organiser for today") : "picked by the daily mix"}.` : ""}
-      It shows on every page: the strips, the floating button and the end of the bottom bar.</p>
+      It shows on every page: the strips and the end of the bottom bar. The floating 🎰 button always stays the casino.</p>
     <label class="f">Show this app</label>
     <div class="scpick" id="scApps">${SHOWCASE.map(a => `<button data-id="${a.id}"><b>${a.icon}</b>${esc(a.name)}</button>`).join("")}</div>
     <label class="f">For how long</label>
