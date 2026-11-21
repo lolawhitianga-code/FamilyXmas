@@ -9,7 +9,7 @@
    ============================================================ */
 import { HOUSEHOLDS as BASE_HH, HH_COLOURS, SURNAMES } from "./people.js";
 
-export const BUILD = "x48";
+export const BUILD = "x49";
 
 export const FIREBASE = {
   apiKey: "AIzaSyB1NnJlvpL_dv7aPrAeFGtl5MM1oSa1YPk",
@@ -283,6 +283,7 @@ export const STAR = {
   planner:  [10, "On the plan",          ""],
   expense:  [10, "Expense in",           "square by New Year"],
   photo:    [10, "Photo up",             "on the wall"],
+  outfit:   [10, "Outfit entered",       "strike a pose"],
   signup:   [5,  "You're in",            ""],
   vote:     [5,  "Vote counted",         ""],
   shopping: [5,  "On the list",          ""],
@@ -1355,6 +1356,8 @@ export const SHOWCASE = [
     syms:["🚨","🤐","📝","🙈","😱","🔒","👀","📣"], leads:["🚨 Report-a-trauma", "🤐 Get it off your chest", "📝 Strictly confidential", "🙈 Who did what?"] },
   { id:"awards", page:"awards.html", icon:"🏅", nav:"Awards", lbl:"AWARDS", name:"Daily awards", tag:"Nominations are open — who deserved it today?", go:"Vote →", theme:"gold",
     syms:["🏅","🏆","🥇","🎖️","👏","⭐","🎉","👑"], leads:["🏅 Daily awards", "🏆 Who deserved it?", "👑 Nominate someone", "🎉 Today's winners"] },
+  { id:"outfits", page:"outfits.html", icon:"👗", nav:"Outfits", lbl:"OUTFIT", name:"Best Outfit", tag:"Snap your look — most up votes wins.", go:"Vote →", theme:"pink",
+    syms:["👗","🕺","👔","🎩","👠","🧣","📸","👑"], leads:["👗 Best Outfit", "📸 Strike a pose", "👑 Who's best dressed?", "🕺 Get your look in"] },
   { id:"stars", page:"stars.html", icon:"⭐", nav:"Stars", lbl:"STARS", name:"Gold stars", tag:"Who's winning? Hand out a gold star.", go:"See →", theme:"gold",
     syms:["⭐","🌟","✨","🏆","👏","💫","🥇","🎉"], leads:["⭐ Gold stars", "🌟 Who's winning?", "✨ Give a star", "🏆 The ladder"] },
   { id:"comps", page:"games.html", icon:"🏆", nav:"Comps", lbl:"COMPS", name:"Tournaments", tag:"Bragging rights — draws, scores and who's through.", go:"Play →", theme:"festive",

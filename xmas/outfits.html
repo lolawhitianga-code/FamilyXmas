@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12303B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Family Xmas">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Best Outfit · Christmas at Bateau Bay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+<style>
+.enter{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.enter .btn{width:100%;justify-content:center}
+.closed{background:var(--sand);border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:15px;text-align:center}
+.podium{background:linear-gradient(160deg,#FFF8E1,#FFEBB5);border-color:var(--gold)}
+.podium h3{font-family:'Fraunces',serif;font-size:20px;margin:0 0 10px}
+.podium .row{display:flex;gap:10px;align-items:center;padding:7px 0;border-top:1px dashed rgba(18,48,59,.15)}
+.podium .row:first-of-type{border-top:0}
+.podium .row img{width:58px;height:58px;object-fit:cover;border-radius:10px;flex:none}
+.podium .row .m{font-size:24px;flex:none;width:30px;text-align:center}
+.podium .row span{flex:1;min-width:0;font-size:15px}
+.podium .row .n{flex:none;font-family:'DM Mono',monospace;font-size:14px}
+.sorts{display:flex;gap:7px;margin:0 0 10px}
+.sorts .chip{padding:8px 13px;font-size:14px;font-family:inherit}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.fit{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;position:relative}
+.fit > button.pic{display:block;width:100%;aspect-ratio:3/4;border:0;padding:0;background:var(--sand-deep)}
+.fit img{width:100%;height:100%;object-fit:cover;display:block}
+.fit .crown{position:absolute;left:6px;top:6px;background:rgba(255,248,225,.95);border-radius:20px;padding:3px 9px;font-size:13px;font-weight:600}
+.fit .more{position:absolute;right:5px;top:5px;width:34px;height:34px;border-radius:50%;border:0;background:rgba(18,48,59,.62);color:#fff;font-size:18px;line-height:1;display:grid;place-items:center}
+.fit .info{padding:8px 9px 4px;font-size:14px;line-height:1.3;flex:1}
+.fit .info b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fit .info .muted{display:block;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.up{margin:6px 9px 9px;border:1.5px solid var(--line);background:#fff;border-radius:12px;min-height:44px;font:inherit;font-size:15px;font-weight:600;
+  display:flex;align-items:center;justify-content:center;gap:7px;color:var(--ink)}
+.up.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.up[disabled]{opacity:.6}
+.invite{text-align:center;padding:34px 18px;background:#fff;border:2px dashed var(--line);border-radius:18px}
+.invite .big{font-size:54px;line-height:1}
+.invite h3{font-family:'Fraunces',serif;font-size:22px;margin:10px 0 4px}
+.prev{display:block;width:100%;max-height:40vh;object-fit:contain;border-radius:12px;background:#F7E8CF;margin-bottom:6px}
+.hhl{font-family:'DM Mono',monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin:10px 0 2px}
+.pickrow{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 6px}
+.pick{border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:9px 12px;font-size:15px;min-height:44px}
+.pick.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.picks{max-height:30vh;overflow:auto;margin:0 -4px;padding:0 4px}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="back" href="fun.html">← Games &amp; Awards</a>
+  <p class="eyebrow">Strike a pose</p>
+  <h1 class="wordmark">Best Outfit</h1>
+  <p class="sub" id="sub">&nbsp;</p>
+</header>
+
+<main>
+  <div id="top"></div>
+  <div class="enter" id="enter">
+    <label class="btn red" for="cam">📷 Take a photo</label>
+    <label class="btn ghost" for="lib">🖼️ Choose one</label>
+  </div>
+  <input type="file" id="cam" class="vh-file" accept="image/*" capture="environment">
+  <input type="file" id="lib" class="vh-file" accept="image/*">
+  <div id="body"><div class="empty">Loading…</div></div>
+  <p class="muted small" style="text-align:center;margin-top:16px">One up vote per outfit each. Vote for as many as you like — just not your own.<br>Most up votes wins.</p>
+  <p style="text-align:center"><button class="btn small ghost" id="org">Organiser: close voting</button></p>
+  <p class="buildstamp">build x49</p>
+</main>
+
+<script type="module">
+import { boot, me, col, settings, heroFromWall, todayIso, households, pname, esc, badge, celebrate, toast,
+         openSheet, closeSheet, lightbox, compressImage, askPin, tapName, onPeople } from "./app.js";
+
+if(boot("outfits.html")){
+const $ = id => document.getElementById(id);
+heroFromWall();
+const fits = col("outfits"), vcol = col("outfitvotes");
+let rows = [], votes = [], closed = false, sort = "top";
+
+const voteId = (o, v) => `${o}_${v}`;
+const count = id => votes.filter(v => v.o === id).length;
+const iVoted = id => votes.some(v => v.id === voteId(id, me.id));
+const isMine = r => r.wearer === me.id;
+const who = r => r.wearer ? pname(r.wearer) : (r.name || "Someone");
+
+/* entries with their up votes, most first; ties stay together by who got in first */
+function ranked(){
+  return rows.map(r => ({ ...r, n: count(r.id) })).sort((a, b) => b.n - a.n || (a.createdAt || 0) - (b.createdAt || 0));
+}
+const leaders = list => list.length && list[0].n ? list.filter(r => r.n === list[0].n) : [];
+
+function paint(){
+  const list = ranked(), lead = leaders(list), total = list.reduce((s, r) => s + r.n, 0);
+  $("sub").textContent = rows.length ? `${rows.length} outfit${rows.length === 1 ? "" : "s"} · ${total} up vote${total === 1 ? "" : "s"}${closed ? " · voting closed" : ""}`
+                                     : "Get dressed up and get your photo in";
+  $("enter").classList.toggle("hide", closed);
+  $("org").textContent = closed ? "Organiser: open voting again" : "Organiser: close voting & crown the winner";
+
+  /* the winner (once closed) or the top three so far */
+  let top = "";
+  if(closed) top += `<div class="closed">🔒 Voting's closed.${lead.length ? "" : " Nobody got a vote."}</div>`;
+  if(lead.length){
+    const show = closed ? lead : list.filter(r => r.n).slice(0, 3);
+    const levels = [...new Set(list.filter(r => r.n).map(r => r.n))];
+    const medal = r => ["👑", "🥈", "🥉"][levels.indexOf(r.n)] || "";
+    top += `<div class="card podium"><h3>${closed ? (lead.length > 1 ? "🏆 Joint winners" : "🏆 Best Outfit winner") : "🏆 Leading so far"}</h3>` +
+      show.map(r => `<div class="row"><span class="m">${medal(r)}</span><img src="${r.data}" alt="">
+        <span><b>${esc(who(r))}</b>${r.caption ? `<br><span class="muted small">${esc(r.caption)}</span>` : ""}</span>
+        <span class="n">▲ ${r.n}</span></div>`).join("") + `</div>`;
+  }
+  $("top").innerHTML = top;
+
+  if(!rows.length){
+    $("body").innerHTML = closed ? `<div class="empty">No outfits went in.</div>` : `<div class="invite"><div class="big">👗🕺</div><h3>Who's the best dressed?</h3>
+      <p class="muted">Christmas jumper, budgie smugglers, Santa hat, full formal — snap it and put it in.</p>
+      <label class="btn red" for="cam">Enter the first outfit</label></div>`;
+    return;
+  }
+  const shown = sort === "new" ? [...list].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)) : list;
+  $("body").innerHTML = `<div class="sorts"><button class="chip${sort === "top" ? " on" : ""}" data-s="top">Most votes</button>
+      <button class="chip${sort === "new" ? " on" : ""}" data-s="new">Newest</button></div><div class="grid">` +
+    shown.map(r => {
+      const on = iVoted(r.id), mine = isMine(r);
+      const label = mine ? `Your outfit · ▲ ${r.n}` : `${on ? "▲ Voted" : "▲ Up vote"} · ${r.n}`;
+      return `<div class="fit">${lead.includes(r) ? `<span class="crown">👑 ${closed ? "Winner" : "Leading"}</span>` : ""}
+        <button class="pic" data-id="${esc(r.id)}" aria-label="Open photo"><img src="${r.data}" alt="${esc(who(r))}'s outfit" loading="lazy"></button>
+        <button class="more" data-more="${esc(r.id)}" aria-label="Edit">⋯</button>
+        <div class="info"><b>${badge(r.wearer || r.by)} ${esc(who(r))}</b>${r.caption ? `<span class="muted">${esc(r.caption)}</span>` : ""}</div>
+        <button class="up${on ? " on" : ""}" data-up="${esc(r.id)}"${mine || closed ? " disabled" : ""} aria-pressed="${on}">${label}</button></div>`;
+    }).join("") + `</div>`;
+}
+
+/* ---------- voting ---------- */
+async function toggle(r){
+  if(closed) return toast("Voting's closed");
+  if(isMine(r)) return toast("No voting for your own outfit 😉");
+  const id = voteId(r.id, me.id), had = iVoted(r.id);
+  try{
+    if(had) await vcol.remove(id);
+    else{ celebrate("vote"); await vcol.set(id, { o:r.id, voter:me.id, at:Date.now() }); }
+  }catch(e){ toast("Couldn't save — " + e.message); }
+}
+
+$("body").addEventListener("click", async e => {
+  const s = e.target.closest("[data-s]"), up = e.target.closest("[data-up]"), more = e.target.closest("[data-more]"), pic = e.target.closest("[data-id]");
+  if(s){ sort = s.dataset.s; paint(); return; }
+  if(up){ const r = rows.find(x => x.id === up.dataset.up); if(r) toggle(r); return; }
+  if(more){
+    const r = rows.find(x => x.id === more.dataset.more); if(!r) return;
+    if(r.by !== me.id && r.wearer !== me.id && !(await askPin("Only whoever put the outfit in can change it — or an organiser."))) return;
+    editSheet(r); return;
+  }
+  if(pic){ const r = rows.find(x => x.id === pic.dataset.id); if(r) lightbox(r.data, [who(r), r.caption, `▲ ${count(r.id)}`].filter(Boolean).join(" — ")); }
+});
+
+/* ---------- entering ---------- */
+async function picked(input){
+  const f = input.files[0]; input.value = ""; if(!f) return;
+  if(closed) return toast("Voting's closed — no new outfits");
+  toast("Shrinking the photo…", 8000);
+  try{ entrySheet(await compressImage(f, 1200, 180 * 1024)); toast("Ready", 900); }
+  catch(e){ toast(e.message); }
+}
+$("cam").addEventListener("change", () => picked($("cam")));
+$("lib").addEventListener("change", () => picked($("lib")));
+
+/* who's wearing it — you by default, or tap someone else (the kids, say) */
+function whoPicker(el, start, onPick){
+  let pick = start, q = "";
+  const list = () => {
+    let h = "";
+    households().forEach(hh => {
+      const ms = hh.members.filter(p => p.label.toLowerCase().includes(q) || hh.name.toLowerCase().includes(q));
+      if(!ms.length) return;
+      h += `<div class="hhl">${badge(hh.id)} ${esc(hh.name)}</div><div class="pickrow">` +
+        ms.map(p => `<button class="pick ${p.id === pick ? "on" : ""}" data-p="${esc(p.id)}">${esc(p.label)}</button>`).join("") + `</div>`;
+    });
+    el.querySelector(".picks").innerHTML = h || `<div class="empty">No one found</div>`;
+  };
+  el.querySelector(".q").oninput = e => { q = e.target.value.trim().toLowerCase(); list(); };
+  el.querySelector(".picks").onclick = e => { const b = e.target.closest("[data-p]"); if(b){ pick = b.dataset.p; onPick(pick); list(); } };
+  list();
+}
+
+function entrySheet(data){
+  let wearer = me.id;
+  const sh = openSheet(`<h3>Enter an outfit</h3>
+    <img class="prev" src="${data}" alt="">
+    <label class="f" for="oc">Name the look (optional)</label><input class="in" id="oc" maxlength="80" placeholder="e.g. Beach Santa">
+    <label class="f">Who's wearing it?</label>
+    <div id="wp"><input class="in q" placeholder="Search names…" autocomplete="off"><div class="picks"></div></div>
+    <div class="acts"><button class="btn ghost" id="no">Cancel</button><button class="btn red" id="ok">Put it in</button></div>`);
+  const q = s => sh.el.querySelector(s);
+  whoPicker(q("#wp"), wearer, p => { wearer = p; });
+  q("#no").onclick = closeSheet;
+  q("#ok").onclick = async () => {
+    const caption = q("#oc").value.trim();
+    closeSheet(); celebrate("outfit");
+    try{ await fits.add({ data, caption, wearer, day:todayIso() }); toast("Outfit's in — let the voting begin"); }
+    catch(e){ toast("Couldn't save — " + e.message); }
+  };
+}
+
+/* ---------- edit / delete ---------- */
+function editSheet(r){
+  let wearer = r.wearer || me.id;
+  const sh = openSheet(`<h3>Outfit</h3>
+    <img class="prev" src="${r.data}" alt="">
+    <label class="f" for="ec">Name the look</label><input class="in" id="ec" maxlength="80" value="${esc(r.caption || "")}">
+    <label class="f">Who's wearing it?</label>
+    <div id="wp"><input class="in q" placeholder="Search names…" autocomplete="off"><div class="picks"></div></div>
+    <p class="muted small" style="margin:6px 0 0">Put in by ${tapName(r.by)} · ▲ ${count(r.id)}</p>
+    <div class="acts"><button class="btn red" id="del">Delete</button><button class="btn green" id="ok">Save</button></div>`);
+  const q = s => sh.el.querySelector(s); let armed = false;
+  whoPicker(q("#wp"), wearer, p => { wearer = p; });
+  q("#ok").onclick = async () => {
+    closeSheet();
+    try{ await fits.update(r.id, { caption:q("#ec").value.trim(), wearer }); }catch(e){ toast("Couldn't save — " + e.message); }
+  };
+  q("#del").onclick = async () => {
+    if(!armed){ armed = true; q("#del").textContent = "Really delete? Votes go too"; return; }
+    closeSheet();
+    try{
+      await fits.remove(r.id);
+      await Promise.all(votes.filter(v => v.o === r.id).map(v => vcol.remove(v.id)));
+      toast("Outfit deleted");
+    }catch(e){ toast("Couldn't delete — " + e.message); }
+  };
+}
+
+/* ---------- organiser: close / reopen ---------- */
+$("org").onclick = async () => {
+  if(!(await askPin(closed ? "Only organisers can open the voting again." : "Only organisers can close the voting."))) return;
+  const now = !closed;
+  try{
+    await settings("outfits").save({ closed:now, at:Date.now() });
+    if(now){ const lead = leaders(ranked()); toast(lead.length ? `🏆 ${lead.map(who).join(" & ")} win${lead.length > 1 ? "" : "s"} Best Outfit!` : "Voting's closed", 4000); }
+  }catch(e){ toast("Couldn't save — " + e.message); }
+};
+
+settings("outfits").subscribe(s => { closed = !!(s && s.closed); paint(); });
+fits.subscribe(r => { rows = r; paint(); });
+vcol.subscribe(r => { votes = r; paint(); });
+onPeople(paint);
+}
+</script>
+</body>
+</html>
