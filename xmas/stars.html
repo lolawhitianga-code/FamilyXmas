@@ -132,7 +132,7 @@ function paintMine(){
 function paintFeed(){
   const rows = log.slice().sort((a, b) => (b.at || 0) - (a.at || 0)).slice(0, 40);
   if(!rows.length) return;
-  $("feed").innerHTML = rows.map(r => `<div><span class="t"><b>${tapName(r.who)}</b> · ${esc(STAR[r.kind] ? STAR[r.kind][1] : r.kind)}</span><span class="pl">+${r.pts}</span><span class="ago muted">${ago(r.at)}</span></div>`).join("");
+  $("feed").innerHTML = rows.map(r => `<div><span class="t"><b>${tapName(r.who)}</b> · ${esc(r.label || (STAR[r.kind] ? STAR[r.kind][1] : r.kind))}</span><span class="pl">${r.pts < 0 ? "−" + -r.pts : "+" + r.pts}</span><span class="ago muted">${ago(r.at)}</span></div>`).join("");
 }
 
 $("earn").innerHTML = Object.values(STAR).map(a => a).map((a, i) => ({ pts:a[0], label:a[1], note:a[2] }))

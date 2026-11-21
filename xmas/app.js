@@ -506,81 +506,109 @@ export function linkCasino(){
 }
 
 /* ============================================================
-   🎟️ THE RAFFLE — everyone "wins" the raffle: $2,000 added to
+   🏆 WINDFALLS — everyone "wins" something silly: $2,000 added to
    their casino balance, once each, the next time they open the
-   app. The payout is marked on the casino account itself
-   ("raffle2026"), inside a transaction, so two phones can never
-   pay the same person twice. It goes to whichever casino account
-   this phone plays on. People who've switched the pokies off
-   are left out. If the casino can't be reached it simply tries
-   again on the next page.
+   app. The reason is picked at random (beauty contest, the dog's
+   outfit, the surf comp…). The payout is marked on the casino
+   account itself ("raffle2026" — the first version called it the
+   raffle), inside a transaction, so two phones can never pay the
+   same person twice. It goes to whichever casino account this
+   phone plays on. People who've switched the pokies off are left
+   out. If the casino can't be reached it tries again next page.
+
+   ⭐ STAR SWAP — anyone with 50+ gold stars is asked, at most once
+   a day, if they'd like to swap some for casino money at a very
+   kind rate (1 star = $100). Stars come off their total first;
+   if the casino can't be reached they go straight back.
    ============================================================ */
 const RAFFLE = { key: "raffle2026", amount: 2000 };
+const WINS = [
+  ["💄", "won second prize in a beauty contest"],
+  ["🐶", "your dog won Best Dressed at the dog show"],
+  ["🏄", "won the surfing comp at Bateau Bay"],
+  ["🎟️", "won the raffle"],
+  ["🏰", "won the sandcastle competition"],
+  ["🥧", "won the pie-eating contest"],
+  ["🐱", "your cat won Best in Show"],
+  ["🎄", "won Best Christmas Lights on the street"],
+  ["🦷", "the tooth fairy paid you years of back pay"],
+  ["🍰", "your pavlova won first prize at the show"],
+  ["🐔", "your chook won the chook race"],
+  ["🕺", "won the dance-off at the RSL"]
+];
+const SWAP = { min: 50, rate: 100, every: 20 * 3600 * 1000 };
+const money = n => "$" + Math.round(Number(n) || 0).toLocaleString("en-NZ");
 let _raffleBusy = false;
+
+/** The casino account this phone plays on, if it's really this person's. */
+function casinoUser(){
+  let cur = null; try{ cur = JSON.parse(localStorage.getItem("cc_session") || "null"); }catch(e){}
+  const user = cur && cur.username;
+  return !user || (TRIP_ACCOUNT.test(user) && user !== "x-" + me.id) ? null : user;
+}
+/** Add (or take) casino money. Returns the new balance, or null if there's no such account. */
+async function casinoAdd(user, amount, mark){
+  const { db, fs } = await casinoDb();
+  const ref = fs.doc(db, "accounts", user);
+  return withTimeout(fs.runTransaction(db, async t => {
+    const snap = await t.get(ref);
+    if(!snap.exists()) return null;
+    const d = snap.data();
+    if(mark && d[mark]) return false;
+    const balance = (Number(d.balanceFree) || 0) + amount;
+    t.update(ref, mark ? { balanceFree: balance, [mark]: Date.now() } : { balanceFree: balance });
+    return balance;
+  }), 10000);
+}
+
 async function raffleWin(page){
   if(!me || noPokies() || _raffleBusy) return;
-  const seen = "xmas_raffle_" + me.id;
-  if(localStorage.getItem(seen)) return;
   _raffleBusy = true;
   try{
-    await linkCasino();
-    let cur = null; try{ cur = JSON.parse(localStorage.getItem("cc_session") || "null"); }catch(e){}
-    const user = cur && cur.username;
-    if(!user || (TRIP_ACCOUNT.test(user) && user !== "x-" + me.id)) return;   // not signed in as them yet — next time
-    const { db, fs } = await casinoDb();
-    const ref = fs.doc(db, "accounts", user);
-    const res = await withTimeout(fs.runTransaction(db, async t => {
-      const snap = await t.get(ref);
-      if(!snap.exists()) return null;
-      const d = snap.data();
-      if(d[RAFFLE.key]) return { paid: false };
-      const balance = (Number(d.balanceFree) || 0) + RAFFLE.amount;
-      t.update(ref, { balanceFree: balance, [RAFFLE.key]: Date.now() });
-      return { paid: true, balance };
-    }), 10000);
-    if(!res) return;
-    localStorage.setItem(seen, user);
-    if(res.paid) rafflePopup(res.balance, page);
-  }catch(e){ console.warn("raffle didn't go through:", e && e.message); }
+    const seen = "xmas_raffle_" + me.id;
+    if(!localStorage.getItem(seen)){
+      await linkCasino();
+      const user = casinoUser(); if(!user) return;   // not signed in as them yet — next time
+      const res = await casinoAdd(user, RAFFLE.amount, RAFFLE.key);
+      if(res === null) return;
+      localStorage.setItem(seen, user);
+      if(res !== false){ winPopup(res, page); return; }
+    }
+    await starOffer(page);
+  }catch(e){ console.warn("windfall didn't go through:", e && e.message); }
   finally{ _raffleBusy = false; }
 }
-function rafflePopup(balance, page){
-  if(document.getElementById("raffle")) return;
-  if(!document.getElementById("raffle-css")){
-    const st = document.createElement("style"); st.id = "raffle-css";
-    st.textContent = `#raffle{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:16px;overflow:hidden;background:rgba(10,43,31,.72);animation:rf-in .25s ease}
+
+function winCSS(){
+  if(document.getElementById("raffle-css")) return;
+  const st = document.createElement("style"); st.id = "raffle-css";
+  st.textContent = `.winpop{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:16px;overflow:hidden;background:rgba(10,43,31,.72);animation:rf-in .25s ease}
 @keyframes rf-in{from{opacity:0}}
-#raffle .box{position:relative;z-index:1;width:100%;max-width:400px;max-height:92vh;overflow:auto;text-align:center;color:#fff;border-radius:20px;padding:0 18px 18px;
+.winpop .box{position:relative;z-index:1;width:100%;max-width:400px;max-height:92vh;overflow:auto;text-align:center;color:#fff;border-radius:20px;padding:0 18px 18px;
  background:linear-gradient(160deg,#7A1E1A,#4B0F2E 55%,#2A0A3A);box-shadow:0 0 0 3px #FFD166,0 0 0 5px #9C6C14,0 0 40px rgba(255,209,102,.5);animation:rf-pop .5s cubic-bezier(.2,1.5,.4,1)}
 @keyframes rf-pop{from{transform:scale(.6) rotate(-4deg);opacity:0}}
-#raffle .tape{margin:0 -18px 14px;padding:8px 10px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.2em;font-weight:500;color:#2A0A0A;
+.winpop .tape{margin:0 -18px 14px;padding:8px 10px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.2em;font-weight:500;color:#2A0A0A;
  background:repeating-linear-gradient(-45deg,#FFD166 0 14px,#E2A93B 14px 28px)}
-#raffle .big{font-size:46px;line-height:1;margin:4px 0}
-#raffle h3{font-family:'Fraunces',serif;font-weight:900;font-size:26px;line-height:1.1;margin:4px 0 2px;color:#FFD166}
-#raffle .amt{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(54px,18vw,72px);line-height:1;margin:6px 0 8px;color:#FFD166;
+.winpop .big{font-size:50px;line-height:1;margin:4px 0}
+.winpop h3{font-family:'Fraunces',serif;font-weight:900;font-size:24px;line-height:1.15;margin:4px 0 2px;color:#FFD166}
+.winpop .amt{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(54px,18vw,72px);line-height:1;margin:6px 0 8px;color:#FFD166;
  text-shadow:0 3px 0 #9C6C14,0 0 26px rgba(255,209,102,.6);animation:rf-glow 1.2s ease-in-out infinite alternate}
 @keyframes rf-glow{to{text-shadow:0 3px 0 #9C6C14,0 0 40px rgba(255,209,102,.95)}}
-#raffle p{margin:0 auto 8px;max-width:30ch;font-size:15px;opacity:.95}
-#raffle .bal{display:inline-block;font-family:'DM Mono',monospace;font-size:13px;background:rgba(0,0,0,.28);border:1px solid rgba(255,209,102,.5);border-radius:999px;padding:6px 12px;margin:2px 0 14px;color:#FFE9B0}
-#raffle .go{display:block;background:linear-gradient(180deg,#FFD166,#E2A93B);color:#2A0A0A;font-weight:700;font-size:22px;padding:18px 20px;border-radius:999px;text-decoration:none;
+.winpop p{margin:0 auto 8px;max-width:30ch;font-size:15px;opacity:.95}
+.winpop .bal{display:inline-block;font-family:'DM Mono',monospace;font-size:13px;background:rgba(0,0,0,.28);border:1px solid rgba(255,209,102,.5);border-radius:999px;padding:6px 12px;margin:2px 0 14px;color:#FFE9B0}
+.winpop .go{display:block;width:100%;border:0;background:linear-gradient(180deg,#FFD166,#E2A93B);color:#2A0A0A;font-family:inherit;font-weight:700;font-size:22px;line-height:1.2;padding:18px 20px;border-radius:999px;text-decoration:none;
  box-shadow:0 5px 0 #9C6C14,0 12px 22px -6px rgba(0,0,0,.6)}
-#raffle .go:active{transform:translateY(3px);box-shadow:0 2px 0 #9C6C14}
-#raffle .later{display:block;margin:14px auto 0;background:none;border:0;color:#FFE9B0;font-size:13.5px;text-decoration:underline;text-underline-offset:3px}
-#raffle .conf{position:absolute;z-index:2;top:-20px;width:8px;height:14px;border-radius:2px;pointer-events:none;animation:rf-fall linear forwards}
+.winpop .go:active{transform:translateY(3px);box-shadow:0 2px 0 #9C6C14}
+.winpop .go.sm{font-size:16.5px;padding:13px 14px;margin-top:10px}
+.winpop .go small{display:block;font-size:12.5px;font-weight:600;opacity:.75}
+.winpop .later{display:block;margin:14px auto 0;background:none;border:0;color:#FFE9B0;font-size:13.5px;text-decoration:underline;text-underline-offset:3px}
+.winpop .deal{max-width:none;font-family:'DM Mono',monospace;font-size:12px;color:#FFE9B0;margin:0 0 6px}
+.winpop .deal s{opacity:.6}
+.winpop .conf{position:absolute;z-index:2;top:-20px;width:8px;height:14px;border-radius:2px;pointer-events:none;animation:rf-fall linear forwards}
 @keyframes rf-fall{to{transform:translateY(110vh) rotate(720deg)}}`;
-    document.head.appendChild(st);
-  }
-  const first = String(me.name || "").split(" ")[0];
-  const el = document.createElement("div"); el.id = "raffle"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "You won the raffle");
-  el.innerHTML = `<div class="box"><div class="tape">🎟️ RAFFLE WINNER 🎟️</div>
-    <div class="big">🎉</div>
-    <h3>${first ? esc(first) + ", you" : "You"} won the raffle!</h3>
-    <div class="amt">$2,000</div>
-    <p>We've added $2,000 to your casino balance. Go and spend it on the pokies and tables.</p>
-    <div class="bal">Your balance now: $${Number(balance).toLocaleString("en-NZ")}</div>
-    <a class="go" href="casino.html">🎰 Go to the casino →</a>
-    <button type="button" class="later">Later</button></div>`;
-  document.body.appendChild(el);
+  document.head.appendChild(st);
+}
+function confetti(el){
   const colours = ["#FFD166", "#D8352A", "#1F8A5B", "#fff", "#E2A93B"];
   for(let i = 0; i < 40; i++){
     const c = document.createElement("i"); c.className = "conf";
@@ -588,9 +616,97 @@ function rafflePopup(balance, page){
     el.appendChild(c);
   }
   try{ jingle(); }catch(e){}
+}
+/** The big "you won" pop-up. goPage: where the gold button goes (on the casino page it just closes). */
+function bigWin(page, { tape, icon, head, amount, text, balance }){
+  winCSS();
+  const el = document.createElement("div"); el.id = "raffle"; el.className = "winpop"; el.setAttribute("role", "dialog");
+  el.innerHTML = `<div class="box"><div class="tape">${tape}</div>
+    <div class="big">${icon}</div>
+    <h3>${head}</h3>
+    <div class="amt">${money(amount)}</div>
+    <p>${text}</p>
+    <div class="bal">Your balance now: ${money(balance)}</div>
+    <a class="go" href="casino.html">🎰 Go to the casino →</a>
+    <button type="button" class="later">Later</button></div>`;
+  document.body.appendChild(el);
+  confetti(el);
   const close = () => el.remove();
   el.querySelector(".later").onclick = close;
   el.querySelector(".go").onclick = e => { if(page === "casino.html"){ e.preventDefault(); close(); } };
+}
+function winPopup(balance, page){
+  if(document.getElementById("raffle")) return;
+  const first = esc(String(me.name || "").split(" ")[0]);
+  const [icon, why] = WINS[Math.floor(Math.random() * WINS.length)];
+  const head = why.startsWith("your ") || why.startsWith("the ")
+    ? (first ? first + ", " : "") + why + "!"
+    : (first ? first + ", you " : "You ") + why + "!";
+  bigWin(page, { tape: "🏆 WINNER 🏆", icon, head: head.charAt(0).toUpperCase() + head.slice(1), amount: RAFFLE.amount,
+    text: "Your prize: " + money(RAFFLE.amount) + ", added to your casino balance. Go and spend it on the pokies and tables.", balance });
+}
+
+/* ---------- star swap ---------- */
+async function myStars(){
+  const c = await cloud(); if(!c) return null;
+  const snap = await withTimeout(c.fs.getDoc(c.fs.doc(c.db, "xmas_scores", me.id)), 8000);
+  return snap.exists() ? Math.max(0, Number(snap.data().total) || 0) : 0;
+}
+async function starOffer(page){
+  const asked = "xmas_starswap_" + me.id;
+  if(Date.now() - (+localStorage.getItem(asked) || 0) < SWAP.every) return;
+  if(document.getElementById("raffle") || document.getElementById("kfile") || document.getElementById("xmas-sheet")) return;
+  const stars = await myStars();
+  if(stars === null || stars < SWAP.min) return;
+  await linkCasino();
+  if(!casinoUser() || document.getElementById("raffle")) return;
+  localStorage.setItem(asked, String(Date.now()));
+  winCSS();
+  const opts = [...new Set([25, Math.floor(stars / 2), stars])].filter(n => n > 0 && n <= stars).sort((a, b) => a - b);
+  const label = n => n === stars ? "Swap all " + n + " ⭐" : n === Math.floor(stars / 2) ? "Swap half — " + n + " ⭐" : "Swap " + n + " ⭐";
+  const el = document.createElement("div"); el.id = "raffle"; el.className = "winpop"; el.setAttribute("role", "dialog");
+  el.innerHTML = `<div class="box"><div class="tape">⭐ STAR SWAP ⭐</div>
+    <div class="big">🌟</div>
+    <h3>You've got ${stars} gold stars!</h3>
+    <p>Want to cash some in for casino money? Today's rate is very kind:</p>
+    <div class="amt" style="font-size:clamp(34px,11vw,46px)">1 ⭐ = ${money(SWAP.rate)}</div>
+    <p class="deal">Usual rate <s>1 ⭐ = $5</s> · family special</p>
+    ${opts.map(n => `<button type="button" class="go sm" data-n="${n}">${label(n)}<small>→ ${money(n * SWAP.rate)} casino money</small></button>`).join("")}
+    <button type="button" class="later">No thanks, I'll keep my stars</button></div>`;
+  document.body.appendChild(el);
+  const close = () => el.remove();
+  el.querySelector(".later").onclick = close;
+  el.querySelectorAll("[data-n]").forEach(b => b.onclick = async () => {
+    const n = +b.dataset.n;
+    el.querySelectorAll("button").forEach(x => x.disabled = true);
+    b.firstChild.textContent = "Swapping…";
+    try{
+      const bal = await swapStars(n);
+      close();
+      bigWin(page, { tape: "⭐ STARS SWAPPED ⭐", icon: "🤑", head: n + " stars swapped!", amount: n * SWAP.rate,
+        text: "Added to your casino balance. Good luck out there.", balance: bal });
+    }catch(e){
+      close(); toast("Couldn't swap — " + (e && e.message || "try again later") + ". Your stars are safe.", 4000);
+      localStorage.removeItem(asked);
+    }
+  });
+}
+/** Take n stars off, add the money to the casino. Puts the stars back if the casino says no. */
+async function swapStars(n){
+  const user = casinoUser(); if(!user) throw new Error("not signed in to the casino");
+  const c = await cloud(); if(!c) throw new Error("no connection");
+  const { fs, db } = c, ref = fs.doc(db, "xmas_scores", me.id);
+  await withTimeout(fs.runTransaction(db, async t => {
+    const snap = await t.get(ref);
+    const have = snap.exists() ? Number(snap.data().total) || 0 : 0;
+    if(have < n) throw new Error("you've only got " + have + " stars now");
+    t.update(ref, { total: have - n, updated: Date.now() });
+  }), 10000);
+  let bal;
+  try{ bal = await casinoAdd(user, n * SWAP.rate); if(bal === null || bal === false) throw new Error("casino account not found"); }
+  catch(e){ await fs.setDoc(ref, { total: fs.increment(n), updated: Date.now() }, { merge:true }).catch(() => {}); throw e; }
+  fs.addDoc(fs.collection(db, "xmas_starlog"), { who: me.id, kind: "swap", pts: -n, label: "Swapped for " + money(n * SWAP.rate) + " casino money", at: Date.now() }).catch(() => {});
+  return bal;
 }
 
 /* ---------- heading to the casino ----------
