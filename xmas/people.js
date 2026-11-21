@@ -5,23 +5,27 @@
    extra people can be added from the front page.
    ============================================================ */
 
-/* id, the names, when they arrive and leave, cabin or caravan */
+/* id, family surname, the names, when they arrive and leave, cabin or caravan */
 export const HOUSEHOLDS = [
-  { id:"h01", people:["Lauren","Daisy","Brendon"],               arrive:"2026-12-21", leave:"2026-12-28", stay:"Cabin",   note:"" },
-  { id:"h02", people:["Topsy"],                                  arrive:"2026-12-23", leave:"2026-12-28", stay:"Cabin",   note:"" },
-  { id:"h03", people:["Mikayla","Flynn"],                        arrive:"2026-12-21", leave:"2026-12-28", stay:"Cabin",   note:"Mikayla is happy to run the club / be an organiser" },
-  { id:"h04", people:["Holli","Nia"],                            arrive:"2026-12-21", leave:"2026-12-28", stay:"Cabin",   note:"" },
-  { id:"h05", people:["Sam","Caprice"],                          arrive:"2026-12-23", leave:"2026-12-27", stay:"Cabin",   note:"Sam's girlfriend is coming 26th–28th" },
-  { id:"h06", people:["Gemma","Georgia","Tayla"],                arrive:"2026-12-23", leave:"2026-12-28", stay:"Cabin",   note:"" },
-  { id:"h07", people:["Kay","Roy","Mark"],                       arrive:"2026-12-23", leave:"2026-12-28", stay:"Cabin",   note:"" },
-  { id:"h08", people:["Trudi","Clint","Jack"],                   arrive:"2026-12-23", leave:"2026-12-30", stay:"Cabin",   note:"" },
-  { id:"h09", people:["Kristy","Jason","Nate","Charlie"],        arrive:"2026-12-23", leave:"2026-12-28", stay:"Caravan", note:"" },
-  { id:"h10", people:["Ken","Lynda"],                            arrive:"2026-12-23", leave:"2026-12-28", stay:"Cabin",   note:"" },
-  { id:"h11", people:["Adam","Sunny","Jack"],                    arrive:"2026-12-23", leave:"2026-12-28", stay:"Cabin",   note:"" },
-  { id:"h12", people:["Sally","Steve","Mila","Zara"],            arrive:"2026-12-24", leave:"2026-12-28", stay:"Caravan", note:"" },
-  { id:"h13", people:["Shawn","Prue","Cooper","Isla","Josh"],    arrive:"2026-12-23", leave:"2026-12-28", stay:"Cabin",   note:"" },
-  { id:"h14", people:["Lochie","Anna"],                          arrive:"2026-12-23", leave:"2026-12-26", stay:"Cabin",   note:"Lochie is bringing dinner rolls and an activity. Here until the 26th." }
+  { id:"h01", surname:"Townsend",   people:["Lauren","Daisy","Brendon"],               arrive:"2026-12-21", leave:"2026-12-28", stay:"Cabin",   note:"" },
+  { id:"h02", surname:"Townsend",   people:["Topsy"],                                  arrive:"2026-12-23", leave:"2026-12-28", stay:"Cabin",   note:"" },
+  { id:"h03", surname:"Townsend",   people:["Mikayla","Flynn"],                        arrive:"2026-12-21", leave:"2026-12-28", stay:"Cabin",   note:"Mikayla is happy to run the club / be an organiser" },
+  { id:"h04", surname:"Townsend",   people:["Holli","Nia"],                            arrive:"2026-12-21", leave:"2026-12-28", stay:"Cabin",   note:"" },
+  { id:"h05", surname:"Richards",   people:["Sam","Caprice"],                          arrive:"2026-12-23", leave:"2026-12-27", stay:"Cabin",   note:"Sam's girlfriend is coming 26th–28th" },
+  { id:"h06", surname:"Boston",     people:["Gemma","Georgia","Tayla"],                arrive:"2026-12-23", leave:"2026-12-28", stay:"Cabin",   note:"" },
+  { id:"h07", surname:"Chatterton", people:["Kay","Roy","Mark"],                       arrive:"2026-12-23", leave:"2026-12-28", stay:"Cabin",   note:"" },
+  { id:"h08", surname:"Langford",   people:["Trudi","Clint","Jack"],                   arrive:"2026-12-23", leave:"2026-12-30", stay:"Cabin",   note:"" },
+  { id:"h09", surname:"Richards",   people:["Kristy","Jason","Nate","Charlie"],        arrive:"2026-12-23", leave:"2026-12-28", stay:"Caravan", note:"" },
+  { id:"h10", surname:"Boston",     people:["Ken","Lynda"],                            arrive:"2026-12-23", leave:"2026-12-28", stay:"Cabin",   note:"" },
+  { id:"h11", surname:"Boston",     people:["Adam","Sunny","Jack"],                    arrive:"2026-12-23", leave:"2026-12-28", stay:"Cabin",   note:"" },
+  { id:"h12", surname:"Rostron",    people:["Sally","Steve","Mila","Zara"],            arrive:"2026-12-24", leave:"2026-12-28", stay:"Caravan", note:"" },
+  { id:"h13", surname:"Townsend",   people:["Shawn","Prue","Cooper","Isla","Josh"],    arrive:"2026-12-23", leave:"2026-12-28", stay:"Cabin",   note:"" },
+  { id:"h14", surname:"Townsend",   people:["Lochie","Anna"],                          arrive:"2026-12-23", leave:"2026-12-26", stay:"Cabin",   note:"Lochie is bringing dinner rolls and an activity. Here until the 26th." }
 ];
+
+/* surnames in the order they're shown. A family with no surname
+   (someone added a new family in the app) goes under "More family". */
+export const SURNAMES = ["Townsend","Chatterton","Boston","Richards","Langford","Rostron"];
 
 /* one colour per family, used for dots, bars and ladders */
 export const HH_COLOURS = ["#D8352A","#1F8A5B","#F2B33D","#1AA5B8","#FF7A59","#8E5BD0","#2C86C3",

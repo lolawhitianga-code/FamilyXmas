@@ -41,6 +41,8 @@
 .fam .dates .mono{font-size:12.5px}
 .fam .meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px}
 .fam .note{font-size:13.5px;margin:8px 0 0;color:var(--ink-soft)}
+.surname{font-family:"Fraunces",serif;font-size:20px;margin:22px 0 8px 2px;color:var(--ink)}
+#list > .surname:first-child{margin-top:4px}
 .opts{display:flex;flex-wrap:wrap;gap:7px}
 .opts button{border:1.5px solid var(--line);background:#fff;border-radius:11px;padding:10px 14px;font-size:15px}
 .opts button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
@@ -63,11 +65,11 @@
   <div id="list"></div>
   <div class="card sum" id="sum"></div>
   <div class="chips" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center" id="campChips"></div>
-  <p class="buildstamp">build x45</p>
+  <p class="buildstamp">build x46</p>
 </main>
 <script type="module">
 import { boot, me, col, watchTrip, heroFromWall, tripDays, fmtDay, fmtLong, fromIso, todayIso, XMAS_DAY, households, household, people, onPeople,
-         hereOn, esc, badge, pname, openSheet, closeSheet, toast, saveHousehold, addPerson, mapsLink, celebrate, tapName } from "./app.js";
+         hereOn, esc, badge, bySurname, pname, openSheet, closeSheet, toast, saveHousehold, addPerson, mapsLink, celebrate, tapName } from "./app.js";
 import { CAMP } from "./places.js";
 
 if(boot("crew.html")){
@@ -101,7 +103,6 @@ function paintStrip(){
 function paintList(){
   let hs = households().slice();
   const mine = me.hh;
-  hs.sort((a, b) => (a.id === mine ? -1 : b.id === mine ? 1 : 0));
   const all = hs.length, ppl = people().length;
   $("eb").textContent = `${all} families · ${ppl} people`;
   if(pick){
@@ -111,7 +112,7 @@ function paintList(){
     $("filt").innerHTML = `<b>${esc(fmtLong(fromIso(pick)))}</b> — ${pl(hs.length, "family").replace("familys","families")}, ${pl(heads, "person").replace("persons","people")} at camp. <a href="#" id="clr">Show everyone</a>`;
     $("clr").onclick = e => { e.preventDefault(); pick = null; paintStrip(); paintList(); };
   } else $("filt").classList.add("hide");
-  $("list").innerHTML = hs.length ? hs.map(h => {
+  const card = h => {
     const [st, cls] = status(h), n = nights(h);
     return `<button class="tag fam" data-h="${h.id}" style="border-left:5px solid ${h.colour}">
       <div class="hd">${badge(h.id)}<h3>${esc(h.name)}</h3>${h.id === mine ? '<span class="pill red">Your family</span>' : ""}</div>
@@ -119,7 +120,13 @@ function paintList(){
       <div class="dates">${esc(fmtShort(h.arrive))} <b>→</b> ${esc(fmtShort(h.leave))} <span class="mono muted">· ${pl(n, "night")}</span></div>
       <div class="meta"><span class="pill ${cls}">${st}</span><span class="pill">${esc(h.stay || "Cabin")}</span>${h.site ? `<span class="pill">${!h.stay || h.stay === "Cabin" ? "Cabin" : "Site"} ${esc(h.site)}</span>` : ""}</div>
       ${h.note ? `<p class="note">📝 ${esc(h.note)}</p>` : ""}</button>`;
-  }).join("") : `<div class="empty">Nobody's booked in for that day.</div>`;
+  };
+  // grouped by surname — your surname first, your family at the top of it
+  const groups = bySurname(hs), at = groups.findIndex(g => g.list.some(h => h.id === mine));
+  if(at > -1){ const [g] = groups.splice(at, 1); g.list.sort((a, b) => (b.id === mine) - (a.id === mine)); groups.unshift(g); }
+  $("list").innerHTML = hs.length ?
+    groups.map(g => `<h3 class="surname">${esc(g.surname)}</h3>` + g.list.map(card).join("")).join("")
+    : `<div class="empty">Nobody's booked in for that day.</div>`;
   $("list").querySelectorAll(".fam").forEach(b => b.onclick = () => edit(b.dataset.h));
   const all2 = households(), cab = all2.filter(h => h.stay === "Cabin").length, car = all2.filter(h => h.stay === "Caravan").length;
   const other = all2.length - cab - car;

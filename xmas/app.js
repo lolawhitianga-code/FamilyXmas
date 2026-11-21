@@ -7,9 +7,9 @@
    in its own collections (all start with "xmas_"). If Firebase
    can't be reached everything still works on this phone.
    ============================================================ */
-import { HOUSEHOLDS as BASE_HH, HH_COLOURS } from "./people.js";
+import { HOUSEHOLDS as BASE_HH, HH_COLOURS, SURNAMES } from "./people.js";
 
-export const BUILD = "x45";
+export const BUILD = "x46";
 
 export const FIREBASE = {
   apiKey: "AIzaSyB1NnJlvpL_dv7aPrAeFGtl5MM1oSa1YPk",
@@ -105,6 +105,13 @@ function rebuildPeople(){
 /** Everyone, right now. Grows if people are added in the app — use onPeople to hear about it. */
 export const people = () => _people;
 export const households = () => _households;
+/** Families grouped by surname, in SURNAMES order: [{ surname, list }]. No surname → "More family", last. */
+export function bySurname(hs = _households){
+  const order = [...SURNAMES, ...new Set(hs.map(h => h.surname).filter(s => s && !SURNAMES.includes(s)))];
+  const groups = order.map(surname => ({ surname, list: hs.filter(h => h.surname === surname) }));
+  groups.push({ surname:"More family", list: hs.filter(h => !h.surname) });
+  return groups.filter(g => g.list.length);
+}
 export const person = id => _people.find(p => p.id === id) || { id, name:"Someone", label:"Someone", hh:"", colour:"#3E5A63" };
 export const household = id => _households.find(h => h.id === id) || { id, name:"A family", people:[], members:[], colour:"#3E5A63" };
 export const pname = id => person(id).label;
