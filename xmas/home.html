@@ -51,6 +51,12 @@
 
 .ladder a{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px dashed var(--line);text-decoration:none}
 .ladder a:first-child{border-top:0}
+.babycard{display:flex;gap:14px;align-items:center;text-decoration:none;color:inherit;background:linear-gradient(160deg,#FFE3EC,#E3F6F8)}
+.babycard .bpol{flex:none;width:96px;background:#fff;padding:4px 4px 18px;border-radius:3px;position:relative;box-shadow:0 6px 14px rgba(43,27,20,.3);transform:rotate(-5deg)}
+.babycard .bpol img{display:block;width:100%;aspect-ratio:1;object-fit:cover}
+.babycard .bpol i{position:absolute;left:0;right:0;bottom:3px;text-align:center;font:700 10px/1 'Comic Sans MS','Marker Felt',sans-serif;font-style:normal;color:#7A1E1A}
+.babycard b{display:block;font-family:'Fraunces',serif;font-size:19px;line-height:1.15}
+.babycard .go{display:inline-block;margin-top:8px;background:var(--red);color:#fff;border-radius:999px;padding:7px 14px;font-weight:600;font-size:14px}
 .ladder .pos{font-family:'Fraunces',serif;font-weight:900;font-size:20px;width:26px;text-align:center;color:var(--gold)}
 .ladder .nm{flex:1;min-width:0;font-weight:500;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ladder .pts{font-family:'DM Mono',monospace;font-size:13px}
@@ -136,6 +142,8 @@ body.mine #full, body.mine .pokiebar, body.mine .pokiefloat, body.mine #quiet{di
   <h2 class="sec" id="todayHead">Today</h2>
   <div class="card today" id="today"><div class="empty">Loading…</div></div>
 
+  <a class="card babycard hide" href="babies.html" id="babyCard"></a>
+
   <h2 class="sec">Family ladder</h2>
   <div class="card ladder" id="ladder"><div class="empty">No gold stars yet — go and earn some</div></div>
 
@@ -163,16 +171,25 @@ body.mine #full, body.mine .pokiebar, body.mine .pokiefloat, body.mine #quiet{di
     <button class="chip" id="showPick">✨ Today's showcase (organisers)</button>
   </div>
 
-  <p class="buildstamp">build x50</p>
+  <p class="buildstamp">build x51</p>
 </main>
 
 <script type="module">
 import { boot, me, SLOTS, col, watchTrip, heroFromWall, tripDayToday, dayDate, fmtLong, isoDate, todayIso, XMAS_DAY,
          households, people, household, onPeople, hereOn, pname, esc, isMuted, setMuted, badge, noPokies, noPokiesFixed, setNoPokies, toast, settings, aud, fmtDay, fromIso, installCard, addToHomeScreen, onHomeScreen, isKay, addBabyPhotos, sosWatch,
          onChat, chatRows, chatUnreadAll, dmUnread, dmOther, CHAT_ALL,
-         SHOWCASE, showcaseApp, showcaseOn, showcaseSettings, saveShowcase, campDay, askPin, openSheet, closeSheet } from "./app.js";
+         SHOWCASE, showcaseApp, showcaseOn, showcaseSettings, saveShowcase, campDay, askPin, openSheet, closeSheet, babyPics, babyPolaroid } from "./app.js";
 
 if(boot("home.html")){
+// one of Kay's baby photos on the front page — a new one each visit
+if(!isKay()) babyPics(1).then(([b]) => {
+  if(!b) return;
+  const LINES = ["Who's this little one?", "Recognise this face?", "Guess who!", "Before the bad haircuts…", "Spot the family resemblance?"];
+  const el = document.getElementById("babyCard");
+  el.innerHTML = babyPolaroid(b, "Baby No. " + b.n) + `<span><b>${LINES[Math.floor(Math.random() * LINES.length)]}</b>
+    <span class="muted small">Kay's Guess the Baby comp — one of the family, all grown up now.</span><br><span class="go">Have a guess →</span></span>`;
+  el.classList.remove("hide");
+}).catch(() => {});
 const $ = id => document.getElementById(id);
 heroFromWall();
 sosWatch($("flares"));      // 🆘 "I need a drink ASAP" flares from Report-a-trauma

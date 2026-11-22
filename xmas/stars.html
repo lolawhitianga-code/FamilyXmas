@@ -49,6 +49,15 @@
 .earn b{flex:none;width:44px;font-family:'DM Mono',monospace;color:var(--red);font-weight:500}
 .earn span{flex:1;min-width:0}
 .foot{display:flex;justify-content:center;margin-top:18px}
+.swapcard{display:grid;grid-template-columns:1fr auto;gap:10px 12px;align-items:center;margin-top:10px;background:linear-gradient(160deg,#FFF1C2,#FFE08A)}
+.swapcard .sw-l{display:flex;gap:10px;align-items:center}
+.swapcard .sw-l b{font-size:22px;white-space:nowrap}
+.swapcard .sw-r{text-align:right}
+.swapcard .sw-r .mono{display:block;font-size:20px;font-weight:500}
+.swapcard .btn{grid-column:1/-1}
+.mystars .bpol{flex:none;width:74px;background:#fff;padding:3px 3px 14px;border-radius:3px;position:relative;box-shadow:0 5px 12px rgba(43,27,20,.35);transform:rotate(5deg);margin-left:auto}
+.mystars .bpol img{display:block;width:100%;aspect-ratio:1;object-fit:cover}
+.mystars .bpol i{position:absolute;left:0;right:0;bottom:2px;text-align:center;font:700 9px/1 'Comic Sans MS','Marker Felt',sans-serif;font-style:normal;color:#7A1E1A}
 </style>
 </head>
 <body>
@@ -66,6 +75,12 @@
   <h2 class="sec">My stars</h2>
   <div class="card" id="mine"></div>
 
+  <div class="card swapcard" id="swapCard" data-casino>
+    <div class="sw-l"><b>⭐ → 🪙</b><span>Swap gold stars for casino credits<br><span class="muted small">1 star = 100 credits · same at the casino Cashier</span></span></div>
+    <div class="sw-r"><span class="mono" id="cred">–</span><span class="muted small">credits now</span></div>
+    <button class="btn red wide" id="swapBtn">Swap my stars</button>
+  </div>
+
   <h2 class="sec">Just happened</h2>
   <div class="card feed" id="feed"><div class="empty">Nothing yet</div></div>
 
@@ -73,11 +88,12 @@
   <div class="card earn" id="earn"></div>
 
   <div class="foot"><button class="chip" id="mute"></button></div>
-  <p class="buildstamp">build x50</p>
+  <p class="buildstamp">build x51</p>
 </main>
 
 <script type="module">
-import { boot, me, col, STAR, esc, people, households, person, pname, badge, onPeople, heroFromWall, isMuted, setMuted, tapName } from "./app.js";
+import { boot, me, col, STAR, esc, people, households, person, pname, badge, onPeople, heroFromWall, isMuted, setMuted, tapName,
+         openStarSwap, casinoBalance, babyPics, babyPolaroid } from "./app.js";
 
 if(boot("stars.html")){
 const $ = id => document.getElementById(id);
@@ -125,7 +141,7 @@ function paintMine(){
   const s = scores.find(x => x.id === me.id), counts = (s && s.counts) || {};
   const ks = Object.keys(counts).filter(k => counts[k] > 0).sort((a, b) => (counts[b] * (STAR[b] ? STAR[b][0] : 0)) - (counts[a] * (STAR[a] ? STAR[a][0] : 0)));
   $("mine").innerHTML = `<div class="mystars"><div class="n">${s ? s.total || 0 : 0}<small>GOLD STARS</small></div>
-    <div class="muted small">${ks.length ? "Here's where they came from." : "Join in on the site and watch this grow."}</div></div>` +
+    <div class="muted small">${ks.length ? "Here's where they came from." : "Join in on the site and watch this grow."}</div>${myBaby ? babyPolaroid(myBaby, "Proud of you!") : ""}</div>` +
     (ks.length ? `<div class="kinds">${ks.map(k => `<div><span>${esc(STAR[k] ? STAR[k][1] : k)}</span><span class="muted">× ${counts[k]}</span><span class="mono">${counts[k] * (STAR[k] ? STAR[k][0] : 0)}</span></div>`).join("")}</div>` : "");
 }
 
@@ -148,6 +164,14 @@ $("board").addEventListener("click", e => {
   const id = b.dataset.hh; open.has(id) ? open.delete(id) : open.add(id); paintBoard();
 });
 
+let myBaby = null;
+babyPics(1).then(b => { myBaby = b[0] || null; paintMine(); }).catch(() => {});
+const paintCred = () => casinoBalance().then(n => { $("cred").textContent = n === null ? "–" : Math.round(n).toLocaleString("en-NZ"); }).catch(() => {});
+paintCred();
+$("swapBtn").onclick = async () => {
+  await openStarSwap("stars.html");
+  const t = setInterval(() => { if(!document.getElementById("raffle")){ clearInterval(t); paintCred(); } }, 800);
+};
 const paintAll = () => { paintBoard(); paintMine(); paintFeed(); };
 onPeople(paintAll);
 col("scores").subscribe(r => { scores = r; paintAll(); });

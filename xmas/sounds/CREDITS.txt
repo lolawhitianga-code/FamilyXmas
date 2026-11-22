@@ -1,0 +1,18 @@
+Sounds used in the Family Xmas app. All are free to use: CC0 (public domain, no credit needed),
+from OpenGameArt.org. Changes: cut, made mono, levelled, faded.
+
+chime.mp3, bell.mp3   "Bell Dings/Chimes" by pwl          https://opengameart.org/content/bell-dingschimes
+sparkle.mp3           spell_01 from "80 CC0 RPG SFX" by rubberduck   https://opengameart.org/content/80-cc0-rpg-sfx
+coin1.mp3, coin2.mp3  item_coins_01/02, same pack as above
+levelup.mp3           "New Thing Get!" by congusbongus     https://opengameart.org/content/new-thing-get
+megafanfare.mp3       "Hyper Ultra Fanfare" by Zane Little Music   https://opengameart.org/content/hyper-ultra-fanfare
+kaching.mp3           "Purchasing sound effect"            https://opengameart.org/content/purchasing-sound-effect
+pop.mp3               "Bubbles pop" by farfadet46           https://opengameart.org/content/bubbles-pop
+baby.mp3              "Baby sound effect" by tokyogeisha    https://opengameart.org/content/baby-sound-effect
+fw1.mp3               fw_01 from "25 CC0 bang / firework SFX" by rubberduck   https://opengameart.org/content/25-cc0-bang-firework-sfx
+
+Carols (background music, alongside the site's own music-box carols):
+carol-jingle-bells.mp3, sleigh.mp3 (first 3 s)
+                      "Jingle Bells" by gerardogc2378       https://opengameart.org/content/jingle-bells
+carol-christmas-time.mp3 (first 80 s)
+                      "Cheerful Christmas Time" by tarush-singhal   https://opengameart.org/content/cheerful-christmas-time

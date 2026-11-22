@@ -9,7 +9,7 @@
    ============================================================ */
 import { HOUSEHOLDS as BASE_HH, HH_COLOURS, SURNAMES } from "./people.js";
 
-export const BUILD = "x50";
+export const BUILD = "x51";
 
 export const FIREBASE = {
   apiKey: "AIzaSyB1NnJlvpL_dv7aPrAeFGtl5MM1oSa1YPk",
@@ -319,9 +319,37 @@ function _note(c, f, at, dur, vol, type){
   g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
   o.connect(g); g.connect(c.destination); o.start(at); o.stop(at + dur + 0.05);
 }
+/* ---------- recorded sounds (sounds/ folder — all free to use, see sounds/CREDITS.txt) ----------
+   Until a sound has loaded (or if it can't), the little made-in-the-browser version plays instead. */
+const _snd = {}, _sndLoad = {};
+function sndLoad(name){
+  const c = _actx(); if(!c || _snd[name] || _sndLoad[name]) return _sndLoad[name];
+  _sndLoad[name] = fetch("sounds/" + name + ".mp3").then(r => { if(!r.ok) throw 0; return r.arrayBuffer(); })
+    .then(b => new Promise((res, rej) => c.decodeAudioData(b, res, rej))).then(b => { _snd[name] = b; return b; })
+    .catch(() => { delete _sndLoad[name]; });
+  return _sndLoad[name];
+}
+/** Play a recorded sound. Returns false if it isn't loaded yet (it starts loading), true otherwise (also when muted). */
+export function playSound(name, vol = 0.8, delay = 0, rate = 1){
+  const c = _actx(); if(!c) return true;
+  const b = _snd[name]; if(!b){ sndLoad(name); return false; }
+  const s = c.createBufferSource(); s.buffer = b; s.playbackRate.value = rate;
+  const g = c.createGain(); g.gain.value = vol; s.connect(g); g.connect(c.destination);
+  s.start(c.currentTime + delay); return true;
+}
+/** A handful of real coins clinking. */
+export function coinSound(n = 6, delay = 0){
+  for(let i = 0; i < n; i++) playSound(i % 2 ? "coin1" : "coin2", 0.3 + Math.random() * 0.3, delay + i * 0.07 + Math.random() * 0.05, 0.9 + Math.random() * 0.3);
+}
+addEventListener("pointerdown", function pre(){
+  removeEventListener("pointerdown", pre, true);
+  setTimeout(() => ["chime", "sparkle", "levelup", "sleigh", "bell", "coin1", "coin2", "pop", "baby", "kaching", "megafanfare"].forEach(sndLoad), 200);
+}, true);
 function _sound(pts){
+  const big = pts >= 15;
+  if(playSound(big ? "levelup" : "chime", big ? 0.6 : 0.7)){ playSound("sparkle", 0.5, 0.08); if(big) coinSound(5, 0.3); return; }
   const c = _actx(); if(!c) return;
-  const t = c.currentTime + 0.02, big = pts >= 15;
+  const t = c.currentTime + 0.02;
   const ns = big ? [523.25,659.25,783.99,1046.5,1318.51] : [523.25,659.25,783.99,1046.5];
   ns.forEach((f,i) => { _note(c,f,t+i*0.075,0.42,0.16,"triangle"); _note(c,f*2,t+i*0.075,0.2,0.05,"sine"); });
   const tail = t + ns.length*0.075;
@@ -331,6 +359,7 @@ function _sound(pts){
 /* a little car horn — for the driving log */
 /* sleigh bells — a little jingle for festive moments */
 export function jingle(){
+  if(playSound("sleigh", 0.7)) return;
   const c = _actx(); if(!c) return;
   const t = c.currentTime + 0.02;
   for(let i = 0; i < 6; i++){ _note(c, 2400 + (i % 2) * 380, t + i * 0.11, 0.09, 0.05, "square"); _note(c, 3300 + (i % 3) * 210, t + i * 0.11, 0.07, 0.03, "sine"); }
@@ -354,6 +383,10 @@ function _css(){
  text-shadow:0 2px 12px rgba(43,27,20,.85);margin-top:4px;display:block}
 #xmas-pop .s{font-family:'DM Mono',ui-monospace,monospace;font-size:11.5px;letter-spacing:.16em;
  text-transform:uppercase;color:rgba(255,255,255,.85);text-shadow:0 2px 10px rgba(43,27,20,.85);margin-top:6px;display:block}
+#xmas-pop .bpol{display:block;width:118px;margin:10px auto 0;background:#fff;padding:5px 5px 22px;border-radius:4px;position:relative;
+ box-shadow:0 10px 24px rgba(43,27,20,.45);transform:rotate(-4deg)}
+#xmas-pop .bpol img{display:block;width:100%;aspect-ratio:1;object-fit:cover;border-radius:2px}
+#xmas-pop .bpol i{position:absolute;left:2px;right:2px;bottom:5px;font:700 10.5px/1.05 'Comic Sans MS','Marker Felt',system-ui,sans-serif;font-style:normal;color:#7A1E1A}
 @keyframes xmas-pop{0%{opacity:0;transform:translate(-50%,-50%) scale(.5)}
  14%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}24%{transform:translate(-50%,-50%) scale(1)}
  74%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-58%) scale(.96)}}`;
@@ -367,8 +400,10 @@ export function celebrate(kind, opts){
   _css();
   const old = document.getElementById("xmas-pop"); if(old) old.remove();
   const p = document.createElement("div"); p.id = "xmas-pop";
-  p.innerHTML = `<span class="n">+${pts}</span><span class="l">${label}</span>` + (note ? `<span class="s">${note}</span>` : "");
-  document.body.appendChild(p); setTimeout(() => p.remove(), 2200);
+  const b = kind !== "guess" && Math.random() < 0.6 ? takeBaby() : null;
+  p.innerHTML = `<span class="n">+${pts}</span><span class="l">${label}</span>` + (note ? `<span class="s">${note}</span>` : "") +
+    (b ? babyPolaroid(b, "Baby No. " + b.n + " " + BABY_SAYS[Math.floor(Math.random() * BABY_SAYS.length)]) : "");
+  document.body.appendChild(p); setTimeout(() => p.remove(), b ? 2600 : 2200);
   const wrap = document.createElement("div"); wrap.id = "xmas-stars";
   const n = Math.min(64, 16 + pts * 1.6), gl = ["★","★","★","✦","⭐"];
   let h = "";
@@ -493,7 +528,7 @@ export function linkCasino(){
       // the same shape the casino itself makes for a new free-play account
       await withTimeout(fs.setDoc(ref, {
         username: want, displayName: who.name, password: "trip-" + Math.random().toString(36).slice(2, 12),
-        createdAt: Date.now(), accountType: "free", tokenType: "points", balanceFree: 500, balancePaid: 0,
+        createdAt: Date.now(), accountType: "free", tokenType: "credits", balanceFree: 500, balancePaid: 0,
         bankrupt: false, transactions: [], isAdmin: false,
         depositLimits: { period:"daily", amount:null, periodStart: Date.now(), depositedInPeriod:0, pendingIncrease:null },
         tripLinked: true, tripSite: "xmas"
@@ -507,7 +542,7 @@ export function linkCasino(){
 }
 
 /* ============================================================
-   🏆 WINDFALLS — everyone "wins" something silly: $2,000 added to
+   🏆 WINDFALLS — everyone "wins" something silly: 2,000 credits added to
    their casino balance, once each, the next time they open the
    app. The reason is picked at random (beauty contest, the dog's
    outfit, the surf comp…). The payout is marked on the casino
@@ -517,10 +552,13 @@ export function linkCasino(){
    phone plays on. People who've switched the pokies off are left
    out. If the casino can't be reached it tries again next page.
 
-   ⭐ STAR SWAP — anyone with 50+ gold stars is asked, at most once
-   a day, if they'd like to swap some for casino money at a very
-   kind rate (1 star = $100). Stars come off their total first;
-   if the casino can't be reached they go straight back.
+   ⭐ STAR SWAP — gold stars swap for casino credits: 1 ⭐ = 100
+   credits, the same rate everywhere (here, the Gold stars page and
+   the casino Cashier). Anyone with 50+ stars is also asked, at most
+   once a day, if they'd like to swap some. Stars come off their
+   total first; if the casino can't be reached they go straight back.
+   The casino has no free top-ups any more: credits are won, swapped
+   for stars, or spun on the casino's free Baby Bonus Wheel.
    ============================================================ */
 const RAFFLE = { key: "raffle2026", amount: 2000 };
 const WINS = [
@@ -537,8 +575,9 @@ const WINS = [
   ["🐔", "your chook won the chook race"],
   ["🕺", "won the dance-off at the RSL"]
 ];
-const SWAP = { min: 50, rate: 100, every: 20 * 3600 * 1000 };
-const money = n => "$" + Math.round(Number(n) || 0).toLocaleString("en-NZ");
+export const SWAP = { min: 50, rate: 100, every: 20 * 3600 * 1000 };
+const credits = n => Math.round(Number(n) || 0).toLocaleString("en-NZ");
+const money = n => credits(n) + " credits";
 let _raffleBusy = false;
 
 /** The casino account this phone plays on, if it's really this person's. */
@@ -560,6 +599,18 @@ async function casinoAdd(user, amount, mark){
     t.update(ref, mark ? { balanceFree: balance, [mark]: Date.now() } : { balanceFree: balance });
     return balance;
   }), 10000);
+}
+
+/** This person's casino credits, or null if they're not signed in to the casino here. */
+export async function casinoBalance(){
+  if(!me || noPokies()) return null;
+  await linkCasino();
+  const user = casinoUser(); if(!user) return null;
+  const { db, fs } = await casinoDb();
+  const snap = await withTimeout(fs.getDoc(fs.doc(db, "accounts", user)), 8000);
+  if(!snap.exists()) return null;
+  const d = snap.data();
+  return d.accountType === "paid" ? Number(d.balancePaid) || 0 : Number(d.balanceFree) || 0;
 }
 
 async function raffleWin(page){
@@ -605,6 +656,11 @@ function winCSS(){
 .winpop .later{display:block;margin:14px auto 0;background:none;border:0;color:#FFE9B0;font-size:13.5px;text-decoration:underline;text-underline-offset:3px}
 .winpop .deal{max-width:none;font-family:'DM Mono',monospace;font-size:12px;color:#FFE9B0;margin:0 0 6px}
 .winpop .deal s{opacity:.6}
+.winpop .babies{display:flex;justify-content:center;gap:8px;margin:2px 0 10px;min-height:0}
+.winpop .bpol{display:block;width:84px;background:#fff;padding:4px 4px 17px;border-radius:3px;position:relative;box-shadow:0 6px 16px rgba(0,0,0,.5);animation:rf-pop .6s cubic-bezier(.2,1.5,.4,1) both}
+.winpop .bpol.r0{transform:rotate(-6deg)} .winpop .bpol.r1{transform:rotate(3deg);animation-delay:.15s} .winpop .bpol.r2{transform:rotate(7deg);animation-delay:.3s}
+.winpop .bpol img{display:block;width:100%;aspect-ratio:1;object-fit:cover}
+.winpop .bpol i{position:absolute;left:0;right:0;bottom:3px;font:700 10.5px/1 'Comic Sans MS','Marker Felt',system-ui,sans-serif;font-style:normal;color:#7A1E1A}
 .winpop .conf{position:absolute;z-index:2;top:-20px;width:8px;height:14px;border-radius:2px;pointer-events:none;animation:rf-fall linear forwards}
 @keyframes rf-fall{to{transform:translateY(110vh) rotate(720deg)}}`;
   document.head.appendChild(st);
@@ -616,7 +672,7 @@ function confetti(el){
     c.style.cssText = `left:${Math.random() * 100}%;background:${colours[i % colours.length]};animation-duration:${2 + Math.random() * 2.5}s;animation-delay:${Math.random() * 1.2}s`;
     el.appendChild(c);
   }
-  try{ jingle(); }catch(e){}
+  try{ if(!playSound("megafanfare", 0.7)) jingle(); coinSound(14, 0.4); setTimeout(() => playSound("fw1", 0.5), 900); }catch(e){}
 }
 /** The big "you won" pop-up. goPage: where the gold button goes (on the casino page it just closes). */
 function bigWin(page, { tape, icon, head, amount, text, balance }){
@@ -625,13 +681,15 @@ function bigWin(page, { tape, icon, head, amount, text, balance }){
   el.innerHTML = `<div class="box"><div class="tape">${tape}</div>
     <div class="big">${icon}</div>
     <h3>${head}</h3>
-    <div class="amt">${money(amount)}</div>
+    <div class="amt">🪙 ${credits(amount)}</div>
     <p>${text}</p>
-    <div class="bal">Your balance now: ${money(balance)}</div>
+    <div class="babies"></div>
+    <div class="bal">Your casino balance: ${money(balance)}</div>
     <a class="go" href="casino.html">🎰 Go to the casino →</a>
     <button type="button" class="later">Later</button></div>`;
   document.body.appendChild(el);
   confetti(el);
+  babyPics(3).then(bs => { const w = el.querySelector(".babies"); if(w) w.innerHTML = bs.map((b, i) => babyPolaroid(b, ["Yay!", "Rich!", "Woohoo!"][i], "r" + i)).join(""); }).catch(() => {});
   const close = () => el.remove();
   el.querySelector(".later").onclick = close;
   el.querySelector(".go").onclick = e => { if(page === "casino.html"){ e.preventDefault(); close(); } };
@@ -644,10 +702,12 @@ function winPopup(balance, page){
     ? (first ? first + ", " : "") + why + "!"
     : (first ? first + ", you " : "You ") + why + "!";
   bigWin(page, { tape: "🏆 WINNER 🏆", icon, head: head.charAt(0).toUpperCase() + head.slice(1), amount: RAFFLE.amount,
-    text: "Your prize: " + money(RAFFLE.amount) + ", added to your casino balance. Go and spend it on the pokies and tables.", balance });
+    text: "Your prize: " + money(RAFFLE.amount) + ", added to your casino balance. Go and spend them on the pokies and tables.", balance });
 }
 
 /* ---------- star swap ---------- */
+/** This person's gold stars right now (null if it can't be reached). */
+export const myStarTotal = () => myStars().catch(() => null);
 async function myStars(){
   const c = await cloud(); if(!c) return null;
   const snap = await withTimeout(c.fs.getDoc(c.fs.doc(c.db, "xmas_scores", me.id)), 8000);
@@ -662,17 +722,30 @@ async function starOffer(page){
   await linkCasino();
   if(!casinoUser() || document.getElementById("raffle")) return;
   localStorage.setItem(asked, String(Date.now()));
+  showSwap(page, stars, asked);
+}
+/** The star swap pop-up. Also opened from the Gold stars page and the casino page. */
+export async function openStarSwap(page){
+  if(!me || noPokies() || document.getElementById("raffle")) return;
+  const stars = await myStars();
+  if(stars === null){ toast("Can't reach the gold stars right now — try again soon"); return; }
+  if(stars < 1){ toast("No gold stars to swap yet — go and earn some!"); return; }
+  await linkCasino();
+  if(!casinoUser()){ toast("Couldn't sign you in to the casino — try again soon"); return; }
+  showSwap(page, stars, null);
+}
+function showSwap(page, stars, asked){
   winCSS();
-  const opts = [...new Set([25, Math.floor(stars / 2), stars])].filter(n => n > 0 && n <= stars).sort((a, b) => a - b);
+  const opts = [...new Set([10, 25, Math.floor(stars / 2), stars])].filter(n => n > 0 && n <= stars).sort((a, b) => a - b).slice(-4);
   const label = n => n === stars ? "Swap all " + n + " ⭐" : n === Math.floor(stars / 2) ? "Swap half — " + n + " ⭐" : "Swap " + n + " ⭐";
   const el = document.createElement("div"); el.id = "raffle"; el.className = "winpop"; el.setAttribute("role", "dialog");
   el.innerHTML = `<div class="box"><div class="tape">⭐ STAR SWAP ⭐</div>
     <div class="big">🌟</div>
     <h3>You've got ${stars} gold stars!</h3>
-    <p>Want to cash some in for casino money? Today's rate is very kind:</p>
-    <div class="amt" style="font-size:clamp(34px,11vw,46px)">1 ⭐ = ${money(SWAP.rate)}</div>
-    <p class="deal">Usual rate <s>1 ⭐ = $5</s> · family special</p>
-    ${opts.map(n => `<button type="button" class="go sm" data-n="${n}">${label(n)}<small>→ ${money(n * SWAP.rate)} casino money</small></button>`).join("")}
+    <p>Swap some for casino credits?</p>
+    <div class="amt" style="font-size:clamp(34px,11vw,46px)">1 ⭐ = 🪙 ${SWAP.rate}</div>
+    <p class="deal">Same rate at the casino Cashier · swapped stars come off the leaderboard</p>
+    ${opts.map(n => `<button type="button" class="go sm" data-n="${n}">${label(n)}<small>→ ${money(n * SWAP.rate)}</small></button>`).join("")}
     <button type="button" class="later">No thanks, I'll keep my stars</button></div>`;
   document.body.appendChild(el);
   const close = () => el.remove();
@@ -688,7 +761,7 @@ async function starOffer(page){
         text: "Added to your casino balance. Good luck out there.", balance: bal });
     }catch(e){
       close(); toast("Couldn't swap — " + (e && e.message || "try again later") + ". Your stars are safe.", 4000);
-      localStorage.removeItem(asked);
+      if(asked) localStorage.removeItem(asked);
     }
   });
 }
@@ -706,7 +779,7 @@ async function swapStars(n){
   let bal;
   try{ bal = await casinoAdd(user, n * SWAP.rate); if(bal === null || bal === false) throw new Error("casino account not found"); }
   catch(e){ await fs.setDoc(ref, { total: fs.increment(n), updated: Date.now() }, { merge:true }).catch(() => {}); throw e; }
-  fs.addDoc(fs.collection(db, "xmas_starlog"), { who: me.id, kind: "swap", pts: -n, label: "Swapped for " + money(n * SWAP.rate) + " casino money", at: Date.now() }).catch(() => {});
+  fs.addDoc(fs.collection(db, "xmas_starlog"), { who: me.id, kind: "swap", pts: -n, label: "Swapped for " + money(n * SWAP.rate), at: Date.now() }).catch(() => {});
   return bal;
 }
 
@@ -840,7 +913,7 @@ function dmBuzz(m){
   if(el){ el.classList.remove("shake"); void el.offsetWidth; el.classList.add("shake"); }
   try{ navigator.vibrate && navigator.vibrate([180, 90, 180]); }catch(e){}
   const c = _actx();
-  if(c){ const t = c.currentTime + 0.02; _note(c, 880, t, 0.25, 0.14, "sine"); _note(c, 1318.5, t + 0.13, 0.4, 0.14, "sine"); }
+  if(c && !playSound("bell", 0.8)){ const t = c.currentTime + 0.02; _note(c, 880, t, 0.25, 0.14, "sine"); _note(c, 1318.5, t + 0.13, 0.4, 0.14, "sine"); }
   if(document.hidden) sysNotify(m);
 }
 /** Can this phone show message notifications, and has the person said yes? "on" | "off" | "ask" | "" (not possible) */
@@ -1181,6 +1254,39 @@ export async function guessBaby(photo){
 }
 
 const once = name => new Promise(res => { let done = false; col(name).subscribe(r => { if(!done){ done = true; res(r); } }); });
+
+/* ---------- Kay's baby photos all over the site ----------
+   A few picked at random for the gold-star pop-ups, the prize pop-ups, the home page and the casino.
+   Only the picture and its number are ever shown — never who it is. Pictures are kept for the visit
+   (shared with the casino pages, which are on the same website), so moving between pages doesn't
+   download them again. */
+let _bList = null, _bPool = [];
+const _bImg = {};
+const babyListOnce = () => _bList || (_bList = once("babies").then(r => r.filter(b => b.n)).catch(() => []));
+function babyImgOnce(id){
+  if(_bImg[id]) return _bImg[id];
+  let hit = null; try{ hit = sessionStorage.getItem("cc_baby_" + id); }catch(e){}
+  if(hit) return (_bImg[id] = Promise.resolve(hit));
+  return (_bImg[id] = col("babyimg").get(id).then(d => {
+    const s = d && d.data; if(s){ try{ sessionStorage.setItem("cc_baby_" + id, s); }catch(e){} } return s || null;
+  }).catch(() => { delete _bImg[id]; return null; }));
+}
+/** n random baby photos: [{n, src}] (fewer if there aren't that many). */
+export async function babyPics(n = 1){
+  const list = (await babyListOnce()).slice();
+  const cached = list.filter(b => { try{ return !!sessionStorage.getItem("cc_baby_" + b.id); }catch(e){ return false; } });
+  const pool = cached.length >= Math.max(6, n) ? cached : list;      // re-use what's already on the phone once there's a good few
+  for(let i = pool.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+  const out = [];
+  for(const b of pool){ if(out.length >= n) break; const src = await babyImgOnce(b.id); if(src) out.push({ n: b.n, src }); }
+  return out;
+}
+function babyTopUp(){ if(me && _bPool.length < 2) babyPics(2 - _bPool.length).then(x => { _bPool = _bPool.concat(x); }).catch(() => {}); }
+/** A baby photo that's already loaded, for pop-ups that can't wait (null if none yet). */
+export function takeBaby(){ const b = _bPool.shift() || null; babyTopUp(); return b; }
+/** A little polaroid of a baby photo, as HTML. */
+export const babyPolaroid = (b, caption, cls = "") => b ? `<span class="bpol ${cls}"><img src="${b.src}" alt="Baby photo number ${b.n}"><i>${esc(caption || "Baby No. " + b.n)}</i></span>` : "";
+const BABY_SAYS = ["approves!", "is impressed", "says goo goo!", "wants a go", "is clapping", "can't believe it"];
 /** Kay's upload: shrink each photo, number it after the ones already up, save it. progress(done, total, finished). */
 export async function addBabyPhotos(files, progress = () => {}){
   files = [...files]; if(!files.length) return 0;
@@ -1540,6 +1646,7 @@ function locationNotice(page){
    Notes are written NAME:BEATS ("F#4:1.5"), R for a rest.
    ============================================================ */
 const CAROLS = [
+  { t:"Jingle Bells — the band", rec:"sounds/carol-jingle-bells.mp3" },
   { t:"Jingle Bells", bpm:208, bells:true, n:`E5:1 E5:1 E5:2 E5:1 E5:1 E5:2 E5:1 G5:1 C5:1.5 D5:.5 E5:4 F5:1 F5:1 F5:1.5 F5:.5 F5:1 E5:1 E5:1 E5:.5 E5:.5
     E5:1 D5:1 D5:1 E5:1 D5:2 G5:2 E5:1 E5:1 E5:2 E5:1 E5:1 E5:2 E5:1 G5:1 C5:1.5 D5:.5 E5:4 F5:1 F5:1 F5:1 F5:1 F5:1 E5:1 E5:1 E5:.5 E5:.5 G5:1 G5:1 F5:1 D5:1 C5:4` },
   { t:"We Wish You a Merry Christmas", bpm:150, n:`D4:1 G4:1 G4:.5 A4:.5 G4:.5 F#4:.5 E4:1 E4:1 E4:1 A4:1 A4:.5 B4:.5 A4:.5 G4:.5 F#4:1 D4:1 D4:1
@@ -1564,7 +1671,9 @@ const SEMI = { C:-9, D:-7, E:-5, F:-4, G:-2, A:0, B:2 };
 const freq = name => { const m = /^([A-G])([#b]?)(\d)$/.exec(name); if(!m) return 0;
   return 440 * Math.pow(2, (SEMI[m[1]] + (m[2] === "#" ? 1 : m[2] === "b" ? -1 : 0) + (+m[3] - 4) * 12) / 12); };
 // each carol plays twice through, with a breath in between
-const TUNES = CAROLS.map(c => { const once = c.n.trim().split(/\s+/).map(x => { const [n, b] = x.split(":"); return [n === "R" ? 0 : freq(n), +b]; });
+// two real recordings join the music box (free to use, see sounds/CREDITS.txt)
+CAROLS.splice(4, 0, { t:"Cheerful Christmas Time", rec:"sounds/carol-christmas-time.mp3" });
+const TUNES = CAROLS.map(c => { if(c.rec) return []; const once = c.n.trim().split(/\s+/).map(x => { const [n, b] = x.split(":"); return [n === "R" ? 0 : freq(n), +b]; });
   return [...once, [0, 2], ...once]; });
 let mx = null, mGain = null, mTimer = null, mSong = 0, mIdx = 0, mNext = 0, mPlaying = false;
 /* background music is always on, unless the person has switched Sound off on the home page */
@@ -1587,9 +1696,40 @@ function jingle1(t){   // a little sleigh-bell shake on the beat, for Jingle Bel
     g.gain.setValueAtTime(0.0001, s); g.gain.exponentialRampToValueAtTime(0.025, s + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, s + 0.06);
     o.connect(g); g.connect(mGain); o.start(s); o.stop(s + 0.08); }
 }
+/* recorded carols: decoded once, played through the same volume as the music box.
+   mIdx counts seconds into a recording (so the next page can pick up where this one left off). */
+let mRec = null, mWait = 0;
+const _recBuf = {};
+function recNext(){ mRec = null; mSong = (mSong + 1) % CAROLS.length; mIdx = 0; mNext = mx.currentTime + 2; paintMusic(); }
+function recStop(){ if(mRec){ try{ mRec.src.stop(); }catch(e){} mRec = null; } }
+function recTick(song){
+  const now = mx.currentTime;
+  if(mRec && mRec.song === song){
+    const pos = now - mRec.at + mRec.off;
+    mIdx = Math.floor(pos);
+    if(pos < mRec.dur) mNext = now + 0.5; else recNext();
+    return;
+  }
+  const buf = _recBuf[song.rec];
+  if(buf === undefined){
+    _recBuf[song.rec] = null; mWait = now;
+    fetch(song.rec).then(r => { if(!r.ok) throw 0; return r.arrayBuffer(); })
+      .then(b => new Promise((res, rej) => mx.decodeAudioData(b, res, rej)))
+      .then(b => { _recBuf[song.rec] = b; }).catch(() => { _recBuf[song.rec] = false; });
+  }
+  if(buf === false || (buf === null && now - mWait > 10)){ recNext(); return; }      // couldn't load it: on to the next carol
+  if(!buf){ mNext = now + 0.5; return; }
+  const src = mx.createBufferSource(), g = mx.createGain();
+  src.buffer = buf; g.gain.value = 1.7; src.connect(g); g.connect(mGain);
+  const off = Math.min(mIdx || 0, Math.max(0, buf.duration - 2));
+  src.start(now + 0.05, off);
+  mRec = { song, src, at: now + 0.05, off, dur: buf.duration };
+  mNext = now + 0.5;
+}
 function mTick(){
   if(!mPlaying || !mx) return;
   while(mNext < mx.currentTime + 0.4){
+    if(CAROLS[mSong].rec){ recTick(CAROLS[mSong]); continue; }
     const song = CAROLS[mSong], tune = TUNES[mSong], spb = 60 / song.bpm;
     if(mIdx >= tune.length){ mSong = (mSong + 1) % CAROLS.length; mIdx = 0; mNext += 2.2; paintMusic(); continue; }
     const [f, beats] = tune[mIdx];
@@ -1606,9 +1746,9 @@ function startMusic(){
   mPlaying = true; mNext = c.currentTime + 0.15;
   mTimer = setInterval(mTick, 120); mTick(); paintMusic();
 }
-function stopMusic(){ mPlaying = false; clearInterval(mTimer); mTimer = null; if(mGain && mx){ const t = mx.currentTime; mGain.gain.cancelScheduledValues(t); mGain.gain.setValueAtTime(mGain.gain.value, t);
+function stopMusic(){ mPlaying = false; clearInterval(mTimer); mTimer = null; setTimeout(() => { if(!mPlaying) recStop(); }, 350); if(mGain && mx){ const t = mx.currentTime; mGain.gain.cancelScheduledValues(t); mGain.gain.setValueAtTime(mGain.gain.value, t);
   mGain.gain.linearRampToValueAtTime(0.0001, t + 0.3); setTimeout(() => { if(!mPlaying && mGain) mGain.gain.value = 0.2; if(!mPlaying && mx) mx.suspend(); }, 400); } paintMusic(); }
-function nextCarol(){ mSong = (mSong + 1) % CAROLS.length; mIdx = 0; try{ sessionStorage.setItem("xmas_music_at", JSON.stringify({ s: mSong, i: 0 })); }catch(e){}
+function nextCarol(){ recStop(); mSong = (mSong + 1) % CAROLS.length; mIdx = 0; try{ sessionStorage.setItem("xmas_music_at", JSON.stringify({ s: mSong, i: 0 })); }catch(e){}
   if(mPlaying && mx){ const t = mx.currentTime; mGain.gain.setValueAtTime(0.0001, t); mGain.gain.linearRampToValueAtTime(0.2, t + 0.4); mNext = t + 0.3; } paintMusic(); }
 function paintMusic(){
   const b = document.getElementById("carolBtn"); if(!b) return;
@@ -1660,6 +1800,7 @@ export function boot(page){
   watchChat();                             // 💬 unread count on the nav, and a pop-up when someone messages you
   startShowcase(page);                     // today's app: strips, floating button and the last nav slot
   if(!quiet){ linkCasino(); setTimeout(() => raffleWin(page), 1200); } else _casinoReady = true;
+  if(page !== "babies.html") setTimeout(babyTopUp, 2500);      // a baby photo or two ready for the pop-ups
   promptWatch(page);
   if(page !== "traffic.html") track(page);
   if(page !== "music.html") musicButton();   // no carols over the Spotify player

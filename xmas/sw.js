@@ -1,13 +1,15 @@
 /* Christmas at Bateau Bay — offline shell.
    Bump CACHE when you change a page and want everyone to pick it up. */
 
-const CACHE = "xmas-x59";
+const CACHE = "xmas-x60";
 
 const SHELL = [
   "./", "./index.html", "./home.html", "./fun.html", "./crew.html", "./planner.html", "./places.html", "./food.html", "./shopping.html",
   "./chat.html", "./santa.html", "./awards.html", "./outfits.html", "./stars.html", "./games.html", "./fishing.html", "./signup.html",
   "./photos.html", "./casino.html", "./help.html", "./kristy.html", "./trauma.html", "./babies.html", "./where.html", "./music.html", "./traffic.html", "./app.js", "./app.css", "./people.js", "./places.js", "./itinerary.js", "./manifest.json", "./sally.jpg", "./spotify.png",
-  "./icon-192.png", "./icon-512.png", "./logo-clear.webp"
+  "./icon-192.png", "./icon-512.png", "./logo-clear.webp",
+  "./sounds/chime.mp3", "./sounds/sparkle.mp3", "./sounds/levelup.mp3", "./sounds/sleigh.mp3", "./sounds/bell.mp3", "./sounds/coin1.mp3",
+  "./sounds/coin2.mp3", "./sounds/pop.mp3", "./sounds/baby.mp3", "./sounds/kaching.mp3", "./sounds/megafanfare.mp3", "./sounds/fw1.mp3"
 ];
 
 // live data must never be served from cache

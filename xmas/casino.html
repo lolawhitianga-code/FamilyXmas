@@ -18,9 +18,23 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="app.css">
 <style>
-.floor{background:radial-gradient(120% 80% at 50% 0%,#17694A,#0E3B2A 60%,#0A2B1F);border-radius:20px;padding:14px 12px 16px;
+.floor{position:relative;overflow:hidden;background:radial-gradient(120% 80% at 50% 0%,#17694A,#0E3B2A 60%,#0A2B1F);border-radius:20px;padding:22px 12px 16px;
   box-shadow:0 0 0 2px #E2A93B, 0 14px 30px -14px rgba(10,43,31,.8);color:#FFE9B0}
 .floor h2.sec{color:#FFD166;margin-left:2px}
+/* fairy lights along the top of the floor */
+.lights{position:absolute;left:0;right:0;top:0;height:18px;pointer-events:none}
+.lights:before{content:"";position:absolute;left:0;right:0;top:3px;height:2px;background:#0A2B1F}
+.lights i{position:absolute;top:4px;width:8px;height:12px;border-radius:50% 50% 50% 50%/40% 40% 60% 60%;animation:tw 1.6s ease-in-out infinite}
+@keyframes tw{50%{opacity:.4;filter:brightness(.7)}}
+.wallet{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.wallet .w{background:rgba(0,0,0,.25);border:1px solid rgba(255,209,102,.45);border-radius:14px;padding:10px 12px;text-align:center}
+.wallet .w b{display:block;font-family:'Fraunces',serif;font-weight:900;font-size:26px;line-height:1.05;color:#FFD166}
+.wallet .w small{font-family:'DM Mono',monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;opacity:.85}
+.wallet .acts{grid-column:1/-1;display:flex;gap:8px}
+.wallet .acts a,.wallet .acts button{flex:1;border:0;border-radius:999px;padding:11px 8px;font:600 15px/1.2 'Outfit',system-ui,sans-serif;text-align:center;text-decoration:none;
+  background:linear-gradient(180deg,#FFD166,#E2A93B);color:#2A0A0A;box-shadow:0 4px 0 #9C6C14}
+.wallet .acts .ghost{background:rgba(0,0,0,.25);color:#FFE9B0;box-shadow:inset 0 0 0 1.5px rgba(255,209,102,.7)}
+.wallet .acts :active{transform:translateY(2px)}
 .hero{position:relative;overflow:hidden;text-align:center;border-radius:18px;padding:24px 16px 22px;margin-bottom:12px;color:#fff;
   background:linear-gradient(160deg,#7A1E1A,#4B0F2E 55%,#2A0A3A);box-shadow:0 0 0 3px #FFD166,0 0 0 5px #9C6C14,0 0 26px rgba(255,209,102,.4)}
 .hero::before{content:'';position:absolute;inset:7px;border-radius:13px;pointer-events:none;
@@ -33,16 +47,28 @@
 .hero small{display:block;font-family:'DM Mono',monospace;font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:#FFD166;margin-top:6px}
 .hero h2{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(32px,10vw,46px);line-height:1;margin:6px 0 8px;color:#FFD166;text-shadow:0 2px 0 #9C6C14,0 0 22px rgba(255,209,102,.5)}
 .hero p{margin:0 auto 16px;max-width:30ch;font-size:15px;opacity:.95}
-.spin{display:inline-block;background:linear-gradient(180deg,#FFD166,#E2A93B);color:#2A0A0A;font-weight:700;font-size:20px;padding:15px 26px;border-radius:999px;text-decoration:none;box-shadow:0 5px 0 #9C6C14,0 10px 20px -6px rgba(0,0,0,.6)}
+.hero .mascot{position:absolute;right:10px;top:12px;width:70px;background:#fff;padding:3px 3px 14px;border-radius:3px;transform:rotate(8deg);box-shadow:0 6px 14px rgba(0,0,0,.5);animation:bob 2.4s ease-in-out infinite}
+.hero .mascot img{display:block;width:100%;aspect-ratio:1;object-fit:cover}
+.hero .mascot i{position:absolute;left:0;right:0;bottom:2px;font:700 9px/1 'Comic Sans MS','Marker Felt',sans-serif;font-style:normal;color:#7A1E1A}
+@keyframes bob{50%{transform:rotate(3deg) translateY(-4px)}}
+.spin{display:inline-block;position:relative;background:linear-gradient(180deg,#FFD166,#E2A93B);color:#2A0A0A;font-weight:700;font-size:20px;padding:15px 26px;border-radius:999px;text-decoration:none;box-shadow:0 5px 0 #9C6C14,0 10px 20px -6px rgba(0,0,0,.6)}
 .spin:active{transform:translateY(3px);box-shadow:0 2px 0 #9C6C14}
 .dip{display:flex;width:100%;justify-content:center;align-items:center;gap:8px;border:2px dashed #FFD166;background:rgba(0,0,0,.2);color:#FFD166;border-radius:14px;padding:14px;font-weight:600;font-size:17px;margin-bottom:6px}
 .dipmsg{text-align:center;font-size:13px;min-height:18px;margin:2px 0 4px;color:#FFE9B0}
-.gc{display:flex;align-items:center;gap:12px;text-decoration:none;color:#2B1B14;background:#FFF8E6;border-radius:14px;padding:12px 13px;margin-bottom:8px;box-shadow:inset 0 0 0 2px #E2A93B}
-.gc .n{flex:1;min-width:0}
-.gc .n b{display:block;font-family:'Fraunces',serif;font-size:17px;line-height:1.15}
-.gc .n span{display:block;font-size:13px;color:#5B4636;margin-top:2px}
-.gc .p{flex:none;background:var(--red);color:#fff;font-weight:600;border-radius:999px;padding:8px 14px;font-size:14px;box-shadow:0 3px 0 #8E1F18}
-.gc.star{background:linear-gradient(160deg,#FFF1C2,#FFE08A)}
+.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:6px}
+.gt{position:relative;display:flex;flex-direction:column;justify-content:flex-end;min-height:118px;padding:10px 11px;border-radius:14px;overflow:hidden;text-decoration:none;color:#fff;
+  box-shadow:inset 0 0 0 1.5px rgba(255,209,102,.5),0 8px 16px -8px rgba(0,0,0,.7)}
+.gt .art{position:absolute;right:-6px;top:-4px;font-size:54px;line-height:1;transform:rotate(8deg);filter:drop-shadow(0 5px 8px rgba(0,0,0,.45))}
+.gt b{position:relative;font-family:'Fraunces',serif;font-size:15.5px;line-height:1.1;text-shadow:0 2px 6px rgba(0,0,0,.65)}
+.gt span.t{position:relative;font-size:11.5px;line-height:1.25;opacity:.88;margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.gt::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,rgba(0,0,0,.55));pointer-events:none}
+.gt > *{z-index:1}.gt .art{z-index:0}
+.gt.star{grid-column:1/-1;min-height:96px}
+.gt:active{transform:scale(.97)}
+.babies{display:flex;gap:9px;overflow-x:auto;padding:4px 2px 12px;scroll-snap-type:x mandatory}
+.babies a{flex:none;width:78px;background:#fff;padding:4px 4px 16px;border-radius:3px;position:relative;scroll-snap-align:start;box-shadow:0 6px 12px rgba(0,0,0,.45);transform:rotate(var(--r))}
+.babies img{display:block;width:100%;aspect-ratio:1;object-fit:cover}
+.babies i{position:absolute;left:0;right:0;bottom:3px;text-align:center;font:700 9.5px/1 'Comic Sans MS','Marker Felt',sans-serif;font-style:normal;color:#7A1E1A}
 .lobby{display:block;text-align:center;margin:14px 0 4px;color:#FFD166;font-weight:600}
 .note{text-align:center;font-size:13.5px;margin:14px 6px 0;color:var(--ink-soft)}
 </style>
@@ -57,7 +83,14 @@
 
 <main>
   <div class="floor">
+    <div class="lights" id="lights"></div>
+    <section class="wallet">
+      <div class="w"><b id="cred">…</b><small>🪙 Casino credits</small></div>
+      <div class="w"><b id="stars">…</b><small>⭐ Gold stars</small></div>
+      <div class="acts"><button type="button" id="swap">⭐ Swap stars</button><a class="ghost" id="wheel" href="../Casino/cashier.html">🎡 Free spin</a></div>
+    </section>
     <section class="hero">
+      <span class="mascot hide" id="mascot"></span>
       <div class="st">⭐</div>
       <small>The family machine</small>
       <h2>Lucky Lauren</h2>
@@ -67,40 +100,82 @@
     <button class="dip" id="dip">🎲 Lucky dip</button>
     <div class="dipmsg" id="dipmsg">Can't choose? Tap for a surprise game.</div>
     <div id="games"></div>
+    <div id="babyRow"></div>
     <a class="lobby" id="lobby" href="../Casino/">Visit the full casino lobby →</a>
   </div>
-  <p class="note">It's play money — the only thing at stake is bragging rights. 🎄</p>
-  <p class="buildstamp">build x50</p>
+  <p class="note">Credits are play money 🎄 Earn them with gold stars, the free Baby Bonus Wheel at the Cashier (every 4 hours), or by winning.</p>
+  <p class="buildstamp">build x51</p>
 </main>
 
 <script type="module">
-import { boot, heroFromWall, GAMES, LUCKY_LAUREN, gameUrl, randomGame, casinoLobby, esc } from "./app.js";
+import { boot, heroFromWall, GAMES, LUCKY_LAUREN, gameUrl, randomGame, casinoLobby, esc, casinoBalance, myStarTotal, openStarSwap, babyPics, playSound } from "./app.js";
 
 if(boot("casino.html")){
 const $ = id => document.getElementById(id);
 heroFromWall();
+const ART = {
+  "lucky_lauren.html":["⭐","#B2276E","#4B0F2E"], "poppy_roys_fishing_trip.html":["🎣","#0E7C86","#073B40"], "gilded_slots.html":["👑","#9C6C14","#3A2606"],
+  "daisy_slots.html":["🌼","#E2A93B","#7A4A00"], "slovak_slots.html":["🍺","#7A1E1A","#2A0A0A"], "whisker_wild.html":["🐱","#5B3FA8","#21124A"],
+  "outback_dash.html":["🦘","#C1502E","#4A1A08"], "planets_pleasures.html":["🪐","#5B3FA8","#1A0E3A"], "blackjack.html":["🃏","#14583C","#06261A"],
+  "texas_holdem.html":["♠️","#1F8A5B","#0A2B1F"], "baccarat.html":["🎴","#7A1E1A","#30080A"], "chocolate_wheel.html":["🍫","#6B3A1A","#2B1405"],
+  "craps.html":["🎲","#D8352A","#5A0F0A"], "rock_paper_scissors.html":["✊","#2A5DA8","#0E2450"], "frenchie_bubble_pop.html":["🫧","#3BA7C9","#0E3B52"],
+  "lost_spring.html":["♨️","#0E7C86","#06323A"], "exterminator.html":["🪳","#5A6B1A","#1E2606"], "sally_steves_aussie_adventure.html":["🚐","#E2A93B","#5A3600"],
+  "lochie_josh_olympics.html":["🏅","#1F5FA8","#0B2B5A"]
+};
+// fairy lights
+{ const cols = ["#ff3b3b", "#ffd23f", "#3bff7a", "#3bc3ff", "#ff5bd6"]; let h = "";
+  for(let i = 0; i < 16; i++) h += `<i style="left:${3 + i * 6.2}%;background:${cols[i % 5]};box-shadow:0 0 8px 2px ${cols[i % 5]};animation-delay:${(i % 5) * .3}s;transform:rotate(${i % 2 ? 12 : -12}deg)"></i>`;
+  $("lights").innerHTML = h; }
+
 const GROUPS = [["pokies", "Pokies"], ["cards", "Card games"], ["fun", "Fun games"]];
-const card = g => `<a class="gc${g.star ? " star" : ""}" data-file="${esc(g.file)}" href="${esc(gameUrl(g))}"><span class="n"><b>${g.star ? "⭐ " : ""}${esc(g.name)}</b><span>${esc(g.tag)}</span></span><span class="p">Play →</span></a>`;
-$("games").innerHTML = GROUPS.map(([k, l]) => `<h2 class="sec">${l}</h2>` +
-  GAMES.filter(g => g.kind === k).sort((a, b) => (b.star ? 1 : 0) - (a.star ? 1 : 0)).map(card).join("")).join("");
+const tile = g => { const [icon, c1, c2] = ART[g.file] || ["🎰", "#14583C", "#0A2B1F"];
+  return `<a class="gt${g.star ? " star" : ""}" data-file="${esc(g.file)}" href="${esc(gameUrl(g))}" style="background:radial-gradient(120% 90% at 85% 10%,${c1},${c2})">
+    <span class="art">${icon}</span><b>${esc(g.name)}</b><span class="t">${esc(g.tag)}</span></a>`; };
+$("games").innerHTML = GROUPS.map(([k, l]) => `<h2 class="sec">${l}</h2><div class="tiles">` +
+  GAMES.filter(g => g.kind === k && !g.star).map(tile).join("") + `</div>`).join("");
 
 const refresh = () => {
   $("spin").href = gameUrl(LUCKY_LAUREN);
-  document.querySelectorAll("a.gc").forEach(a => { const g = GAMES.find(x => x.file === a.dataset.file); if(g) a.href = gameUrl(g); });
+  document.querySelectorAll("a.gt").forEach(a => { const g = GAMES.find(x => x.file === a.dataset.file); if(g) a.href = gameUrl(g); });
   $("lobby").href = casinoLobby();
+  $("wheel").href = casinoLobby() + "cashier.html";
 };
 refresh(); setTimeout(refresh, 600); setTimeout(refresh, 2500);
 $("spin").addEventListener("click", () => { $("spin").href = gameUrl(LUCKY_LAUREN); });
 $("games").addEventListener("click", e => {
-  const a = e.target.closest("a.gc"); if(!a) return;
+  const a = e.target.closest("a.gt"); if(!a) return;
   const g = GAMES.find(x => x.file === a.dataset.file); if(g) a.href = gameUrl(g);
+  playSound("coin1", 0.6);
 });
 $("lobby").addEventListener("click", () => { $("lobby").href = casinoLobby(); });
 $("dip").addEventListener("click", () => {
   const g = randomGame();
   $("dipmsg").textContent = "Off to " + g.name + "…";
+  playSound("sparkle", 0.6);
   location.href = g.url;
 });
+
+// credits and stars
+const fmt = n => Math.round(n).toLocaleString("en-NZ");
+async function paintWallet(){
+  myStarTotal().then(n => { $("stars").textContent = n === null ? "–" : fmt(n); });
+  casinoBalance().then(n => { $("cred").textContent = n === null ? "–" : fmt(n); }).catch(() => { $("cred").textContent = "–"; });
+}
+paintWallet();
+$("swap").addEventListener("click", async () => {
+  await openStarSwap("casino.html");
+  // the pop-up adds the credits itself; repaint once it's gone
+  const t = setInterval(() => { if(!document.getElementById("raffle")){ clearInterval(t); paintWallet(); } }, 800);
+});
+
+// the babies are on the floor
+babyPics(9).then(bs => {
+  if(!bs.length) return;
+  const m = bs[0]; $("mascot").innerHTML = `<img src="${m.src}" alt="Baby photo ${m.n}"><i>Spin it!</i>`; $("mascot").classList.remove("hide");
+  $("babyRow").innerHTML = `<h2 class="sec">The babies are watching 👶</h2><div class="babies">` +
+    bs.slice(1).map((b, i) => `<a href="babies.html" style="--r:${(i % 2 ? 1 : -1) * (2 + (i % 3))}deg"><img src="${b.src}" alt="Baby photo ${b.n}" loading="lazy"><i>No. ${b.n}</i></a>`).join("") +
+    `</div><p class="small" style="text-align:center;margin:0 0 6px;opacity:.85">Know who they grew up to be? <a href="babies.html" style="color:#FFD166">Guess the babies →</a></p>`;
+}).catch(() => {});
 }
 </script>
 </body>
