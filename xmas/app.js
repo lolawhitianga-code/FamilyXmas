@@ -63,7 +63,7 @@ export const dirLink = (to) => "https://www.google.com/maps/dir/?api=1&travelmod
 export const auDigits = p => { let d = String(p || "").replace(/\D/g, ""); if(d.startsWith("0")) d = "61" + d.slice(1); return d; };
 
 /* ============================================================
-   THE FAMILY — 14 households, 39 people (plus anyone added)
+   THE FAMILY — 15 households, 43 people (plus anyone added)
    A person is { id, name, label, hh, colour }. label is the name
    made unique ("Jack (Trudi's)") — use it wherever names sit together.
    A household is { id, name, people:[names], members:[person], arrive, leave, stay, site, note, colour }.
@@ -118,7 +118,9 @@ export const pname = id => person(id).label;
 /** Call cb() now and again whenever the family list changes (someone added, dates edited). */
 export function onPeople(cb){ _peopleSubs.push(cb); cb(); }
 /** Is this household at camp on this date ("YYYY-MM-DD")? Arrival day counts, leaving day counts too. */
-export const hereOn = (h, iso) => h.arrive <= iso && iso <= h.leave;
+export const hereOn = (h, iso) => atCamp(h) && !!h.arrive && h.arrive <= iso && iso <= h.leave;
+/** Is this household coming to camp at all? ("Not coming" families are in the list but not at camp.) */
+export const atCamp = h => h.stay !== "Not coming";
 /** Little round dot in the family's colour. Pass a person id or a household id. */
 export const badge = id => { const c = (String(id).includes("-") ? person(id) : household(id)).colour;
   return `<span class="dot" style="background:${c}"></span>`; };

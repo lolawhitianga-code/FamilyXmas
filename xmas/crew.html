@@ -69,7 +69,7 @@
 </main>
 <script type="module">
 import { boot, me, col, watchTrip, heroFromWall, tripDays, fmtDay, fmtLong, fromIso, todayIso, XMAS_DAY, households, household, people, onPeople,
-         hereOn, esc, badge, bySurname, pname, openSheet, closeSheet, toast, saveHousehold, addPerson, mapsLink, celebrate, tapName } from "./app.js";
+         hereOn, atCamp, esc, badge, bySurname, pname, openSheet, closeSheet, toast, saveHousehold, addPerson, mapsLink, celebrate, tapName } from "./app.js";
 import { CAMP } from "./places.js";
 
 if(boot("crew.html")){
@@ -82,6 +82,7 @@ const pl = (n, w) => n + " " + w + (n === 1 ? "" : "s");
 
 function status(h){
   const t = todayIso();
+  if(!atCamp(h)) return ["Not coming to camp", ""];
   if(hereOn(h, t)) return ["Here now", "green"];
   if(h.arrive > t){ const n = daysTo(h.arrive); return [n === 1 ? "Arrives tomorrow" : `Arrives in ${pl(n, "day")}`, "gold"]; }
   return ["Gone home", ""];
@@ -117,8 +118,8 @@ function paintList(){
     return `<button class="tag fam" data-h="${h.id}" style="border-left:5px solid ${h.colour}">
       <div class="hd">${badge(h.id)}<h3>${esc(h.name)}</h3>${h.id === mine ? '<span class="pill red">Your family</span>' : ""}</div>
       <div class="chips">${h.members.map(p => `<span class="chip" style="border-color:${h.colour}">${tapName(p.id)}</span>`).join("")}</div>
-      <div class="dates">${esc(fmtShort(h.arrive))} <b>→</b> ${esc(fmtShort(h.leave))} <span class="mono muted">· ${pl(n, "night")}</span></div>
-      <div class="meta"><span class="pill ${cls}">${st}</span><span class="pill">${esc(h.stay || "Cabin")}</span>${h.site ? `<span class="pill">${!h.stay || h.stay === "Cabin" ? "Cabin" : "Site"} ${esc(h.site)}</span>` : ""}</div>
+      ${atCamp(h) ? `<div class="dates">${esc(fmtShort(h.arrive))} <b>→</b> ${esc(fmtShort(h.leave))} <span class="mono muted">· ${pl(n, "night")}</span></div>` : ""}
+      <div class="meta"><span class="pill ${cls}">${st}</span>${atCamp(h) ? `<span class="pill">${esc(h.stay || "Cabin")}</span>` : ""}${h.site ? `<span class="pill">${!h.stay || h.stay === "Cabin" ? "Cabin" : "Site"} ${esc(h.site)}</span>` : ""}</div>
       ${h.note ? `<p class="note">📝 ${esc(h.note)}</p>` : ""}</button>`;
   };
   // grouped by surname — your surname first, your family at the top of it
@@ -128,9 +129,9 @@ function paintList(){
     groups.map(g => `<h3 class="surname">${esc(g.surname)}</h3>` + g.list.map(card).join("")).join("")
     : `<div class="empty">Nobody's booked in for that day.</div>`;
   $("list").querySelectorAll(".fam").forEach(b => b.onclick = () => edit(b.dataset.h));
-  const all2 = households(), cab = all2.filter(h => h.stay === "Cabin").length, car = all2.filter(h => h.stay === "Caravan").length;
+  const all2 = households().filter(atCamp), away = households().length - all2.length, cab = all2.filter(h => h.stay === "Cabin").length, car = all2.filter(h => h.stay === "Caravan").length;
   const other = all2.length - cab - car;
-  $("sum").innerHTML = `<b>${ppl}</b> people in <b>${all2.length}</b> families — <b>${cab}</b> cabin${cab === 1 ? "" : "s"}, <b>${car}</b> caravan${car === 1 ? "" : "s"}${other > 0 ? `, ${other} other` : ""}`;
+  $("sum").innerHTML = `<b>${all2.reduce((n, h) => n + h.members.length, 0)}</b> people in <b>${all2.length}</b> families — <b>${cab}</b> cabin${cab === 1 ? "" : "s"}, <b>${car}</b> caravan${car === 1 ? "" : "s"}${other > 0 ? `, ${other} other` : ""}${away ? ` · ${away} famil${away === 1 ? "y" : "ies"} not coming to camp` : ""}`;
 }
 
 function paintCamp(){
@@ -143,7 +144,7 @@ function edit(id){
   const sh = openSheet(`<h3>${esc(h.name)}</h3>
     <div class="row"><div><label class="f" for="ar">Arrive</label><input class="in" type="date" id="ar" value="${esc(h.arrive)}"></div>
     <div><label class="f" for="lv">Leave</label><input class="in" type="date" id="lv" value="${esc(h.leave)}"></div></div>
-    <label class="f">Staying in</label><div class="opts" id="opts">${["Cabin","Caravan","Tent","Other"].map(o => `<button type="button" class="${o === stay ? "on" : ""}" data-o="${o}">${o}</button>`).join("")}</div>
+    <label class="f">Staying in</label><div class="opts" id="opts">${["Cabin","Caravan","Tent","Other","Not coming"].map(o => `<button type="button" class="${o === stay ? "on" : ""}" data-o="${o}">${o}</button>`).join("")}</div>
     <label class="f" for="site">Site or cabin number</label><input class="in" id="site" value="${esc(h.site || "")}" placeholder="e.g. 14">
     <label class="f" for="nt">Note</label><textarea class="in" id="nt" placeholder="Anything we should know">${esc(h.note || "")}</textarea>
     <div class="acts"><button class="btn ghost" id="no">Cancel</button><button class="btn red" id="go">Save</button></div>
@@ -154,8 +155,8 @@ function edit(id){
   q("#no").onclick = () => closeSheet();
   q("#go").onclick = async () => {
     const arrive = q("#ar").value, leave = q("#lv").value;
-    if(!arrive || !leave) return toast("Pick both dates");
-    if(leave < arrive) return toast("Leave day is before arrive day");
+    if(stay !== "Not coming" && (!arrive || !leave)) return toast("Pick both dates");
+    if(arrive && leave && leave < arrive) return toast("Leave day is before arrive day");
     closeSheet();
     try{ await saveHousehold(id, { arrive, leave, stay, site:q("#site").value.trim(), note:q("#nt").value.trim() }); toast("Saved"); }
     catch(e){ toast("Couldn't save — " + e.message); }

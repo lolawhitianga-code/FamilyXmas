@@ -233,7 +233,7 @@ function paintCountdown(){
 
 function paintCamp(){
   const s = showDay(); if(!s) return;
-  const hs = households(), here = hs.filter(h => hereOn(h, s.iso));
+  const hs = households().filter(h => h.stay !== "Not coming"), here = hs.filter(h => hereOn(h, s.iso));
   const heads = here.reduce((n, h) => n + h.members.length, 0);
   const arr = hs.filter(h => h.arrive === s.iso), lea = hs.filter(h => h.leave === s.iso);
   $("campHead").textContent = s.live ? "At camp today" : `At camp on day 1 · ${fmtLong(dayDate(trip, s.n))}`;
@@ -343,7 +343,8 @@ function paintMine(){
   /* your family */
   const famRows = [];
   const nights = hh.arrive && hh.leave ? Math.round((fromIso(hh.leave) - fromIso(hh.arrive)) / 86400000) : 0;
-  famRows.push({ g:"🏕️", text: `${fmtDay(fromIso(hh.arrive))} → ${fmtDay(fromIso(hh.leave))}`, sub: [nights + " nights", hh.stay, hh.site ? "Site " + hh.site : ""].filter(Boolean).join(" · "), href:"crew.html" });
+  if(hh.stay === "Not coming" || !hh.arrive || !hh.leave) famRows.push({ g:"🏠", text: "Not coming to camp this year", sub: "Still part of the family — chat, games and photos are all yours", href:"crew.html" });
+  else famRows.push({ g:"🏕️", text: `${fmtDay(fromIso(hh.arrive))} → ${fmtDay(fromIso(hh.leave))}`, sub: [nights + " nights", hh.stay, hh.site ? "Site " + hh.site : ""].filter(Boolean).join(" · "), href:"crew.html" });
   if(santa){ const inn = santa.in && santa.in[me.id];
     const sg = santa.state === "playing" ? "on" : santa.state === "done" ? "done" : "open";
     const got = sg === "done" && Array.isArray(santa.gifts) && santa.gifts.find(g => g.holder === me.id);

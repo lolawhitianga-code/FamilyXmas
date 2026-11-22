@@ -5,7 +5,8 @@
    extra people can be added from the front page.
    ============================================================ */
 
-/* id, family surname, the names, when they arrive and leave, cabin or caravan */
+/* id, family surname, the names, when they arrive and leave, cabin or caravan.
+   stay:"Not coming" = in the family list but not at camp (left out of camp numbers). */
 export const HOUSEHOLDS = [
   { id:"h01", surname:"Townsend",   people:["Lauren","Daisy","Brendon"],               arrive:"2026-12-21", leave:"2026-12-28", stay:"Cabin",   note:"" },
   { id:"h02", surname:"Townsend",   people:["Topsy"],                                  arrive:"2026-12-23", leave:"2026-12-28", stay:"Cabin",   note:"" },
@@ -20,7 +21,8 @@ export const HOUSEHOLDS = [
   { id:"h11", surname:"Rostron",    people:["Adam","Sunny","Jack"],                    arrive:"2026-12-23", leave:"2026-12-28", stay:"Cabin",   note:"" },
   { id:"h12", surname:"Rostron",    people:["Sally","Steve","Mila","Zara"],            arrive:"2026-12-24", leave:"2026-12-28", stay:"Caravan", note:"" },
   { id:"h13", surname:"Townsend",   people:["Shawn","Prue","Cooper","Isla","Josh"],    arrive:"2026-12-23", leave:"2026-12-28", stay:"Cabin",   note:"" },
-  { id:"h14", surname:"Townsend",   people:["Lochie","Anna"],                          arrive:"2026-12-23", leave:"2026-12-26", stay:"Cabin",   note:"Lochie is bringing dinner rolls and an activity. Here until the 26th." }
+  { id:"h14", surname:"Townsend",   people:["Lochie","Anna"],                          arrive:"2026-12-23", leave:"2026-12-26", stay:"Cabin",   note:"Lochie is bringing dinner rolls and an activity. Here until the 26th." },
+  { id:"h15", surname:"Townsend",   people:["Donald","Lisa","Dana","Lanie"],           arrive:"",           leave:"",           stay:"Not coming", note:"Not coming to Xmas camp" }
 ];
 
 /* surnames in the order they're shown. A family with no surname
@@ -29,7 +31,7 @@ export const SURNAMES = ["Townsend","Chatterton","Rostron","Richards","Langford"
 
 /* one colour per family, used for dots, bars and ladders */
 export const HH_COLOURS = ["#D8352A","#1F8A5B","#F2B33D","#1AA5B8","#FF7A59","#8E5BD0","#2C86C3",
-                           "#E77FA0","#5A9E3A","#C97A1E","#0E7C86","#B0447A","#4A6FD0","#A4563B"];
+                           "#E77FA0","#5A9E3A","#C97A1E","#0E7C86","#B0447A","#4A6FD0","#A4563B","#6B7F2A"];
 
 /* Christmas lunch — who's bringing what, from the family food list.
    Loaded into the meal roster the first time someone taps "Start with the family list". */
