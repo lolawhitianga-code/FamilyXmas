@@ -93,11 +93,12 @@ h1{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(36px,11.5vw,64px
   <button class="link hide" id="back">← Back</button>
   <button class="link hide" id="again"></button>
   <button class="link" id="notlisted">Not on the list?</button>
+  <button class="link hide" id="unlock" style="font-size:13px;opacity:.75">Organiser: let someone else use this phone</button>
   <a class="spin hide" id="spin" href="casino.html">🎰 Or just spin Lucky Lauren</a>
-  <p class="buildstamp">build x51</p>
+  <p class="buildstamp">build x52</p>
 </div>
 <script type="module">
-import { households, bySurname, people, onPeople, setMe, addPerson, me, XMAS_DAY, LUCKY_LAUREN, gameUrl, esc, noPokies, randomShot, shotY, installCard, track, musicButton } from "./app.js";
+import { households, bySurname, people, onPeople, setMe, addPerson, me, lockedTo, unlockDevice, XMAS_DAY, LUCKY_LAUREN, gameUrl, esc, noPokies, randomShot, shotY, installCard, track, musicButton } from "./app.js";
 const $ = id => document.getElementById(id);
 { const s = randomShot(), b = $("bgphoto"); b.style.setProperty("--hero", `url("${s.src}")`);
   // put the face in the top third, where the logo's see-through bits are
@@ -114,6 +115,15 @@ const plural = s => s === "More family" || s.endsWith("s") ? s : s + "s";   // T
 
 function draw(){
   const g = $("grid"), gr = bySurname().find(x => x.surname === sur);
+  $("unlock").classList.toggle("hide", !lockedTo());
+  if(lockedTo()){
+    // one person per phone: this one is already taken
+    $("ask").textContent = `This phone is ${me ? me.name : "taken"}'s`;
+    g.className = "grid"; g.innerHTML = "";
+    $("back").classList.add("hide"); $("addForm").classList.add("hide"); $("notlisted").classList.add("hide");
+    againBtn();
+    return;
+  }
   if(!gr && step !== "new") step = "fam";
   const show = (back, form, notlisted) => { $("back").classList.toggle("hide", !back); $("addForm").classList.toggle("hide", !form); $("notlisted").classList.toggle("hide", !notlisted); };
   if(step === "fam"){
@@ -143,12 +153,13 @@ function draw(){
   }
 }
 onPeople(draw);
+addEventListener("xmas-lock", draw);
 const go = s => { step = s; draw(); scrollTo(0, 0); };
 
 document.addEventListener("click", e => {
   const sb = e.target.closest("[data-sur]"); if(sb){ sur = sb.dataset.sur; go("names"); return; }
   const who = e.target.closest("[data-me]");
-  if(who){ const p = people().find(x => x.id === who.dataset.me); if(p){ setMe(p); location.href = "home.html"; } return; }
+  if(who){ const p = people().find(x => x.id === who.dataset.me); if(p && setMe(p)) location.href = "home.html"; else draw(); return; }
   if(e.target.closest("#someone")){
     // one household in the family? join it. More than one? ask who they're staying with
     const gr = bySurname().find(x => x.surname === sur);
@@ -167,11 +178,15 @@ $("notlisted").addEventListener("click", () => { sur = null; addTo = null; go("n
 $("addForm").addEventListener("submit", async e => {
   e.preventDefault();
   const name = $("addName").value.trim(); if(!name) return;
-  try{ const p = await addPerson(name, addTo); setMe(p); location.href = "home.html"; }
+  if(lockedTo()){ draw(); return; }
+  try{ const p = await addPerson(name, addTo); if(setMe(p)) location.href = "home.html"; else draw(); }
   catch(err){ $("ask").textContent = "Couldn't add you just now — " + err.message; }
 });
 
-if(me){ const b = $("again"); b.textContent = `Carry on as ${me.name} →`; b.classList.remove("hide"); b.addEventListener("click", () => location.href = "home.html"); }
+function againBtn(){ if(!me) return; const b = $("again"); b.textContent = `Carry on as ${me.name} →`; b.classList.remove("hide"); }
+$("again").addEventListener("click", () => location.href = "home.html");
+againBtn();
+$("unlock").addEventListener("click", async () => { if(await unlockDevice()){ sur = null; addTo = null; go("fam"); } });
 /* the quick spin is only for people we already know are happy to see it */
 if(me && !noPokies()) $("spin").classList.remove("hide");
 $("spin").addEventListener("click", e => { e.currentTarget.href = gameUrl(LUCKY_LAUREN); });

@@ -129,7 +129,14 @@ export const badge = id => { const c = (String(id).includes("-") ? person(id) : 
 export let me = null;
 rebuildPeople();
 { const saved = localStorage.getItem("xmas_me"); if(saved) me = _people.find(p => p.id === saved) || { id:saved, name:localStorage.getItem("xmas_me_name") || "You", label:localStorage.getItem("xmas_me_name") || "You", hh:localStorage.getItem("xmas_me_hh") || "", colour:"#3E5A63" }; }
-export function setMe(p){ me = p; localStorage.setItem("xmas_me", p.id); localStorage.setItem("xmas_me_name", p.name); localStorage.setItem("xmas_me_hh", p.hh); }
+function rememberMe(p){ me = p; localStorage.setItem("xmas_me", p.id); localStorage.setItem("xmas_me_name", p.name); localStorage.setItem("xmas_me_hh", p.hh || ""); }
+/** Sign in as p on this device. Refused (false) if this device is locked to someone else — see DEVICE LOCK. */
+export function setMe(p){
+  if(_lock && p.id !== _lock) return false;
+  rememberMe(p);
+  if(_lockState === "free") lockDevice(p.id);
+  return true;
+}
 export const myHousehold = () => household(me ? me.hh : "");
 
 /* ============================================================
@@ -204,6 +211,12 @@ export function col(name){
       if(!c){ lwrite(name, lread(name).filter(i => i.id !== id)); lpush(name); return; }
       return withTimeout(c.fs.deleteDoc(c.fs.doc(c.db, full, id)));
     },
+    async where(field, value){   // the rows where field == value, read once
+      const c = await cloud();
+      if(!c) return lread(name).filter(r => r[field] === value);
+      const snap = await withTimeout(c.fs.getDocs(c.fs.query(c.fs.collection(c.db, full), c.fs.where(field, "==", value))));
+      return snap.docs.map(d => ({ id:d.id, ...d.data() }));
+    },
     async get(id){      // one document, or null
       const c = await cloud();
       if(!c) return lread(name).find(i => i.id === id) || null;
@@ -266,6 +279,68 @@ export function askPin(why = "This bit is for the organisers."){
   });
 }
 export const setPin = pin => settings("admin").save({ pin:String(pin) });
+
+/* ============================================================
+   DEVICE LOCK — one person per phone. The first person to pick
+   their name on a device keeps it: nobody else can sign in on it.
+   Devices that were already used by more than one person go to
+   whoever has had the site on screen the longest there (from the
+   VISITS records, most seconds wins, then most page views).
+   Kept in settings "locks": { <device id>: <person id> }.
+   "" means an organiser has freed the device: the next name
+   picked on it locks it again. Also kept on the phone (xmas_lock)
+   so it holds when offline and before the cloud answers.
+   ============================================================ */
+let _lock = localStorage.getItem("xmas_lock") || "";
+let _lockState = _lock ? "locked" : "unknown";      // unknown → free | locked
+/** The person id this device is locked to, or "". */
+export const lockedTo = () => _lock;
+function applyLock(who){
+  _lock = who || ""; _lockState = _lock ? "locked" : "free";
+  try{ _lock ? localStorage.setItem("xmas_lock", _lock) : localStorage.removeItem("xmas_lock"); }catch(e){}
+  if(_lock && (!me || me.id !== _lock)){
+    const was = me;
+    rememberMe(_people.find(p => p.id === _lock) || { id:_lock, name:"You", label:"You", hh:"", colour:"#3E5A63" });
+    // someone else was signed in on this page: start it again as the right person
+    if(was){ try{ sessionStorage.setItem("xmas_lock_note", "1"); }catch(e){} location.reload(); return; }
+  }
+  dispatchEvent(new Event("xmas-lock"));
+}
+function lockDevice(who){
+  applyLock(who);
+  settings("locks").save({ [deviceId()]: who }).catch(() => {});
+}
+/** Organiser only: let someone else sign in on this device. The next name picked locks it again. */
+export async function unlockDevice(){
+  if(!(await askPin("Let someone else sign in on this phone."))) return false;
+  await settings("locks").save({ [deviceId()]: "" }).catch(() => {});
+  applyLock("");
+  return true;
+}
+/* if this phone already knows its person, be them straight away */
+if(_lock && me && me.id !== _lock) rememberMe(_people.find(p => p.id === _lock) || { id:_lock, name:"You", label:"You", hh:"", colour:"#3E5A63" });
+let _lockChecking = false;
+settings("locks").subscribe(l => {
+  const dev = deviceId();
+  if(l && dev in l){ if((l[dev] || "") !== _lock || _lockState === "unknown") applyLock(l[dev]); return; }
+  if(_lockState !== "unknown" || _lockChecking) return;
+  _lockChecking = true;
+  (async () => {
+    // no entry yet: lock it to whoever has used this device the most
+    const vs = (await col("visits").where("dev", dev)).filter(v => v.who), tally = {};
+    vs.forEach(v => { const t = tally[v.who] = tally[v.who] || { secs:0, views:0 }; t.secs += v.secs || 0; t.views += v.views || 0; });
+    const best = Object.entries(tally).sort((a, b) => b[1].secs - a[1].secs || b[1].views - a[1].views)[0];
+    const who = best ? best[0] : me ? me.id : "";
+    const now = await col("settings").get("locks");       // look again, straight from the cloud, before writing
+    if(now && dev in now){ applyLock(now[dev]); return; }
+    if(who) lockDevice(who); else applyLock("");
+  })().catch(e => {
+    // couldn't read the visits: lock to whoever is signed in now, or to the next name picked
+    console.warn("device lock check didn't go through:", e && e.message);
+    if(_lockState === "unknown") me ? lockDevice(me.id) : applyLock("");
+  })
+      .finally(() => { _lockChecking = false; });
+});
 
 /* ============================================================
    GOLD STARS — the show happens first, the score is written after
@@ -1786,6 +1861,8 @@ export function musicButton(){
 /** Every page calls this first. Sends you to the front page if we don't know who you are. */
 export function boot(page){
   if(!me){ location.replace("index.html"); return false; }
+  if(sessionStorage.getItem("xmas_lock_note")){ sessionStorage.removeItem("xmas_lock_note");
+    setTimeout(() => toast(`This phone is ${me.name}'s now — one person per phone.`, 4200), 600); }
   const quiet = noPokies();
   if(quiet && page === "casino.html"){ location.replace("home.html"); return false; }
   {   // one rule hides anything pokie-shaped the moment someone opts out
