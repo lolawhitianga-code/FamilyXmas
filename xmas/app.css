@@ -231,20 +231,34 @@ label.fab{display:grid;place-items:center;position:fixed}
 .chatn{position:absolute;top:-3px;left:calc(50% + 6px);min-width:17px;height:17px;padding:0 4px;border-radius:999px;background:var(--red);color:#fff;
   font-family:'Outfit',sans-serif;font-style:normal;font-size:10.5px;font-weight:700;line-height:17px;letter-spacing:0;box-shadow:0 0 0 2px var(--sand)}
 .nav a[href="chat.html"]{color:var(--ink);font-weight:500}
-/* "Kay sent you a message" — pops up at the top of any page */
-.chatpop{position:fixed;left:50%;top:calc(10px + env(safe-area-inset-top));transform:translateX(-50%);z-index:96;width:min(92vw,420px);
-  display:flex;flex-direction:column;gap:2px;text-align:left;border:0;border-left:5px solid var(--red);border-radius:14px;padding:10px 14px;
-  background:#fff;color:var(--ink);box-shadow:0 14px 34px -12px rgba(18,48,59,.6);animation:chatpop-in .3s cubic-bezier(.2,1.3,.4,1)}
-.chatpop span{font-size:14px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-@keyframes chatpop-in{from{transform:translate(-50%,-30px);opacity:0}}
+/* when there's a direct message waiting: the nav's Chat button goes red and the count throbs */
+.nav a.dmhot{color:var(--red);font-weight:700}
+.chatn.dmhot{min-width:21px;height:21px;line-height:21px;font-size:12px;top:-6px;animation:dm-throb 1.2s ease-in-out infinite}
+@keyframes dm-throb{50%{transform:scale(1.25);box-shadow:0 0 0 2px var(--sand),0 0 0 7px rgba(216,53,42,.25)}}
+/* "Sam sent you a message" — a big red bar across the top of every page until you read it */
+.chatpop{position:fixed;left:50%;top:calc(8px + env(safe-area-inset-top));transform:translateX(-50%);z-index:72;width:min(94vw,460px);
+  display:flex;align-items:center;gap:10px;text-align:left;border:2px solid #fff;border-radius:18px;padding:11px 12px 11px 14px;cursor:pointer;
+  background:linear-gradient(110deg,#B3261E,#D8352A 60%,#E8553F);color:#fff;box-shadow:0 16px 36px -10px rgba(120,20,15,.65);
+  animation:chatpop-in .35s cubic-bezier(.2,1.3,.4,1);-webkit-tap-highlight-color:transparent}
+.chatpop .ic{flex:none;font-size:30px;line-height:1;animation:dm-wiggle 2.4s ease-in-out infinite}
+.chatpop .t{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.chatpop b{font-family:'Fraunces',serif;font-weight:900;font-size:17px;line-height:1.2}
+.chatpop small{font-size:12.5px;opacity:.9}
+.chatpop .q{font-size:14.5px;opacity:.95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chatpop .go{flex:none;background:#fff;color:var(--red);font-weight:700;font-size:14px;border-radius:999px;padding:8px 13px}
+.chatpop .x{flex:none;background:none;border:0;color:#fff;opacity:.75;font-size:24px;line-height:1;padding:2px 2px 4px;margin-left:-4px;cursor:pointer}
+.chatpop.shake{animation:dm-shake .6s ease}
+@keyframes chatpop-in{from{transform:translate(-50%,-40px);opacity:0}}
+@keyframes dm-wiggle{0%,70%,100%{transform:rotate(0)}76%{transform:rotate(-14deg)}84%{transform:rotate(12deg)}92%{transform:rotate(-6deg)}}
+@keyframes dm-shake{20%{transform:translate(calc(-50% - 9px),0)}40%{transform:translate(calc(-50% + 9px),0)}60%{transform:translate(calc(-50% - 5px),0)}80%{transform:translate(calc(-50% + 5px),0)}}
 /* bubbles */
 .msg{display:flex;flex-direction:column;align-items:flex-start;margin:0 0 8px;scroll-margin-bottom:110px}
 .msg.me{align-items:flex-end}
 .msg .from{display:flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;margin:6px 0 2px 4px}
-.msg .bub{max-width:82%;background:#fff;border:1px solid var(--line);border-radius:16px 16px 16px 5px;padding:8px 12px;
-  font-size:15.5px;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:0 1px 0 rgba(18,48,59,.06)}
-.msg.me .bub{background:var(--green);border-color:var(--green);color:#fff;border-radius:16px 16px 5px 16px}
-.msg .at{font-family:'DM Mono',monospace;font-size:9.5px;color:var(--ink-soft);opacity:.7;margin:2px 6px 0}
+.msg .bub{max-width:84%;background:#fff;border:1.5px solid var(--line);border-radius:18px 18px 18px 5px;padding:10px 14px;
+  font-size:17px;line-height:1.35;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:0 2px 6px -2px rgba(18,48,59,.18)}
+.msg.me .bub{background:var(--green);border-color:var(--green);color:#fff;border-radius:18px 18px 5px 18px}
+.msg .at{font-family:'DM Mono',monospace;font-size:10.5px;color:var(--ink-soft);opacity:.7;margin:2px 6px 0}
 /* the message box */
 .composer{display:flex;gap:8px;align-items:flex-end}
 .composer textarea.in{min-height:44px;max-height:130px;resize:none;border-radius:22px;padding:10px 14px;line-height:1.35}

@@ -1,7 +1,7 @@
 /* Christmas at Bateau Bay — offline shell.
    Bump CACHE when you change a page and want everyone to pick it up. */
 
-const CACHE = "xmas-x58";
+const CACHE = "xmas-x59";
 
 const SHELL = [
   "./", "./index.html", "./home.html", "./fun.html", "./crew.html", "./planner.html", "./places.html", "./food.html", "./shopping.html",
@@ -59,5 +59,18 @@ self.addEventListener("fetch", e => {
       if (res.ok && keep) (await caches.open(CACHE)).put(req, res.clone());
       return res;
     } catch (err) { return Response.error(); }
+  })());
+});
+
+
+// tap a "✉️ Sam" message notification: open that chat (in the app if it's already open)
+self.addEventListener("notificationclick", e => {
+  e.notification.close();
+  const url = new URL((e.notification.data && e.notification.data.url) || "chat.html", self.registration.scope).href;
+  e.waitUntil((async () => {
+    const wins = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    const w = wins.find(c => c.url.startsWith(self.registration.scope));
+    if (w) { try { await w.navigate(url); } catch (err) {} return w.focus(); }
+    return self.clients.openWindow(url);
   })());
 });

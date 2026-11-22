@@ -101,6 +101,8 @@ body.mine #full, body.mine .pokiebar, body.mine .pokiefloat, body.mine #quiet{di
 .chatcard .t b{display:block;font-family:'Fraunces',serif;font-weight:900;font-size:19px;line-height:1.15}
 .chatcard .t span{display:block;font-size:13.5px;opacity:.92;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
 .chatcard .n{flex:none;background:var(--red);color:#fff;font-weight:700;font-size:13px;border-radius:999px;padding:3px 9px;box-shadow:0 0 0 2px #fff}
+.chatcard.hot{background:linear-gradient(110deg,#B3261E,#D8352A 60%,#E8553F);box-shadow:0 10px 26px -10px rgba(150,30,20,.75)}
+.chatcard.hot .go{color:var(--red)}
 .chatcard .go{flex:none;background:#fff;color:var(--green);font-weight:700;font-size:13px;border-radius:999px;padding:7px 12px}
 .mcard{background:#fff;border:1px solid var(--line);border-radius:16px;padding:2px 14px;box-shadow:var(--shadow)}
 </style>
@@ -167,7 +169,7 @@ body.mine #full, body.mine .pokiebar, body.mine .pokiefloat, body.mine #quiet{di
 <script type="module">
 import { boot, me, SLOTS, col, watchTrip, heroFromWall, tripDayToday, dayDate, fmtLong, isoDate, todayIso, XMAS_DAY,
          households, people, household, onPeople, hereOn, pname, esc, isMuted, setMuted, badge, noPokies, noPokiesFixed, setNoPokies, toast, settings, aud, fmtDay, fromIso, installCard, addToHomeScreen, onHomeScreen, isKay, addBabyPhotos, sosWatch,
-         onChat, chatRows, chatUnreadAll, dmOther, CHAT_ALL,
+         onChat, chatRows, chatUnreadAll, dmUnread, dmOther, CHAT_ALL,
          SHOWCASE, showcaseApp, showcaseOn, showcaseSettings, saveShowcase, campDay, askPin, openSheet, closeSheet } from "./app.js";
 
 if(boot("home.html")){
@@ -178,6 +180,14 @@ onChat(() => {              // 💬 the latest message and how many you haven't 
   const rows = chatRows(), m = rows[rows.length - 1], n = chatUnreadAll();
   $("chatN").textContent = n > 99 ? "99+" : n; $("chatN").classList.toggle("hide", !n);
   if(m) $("chatLast").textContent = (m.by === me.id ? "You" : pname(m.by)) + (m.room === CHAT_ALL ? "" : m.by === me.id ? " → " + pname(dmOther(m.room)) : " → you") + ": " + m.text;
+  // a direct message waiting for you: the card goes red and says who from
+  const dms = dmUnread(), d = dms[dms.length - 1], from = new Set(dms.map(x => x.by));
+  $("chatCard").classList.toggle("hot", !!d);
+  $("chatCard").href = d ? "chat.html?with=" + encodeURIComponent(d.by) : "chat.html";
+  $("chatCard").querySelector(".g").textContent = d ? "✉️" : "💬";
+  $("chatCard").querySelector(".t b").textContent = !d ? "Family chat" : from.size === 1 ? `${pname(d.by)} sent you a message` : `${dms.length} new messages for you`;
+  if(d) $("chatLast").textContent = pname(d.by) + ": " + d.text;
+  $("chatCard").querySelector(".go").textContent = d ? "Read →" : "Open →";
 });
 $("hi").textContent = `Merry Christmas, ${me.name}`;
 

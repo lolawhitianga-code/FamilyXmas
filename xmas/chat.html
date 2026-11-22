@@ -23,6 +23,11 @@
 .rooms .chip{flex:none;padding:8px 13px;font-size:14px;font-family:inherit;position:relative}
 .rooms .chip .n{background:var(--red);color:#fff;border-radius:999px;font-size:11px;font-weight:700;padding:0 6px;line-height:17px}
 .rooms .chip.on .n{background:#fff;color:var(--red)}
+.rooms .chip.hot{background:var(--red);border-color:var(--red);color:#fff;font-weight:700;animation:dm-throb 1.2s ease-in-out infinite}
+.rooms .chip.hot .n{background:#fff;color:var(--red)}
+.alertson{display:flex;align-items:center;gap:10px;margin:0 0 12px;padding:10px 12px;border-radius:14px;background:#fff;border:1.5px dashed var(--red);font-size:14px}
+.alertson span{flex:1}
+.alertson .btn{flex:none;padding:8px 14px;font-size:14px}
 .rooms .chip.new{border-style:dashed;color:var(--red);font-weight:600}
 .room h2.sec{display:flex;align-items:center;gap:6px}
 .log{min-height:30vh;padding-bottom:6px}
@@ -44,17 +49,18 @@ main{padding-bottom:84px}
 </header>
 
 <main>
+  <div class="alertson hide" id="alerts"><span>🔔 <b>Get a buzz on your phone</b> when someone messages you, even with the app in the background.</span><button class="btn red" id="alertsOn">Turn on</button></div>
   <div class="rooms" id="rooms"></div>
   <div class="room"><h2 class="sec" id="title">Everyone</h2>
   <div class="log" id="log"><div class="empty">Loading…</div></div></div>
-  <p class="buildstamp">build x50</p>
+  <p class="buildstamp">build x51</p>
 </main>
 <div class="chatbar" id="bar"><form class="composer" id="form"><textarea class="in" id="text" rows="1" maxlength="1000" placeholder="Message everyone…"></textarea>
   <button class="btn red">Send</button></form></div>
 
 <script type="module">
 import { boot, me, onPeople, onChat, chatRows, chatUnread, chatSeen, chatViewing, chatBubbles, chatForm, deleteChat, dmRoom, dmOther,
-         CHAT_ALL, households, person, pname, badge, esc, toast, openSheet, closeSheet } from "./app.js";
+         CHAT_ALL, dmAlertsState, askDmAlerts, households, person, pname, badge, esc, toast, openSheet, closeSheet } from "./app.js";
 
 if(boot("chat.html")){
 const $ = id => document.getElementById(id);
@@ -80,7 +86,8 @@ function paint(){
   if(room !== CHAT_ALL && !(room in last)) last[room] = Date.now();
   const dms = Object.keys(last).sort((a, b) => last[b] - last[a]);
   const n = r => { const u = r === room ? 0 : chatUnread(r); return u ? ` <span class="n">${u}</span>` : ""; };
-  $("rooms").innerHTML = [CHAT_ALL, ...dms].map(r => `<button class="chip${r === room ? " on" : ""}" data-room="${esc(r)}">${r === CHAT_ALL ? "" : badge(dmOther(r))}${esc(roomName(r))}${n(r)}</button>`).join("")
+  const hot = r => r !== CHAT_ALL && r !== room && chatUnread(r) > 0;
+  $("rooms").innerHTML = [CHAT_ALL, ...dms].map(r => `<button class="chip${r === room ? " on" : ""}${hot(r) ? " hot" : ""}" data-room="${esc(r)}">${r === CHAT_ALL ? "" : badge(dmOther(r))}${esc(roomName(r))}${n(r)}</button>`).join("")
     + `<button class="chip new" id="new">✉️ New message</button>`;
   const other = dmOther(room);
   $("title").innerHTML = room === CHAT_ALL ? "Everyone · the whole family" : `${badge(other)} Just you &amp; ${esc(pname(other))}`;
@@ -126,6 +133,11 @@ function pickPerson(){
 }
 
 chatForm($("form"), $("text"), () => room);
+/* 🔔 phone notifications for direct messages — one tap to turn on */
+const alertsCard = () => $("alerts").classList.toggle("hide", dmAlertsState() !== "ask");
+alertsCard();
+$("alertsOn").onclick = async () => { const s = await askDmAlerts(); alertsCard();
+  toast(s === "on" ? "Done — you'll get a buzz when someone messages you" : "No worries — you'll still see the red bar in the app"); };
 document.addEventListener("visibilitychange", () => { if(!document.hidden) paint(); });
 onPeople(() => { if(painted) paint(); });
 onChat(paint);

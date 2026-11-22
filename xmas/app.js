@@ -783,28 +783,81 @@ function watchChat(){
   if(_chatOn) return; _chatOn = true;
   col("chat").subscribe(rows => {
     _chat = rows.filter(chatMine).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+    let fresh = [];
     if(!_chatFirst){
-      // a new direct message for me, while I'm somewhere else — pop it up
-      const fresh = _chat.filter(m => !_chatKnown.has(m.id) && m.room !== CHAT_ALL && m.by !== (me && me.id) && m.room !== _openRoom
-                                     && Date.now() - (m.createdAt || 0) < 120000);
-      if(fresh.length) chatPop(fresh[fresh.length - 1]);
+      // a new direct message for me, while I'm somewhere else — make some noise
+      fresh = _chat.filter(m => !_chatKnown.has(m.id) && m.room !== CHAT_ALL && m.by !== (me && me.id) && m.room !== _openRoom
+                               && Date.now() - (m.createdAt || 0) < 120000);
     }
     _chat.forEach(m => _chatKnown.add(m.id)); _chatFirst = false;
     paintChatBadge();
+    if(fresh.length) dmBuzz(fresh[fresh.length - 1]);
     _chatSubs.forEach(cb => cb());
   });
 }
+/** Direct messages to me I haven't read yet, oldest first. */
+export const dmUnread = () => _chat.filter(m => m.room !== CHAT_ALL && m.by !== (me && me.id) && (m.createdAt || 0) > chatSeenAt(m.room));
+const _title = document.title;
 function paintChatBadge(){
-  const n = chatUnreadAll();
-  document.querySelectorAll(".chatn").forEach(b => { b.textContent = n > 99 ? "99+" : String(n); b.classList.toggle("hide", !n); });
+  const n = chatUnreadAll(), dms = dmUnread();
+  document.querySelectorAll(".chatn").forEach(b => { b.textContent = n > 99 ? "99+" : String(n); b.classList.toggle("hide", !n); b.classList.toggle("dmhot", !!dms.length); });
+  document.querySelectorAll('.nav a[href="chat.html"]').forEach(a => a.classList.toggle("dmhot", !!dms.length));
+  document.title = (n ? `(${n}) ` : "") + _title;
+  try{ if(navigator.setAppBadge){ n ? navigator.setAppBadge(n) : navigator.clearAppBadge(); } }catch(e){}
+  dmAlert(dms);
 }
-function chatPop(m){
-  document.getElementById("chatpop")?.remove();
-  const el = document.createElement("button"); el.id = "chatpop"; el.className = "chatpop";
-  el.innerHTML = `<b>💬 ${esc(pname(m.by))}</b><span>${esc(m.text)}</span>`;
-  el.onclick = () => { el.remove(); openDm(m.by); };
-  document.body.appendChild(el);
-  setTimeout(() => el.remove(), 7000);
+
+/* ✉️ The big red "Sam sent you a message" bar at the top of every page. It stays until you read it
+   (or tap × — then it waits for the next new one). */
+const _dmHideKey = () => "xmas_dm_hidden_" + (me ? me.id : "");
+function dmAlert(dms){
+  dms = dms.filter(m => m.room !== _openRoom);
+  const newest = dms.length ? dms[dms.length - 1] : null;
+  let el = document.getElementById("chatpop");
+  const hiddenAt = +(sessionStorage.getItem(_dmHideKey()) || 0);
+  if(!newest || !document.querySelector("nav.nav") || (newest.createdAt || 0) <= hiddenAt){ el && el.remove(); return; }
+  if(!el){
+    el = document.createElement("div"); el.id = "chatpop"; el.className = "chatpop"; el.setAttribute("role", "alert");
+    document.body.appendChild(el);
+    el.addEventListener("click", e => {
+      if(e.target.closest(".x")){ try{ sessionStorage.setItem(_dmHideKey(), String(+el.dataset.at || Date.now())); }catch(err){} el.remove(); return; }
+      const who = el.dataset.by; if(!who) return;
+      if(/chat\.html$/.test(location.pathname)) location.href = "chat.html?with=" + encodeURIComponent(who);
+      else { el.remove(); openDm(who); }
+    });
+  }
+  const from = [...new Set(dms.map(m => m.by))].reverse(), one = from.length === 1;
+  const head = one ? `${esc(pname(newest.by))} sent you ${dms.length === 1 ? "a message" : dms.length + " messages"}`
+                   : `${dms.length} new messages for you`;
+  el.dataset.by = newest.by; el.dataset.at = String(newest.createdAt || Date.now());
+  el.innerHTML = `<span class="ic">✉️</span><span class="t"><b>${head}</b>${one ? "" : `<small>From ${esc(from.map(pname).join(", "))}</small>`}
+    <span class="q">${one ? "" : esc(pname(newest.by)) + ": "}“${esc(newest.text)}”</span></span><span class="go">Read →</span>
+    <button class="x" aria-label="Hide for now">×</button>`;
+}
+/* a new one just came in: shake the bar, buzz the phone, a little ding — and a phone notification if the app's in the background */
+function dmBuzz(m){
+  const el = document.getElementById("chatpop");
+  if(el){ el.classList.remove("shake"); void el.offsetWidth; el.classList.add("shake"); }
+  try{ navigator.vibrate && navigator.vibrate([180, 90, 180]); }catch(e){}
+  const c = _actx();
+  if(c){ const t = c.currentTime + 0.02; _note(c, 880, t, 0.25, 0.14, "sine"); _note(c, 1318.5, t + 0.13, 0.4, 0.14, "sine"); }
+  if(document.hidden) sysNotify(m);
+}
+/** Can this phone show message notifications, and has the person said yes? "on" | "off" | "ask" | "" (not possible) */
+export const dmAlertsState = () => !("Notification" in window) ? "" : Notification.permission === "granted" ? "on" : Notification.permission === "denied" ? "off" : "ask";
+export async function askDmAlerts(){
+  if(!("Notification" in window)) return "";
+  try{ await Notification.requestPermission(); }catch(e){}
+  return dmAlertsState();
+}
+async function sysNotify(m){
+  if(dmAlertsState() !== "on") return;
+  const title = `✉️ ${pname(m.by)}`, opts = { body: m.text, tag: "xmas-" + m.room, renotify: true, icon: "icon-192.png", badge: "icon-192.png",
+    vibrate: [180, 90, 180], data: { url: "chat.html?with=" + encodeURIComponent(m.by) } };
+  try{
+    const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration();
+    if(reg) await reg.showNotification(title, opts); else new Notification(title, opts);
+  }catch(e){}
 }
 
 export const chatTime = t => { if(!t) return ""; const d = new Date(t), now = new Date();
@@ -1784,7 +1837,7 @@ function paintShowcase(force = false){
     nav.appendChild(n);
   }
   const main = document.querySelector("main");
-  if(main && !own){
+  if(main && !own && page !== "chat.html"){     // not on Chat — the messages get the room
     const pick = () => a.leads[Math.floor(Math.random() * a.leads.length)];
     // the headline strip up top (for the pokies: the family machine); a second one at the bottom
     const top = a.id === "pokies" ? showBar(a, "🎰 The family machine", LUCKY_LAUREN) : showBar(a, `${a.icon} Today's pick`), first = main.firstElementChild;
