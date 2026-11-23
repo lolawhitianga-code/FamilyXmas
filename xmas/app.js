@@ -1374,6 +1374,29 @@ export async function shuffleBabies(list){
   await Promise.all(list.map((b, i) => col("babies").update(b.id, { n: ns[i] })));
   return Object.fromEntries(list.map((b, i) => [b.id, ns[i]]));
 }
+/** One-off: mix up the photos that were already up before uploads shuffled themselves (Nov 2026).
+ *  The first phone to open the site does it, inside one transaction, so two phones can't both shuffle
+ *  or leave it half done. settings/babyshuffle {once1} marks it done. */
+async function babyShuffleOnce(){
+  if(localStorage.getItem("xmas_bshuf1")) return;
+  const c = await cloud(); if(!c) return;
+  const { fs, db } = c, flag = fs.doc(db, "xmas_settings", "babyshuffle");
+  try{
+    const pre = await withTimeout(fs.getDoc(flag));
+    if(pre.exists() && pre.data().once1){ localStorage.setItem("xmas_bshuf1", "1"); return; }
+    const list = await withTimeout(fs.getDocs(fs.collection(db, "xmas_babies")));
+    const refs = list.docs.map(d => d.ref);
+    await withTimeout(fs.runTransaction(db, async t => {
+      const f = await t.get(flag); if(f.exists() && f.data().once1) return;
+      const snaps = await Promise.all(refs.map(r => t.get(r))), live = snaps.filter(x => x.exists());
+      const ns = live.map((_, i) => i + 1);
+      for(let i = ns.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [ns[i], ns[j]] = [ns[j], ns[i]]; }
+      live.forEach((x, i) => t.update(x.ref, { n: ns[i] }));
+      t.set(flag, { once1: Date.now(), by: me ? me.id : null, count: live.length }, { merge: true });
+    }), 15000);
+    localStorage.setItem("xmas_bshuf1", "1");
+  }catch(e){ /* try again next page load */ }
+}
 /** Kay's upload: shrink each photo, save it, then shuffle all the numbers. progress(done, total, finished). */
 export async function addBabyPhotos(files, progress = () => {}){
   files = [...files]; if(!files.length) return 0;
@@ -1893,6 +1916,7 @@ export function boot(page){
   watchChat();                             // 💬 unread count on the nav, and a pop-up when someone messages you
   startShowcase(page);                     // today's app: strips, floating button and the last nav slot
   if(!quiet){ linkCasino(); setTimeout(() => raffleWin(page), 1200); } else _casinoReady = true;
+  setTimeout(babyShuffleOnce, 1500);                           // one-off mix-up of the photos already up
   if(page !== "babies.html") setTimeout(babyTopUp, 2500);      // a baby photo or two ready for the pop-ups
   promptWatch(page);
   if(page !== "traffic.html") track(page);
