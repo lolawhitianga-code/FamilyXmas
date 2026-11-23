@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12303B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Family Xmas">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Family tree · Christmas at Bateau Bay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+<style>
+.tog{display:flex;gap:8px;margin-bottom:12px}
+.tog .chip{flex:1;justify-content:center;padding:9px 6px;font-weight:600}
+.next{background:linear-gradient(160deg,#F1FAF4,#DDF2E5);border-color:#B5DDC5}
+.next b.big{display:block;font-family:'Fraunces',serif;font-size:21px;margin:2px 0 4px}
+.next .acts2{display:flex;gap:8px;margin-top:10px}
+.next .acts2 .btn{flex:1}
+/* the tree: each oldest couple gets a card, kids hang off a line underneath */
+.ft{overflow-x:auto}
+.ft h3{font-family:'Fraunces',serif;font-size:17px;margin:0 0 6px}
+.ft ul{list-style:none;margin:0;padding:0 0 0 12px}
+.ft > ul{padding-left:0}
+.ft li{position:relative;padding:5px 0 0 14px}
+.ft > ul > li{padding-left:0}
+.ft ul ul > li::before{content:'';position:absolute;left:0;top:0;bottom:0;border-left:2px solid #CFE3D6}
+.ft ul ul > li:last-child::before{bottom:auto;height:23px}
+.ft ul ul > li::after{content:'';position:absolute;left:0;top:23px;width:11px;border-top:2px solid #CFE3D6}
+.unit{display:flex;flex-wrap:wrap;align-items:center;gap:4px}
+.unit .h{color:var(--red);font-size:13px}
+.pp{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#fff;border-radius:999px;
+  padding:6px 11px;font-size:14.5px;min-height:36px;white-space:nowrap}
+.pp.me{border:2px solid var(--ink);font-weight:700}
+.pp.gone{background:#F2EEE7;color:#6B6459;border-style:dashed}
+.pp.ref{opacity:.65;font-size:13px}
+.gen{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);opacity:.75;margin-left:4px}
+.tray{display:flex;flex-wrap:wrap;gap:6px}
+.lrow{display:flex;gap:8px;align-items:center;padding:5px 0;border-top:1px dashed var(--line);font-size:14.5px}
+.lrow:first-child{border-top:0}
+.lrow .nm{flex:1}
+.lrow .pt{font-family:'DM Mono',monospace;font-size:13px}
+.relbox{background:#FFF8E6;border:1px solid #E9CF8A;border-radius:12px;padding:9px 12px;margin:6px 0 4px;font-size:15px}
+.newp{background:#fff;border:1.5px dashed var(--line);border-radius:12px;padding:6px 10px 10px;margin-top:6px}
+.sx{display:flex;gap:6px;margin-top:2px}
+.sx .chip{padding:7px 13px;font-size:14px}
+.chk{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:15px}
+.chk input{width:20px;height:20px}
+.kids{font-size:13.5px;color:var(--ink-soft);margin-top:10px}
+/* quiz */
+.qz{text-align:center;padding:18px 14px}
+.qz .q{font-family:'Fraunces',serif;font-weight:700;font-size:22px;line-height:1.25;margin:4px 0 14px}
+.qz .opts2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.qz .opts2 button{border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:12px 8px;font-size:15.5px;font-weight:500;min-height:52px}
+.qz .opts2 button.right{background:var(--green);border-color:var(--green);color:#fff}
+.qz .opts2 button.wrong{background:var(--red);border-color:var(--red);color:#fff}
+.qz .say{margin:14px 0 0;font-size:15px;min-height:22px}
+.qz .streak{font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.1em;color:var(--ink-soft);margin-top:10px}
+.big2{font-family:'Fraunces',serif;font-weight:700;font-size:21px;line-height:1.3;margin:4px 0}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="back" href="fun.html">← Games &amp; Awards</a>
+  <p class="eyebrow">Who's who · built by everyone</p>
+  <h1 class="wordmark">Family tree</h1>
+  <p class="sub" id="sub">&nbsp;</p>
+</header>
+
+<main>
+  <div class="tog">
+    <button class="chip on" data-tab="tree">🌳 The tree</button>
+    <button class="chip" data-tab="quiz">❓ Quiz</button>
+    <button class="chip" data-tab="rel">🔍 Related?</button>
+  </div>
+
+  <section id="t-tree">
+    <div class="card next" id="next"></div>
+    <button class="btn ghost wide" id="addX">＋ Add someone not in the app — great-grandparents, people who've passed away</button>
+    <h2 class="sec">The tree</h2>
+    <div id="tree"></div>
+    <h2 class="sec" id="trayH">Not on the tree yet</h2>
+    <div class="card"><div class="tray" id="tray"></div></div>
+    <h2 class="sec">Tree builders</h2>
+    <div class="card" id="board"></div>
+    <p class="small muted" style="margin:10px 4px 0">🌳 One tree for the whole family — whatever you put in, everyone sees straight away. Tap anyone to set their mum, dad and partner. Kids join up by themselves once their mum or dad is set. Got something wrong? Anyone can fix it. ⭐ 5 gold stars for each person you put on the tree for the first time.</p>
+  </section>
+
+  <section id="t-quiz" class="hide">
+    <div class="card qz" id="quiz"></div>
+    <p class="small muted" style="margin:10px 4px 0">The questions come from the family tree, so the more of the tree is filled in, the trickier it gets. A cousin's kid is your "first cousin once removed". Two kids whose parents are first cousins are "second cousins".</p>
+  </section>
+
+  <section id="t-rel" class="hide">
+    <div class="card">
+      <label class="f" for="rA">This person…</label><select class="in" id="rA"></select>
+      <label class="f" for="rB">…is what to this person?</label><select class="in" id="rB"></select>
+      <div id="relOut" style="margin-top:12px"></div>
+    </div>
+  </section>
+  <p class="buildstamp">build x72</p>
+</main>
+
+<script type="module">
+import { boot, me, col, heroFromWall, esc, toast, openSheet, closeSheet, celebrate, people, person, pname, onPeople, bySurname, uid } from "./app.js";
+
+if(boot("tree.html")){
+const $ = id => document.getElementById(id);
+heroFromWall();
+
+/* ------------------------------------------------------------
+   The data — col("tree"), one document per person.
+   App people use their own id; people who aren't in the app
+   (great-grandparents, anyone who's passed away) get "t-…" and a name.
+   { mum, dad, partner, sex:"f"|"m"|"", name, passed, by, at, placedBy, starred }
+   ------------------------------------------------------------ */
+let T = {};                         // id → doc
+const L = id => T[id] || {};
+const isX = id => String(id).startsWith("t-");
+const extras = () => Object.values(T).filter(d => isX(d.id) && d.name).sort((a, b) => a.name.localeCompare(b.name));
+const allIds = () => [...people().map(p => p.id), ...extras().map(d => d.id)];
+let _pa = null, _ps = new Set();
+const pset = () => { if(_pa !== people()){ _pa = people(); _ps = new Set(_pa.map(p => p.id)); } return _ps; };
+const exists = id => !!id && (isX(id) ? !!(T[id] && T[id].name) : pset().has(id));
+const nm = id => isX(id) ? (L(id).name || "Someone") : pname(id);
+const passed = id => !!L(id).passed;
+const nmx = id => nm(id) + (passed(id) ? " ✝" : "");
+const mum = id => exists(L(id).mum) ? L(id).mum : "";
+const dad = id => exists(L(id).dad) ? L(id).dad : "";
+const partner = id => exists(L(id).partner) ? L(id).partner : "";
+const kidsOf = id => allIds().filter(k => mum(k) === id || dad(k) === id);
+const sexOf = id => L(id).sex || (allIds().some(k => mum(k) === id) ? "f" : allIds().some(k => dad(k) === id) ? "m" : "");
+const onTree = id => !!(mum(id) || dad(id) || partner(id) || kidsOf(id).length);
+const colour = id => isX(id) ? "#9A8F80" : person(id).colour;
+const dot = id => `<span class="dot" style="background:${colour(id)}"></span>`;
+
+/* everyone below someone — so nobody ends up as their own grandad */
+function below(id){
+  const out = new Set(), todo = [id];
+  while(todo.length){ const x = todo.pop(); kidsOf(x).forEach(k => { if(!out.has(k)){ out.add(k); todo.push(k); } }); }
+  return out;
+}
+/* everyone above someone, with how many generations up (0 = themselves) */
+function above(id){
+  const d = new Map([[id, 0]]), todo = [id];
+  while(todo.length){ const x = todo.shift(); [mum(x), dad(x)].forEach(p => { if(p && !d.has(p)){ d.set(p, d.get(x) + 1); todo.push(p); } }); }
+  return d;
+}
+
+/* ------------------------------------------------------------
+   How are two people related? → { word, kind, shared:[ids] }
+   ------------------------------------------------------------ */
+const ORD = ["", "first", "second", "third", "fourth", "fifth"];
+const TIMES = ["", "once", "twice", "three times", "four times"];
+const greats = n => "great-".repeat(Math.max(0, n));
+function blood(a, b){
+  const A = above(a), B = above(b);
+  let best = null;
+  for(const [c, da] of A) if(B.has(c)){ const db = B.get(c); if(!best || da + db < best.da + best.db) best = { da, db }; }
+  if(!best) return null;
+  const { da, db } = best, s = sexOf(a);
+  const shared = [...A].filter(([c, x]) => x === da && B.get(c) === db).map(([c]) => c);
+  const g = (f, m, n) => s === "f" ? f : s === "m" ? m : n;
+  if(da === 0) return db === 1 ? { word: g("mum", "dad", "parent"), kind:"parent", shared }
+                               : { word: greats(db - 2) + g("grandmother", "grandfather", "grandparent"), kind:"up", shared };
+  if(db === 0) return da === 1 ? { word: g("daughter", "son", "child"), kind:"child", shared }
+                               : { word: greats(da - 2) + g("granddaughter", "grandson", "grandchild"), kind:"down", shared };
+  if(da === 1 && db === 1){
+    const half = mum(a) && dad(a) && mum(b) && dad(b) && (mum(a) !== mum(b) || dad(a) !== dad(b));
+    return { word: (half ? "half-" : "") + g("sister", "brother", "brother or sister"), kind:"sibling", shared };
+  }
+  if(da === 1) return { word: greats(db - 2) + g("aunty", "uncle", "aunty or uncle"), kind:"aunt", shared };
+  if(db === 1) return { word: greats(da - 2) + g("niece", "nephew", "niece or nephew"), kind:"niece", shared };
+  const deg = Math.min(da, db) - 1, rem = Math.abs(da - db);
+  return { word: (ORD[deg] || deg + "th") + " cousin" + (rem ? " " + (TIMES[rem] || rem + " times") + " removed" : ""), kind:"cousin", shared };
+}
+/** One sentence: "Flynn is Isla's first cousin." */
+function relSentence(a, b, you = false){
+  const A = you && a === me.id ? "You" : nm(a), B = you && b === me.id ? "your" : nm(b) + "'s", is = A === "You" ? "are" : "is";
+  if(a === b) return { txt: `${A === "You" ? "That's you" : "That's the same person"}!` };
+  const r = blood(a, b);
+  if(r){
+    const sh = r.shared.filter(c => c !== a && c !== b);
+    return { txt: `${A} ${is} ${B} ${r.word}.`, r, also: sh.length ? `Joined up through ${sh.map(nmx).join(" & ")}.` : "" };
+  }
+  const s = sexOf(a), g = (f, m, n) => s === "f" ? f : s === "m" ? m : n;
+  const pa = partner(a), pb = partner(b);
+  if(pa === b) return { txt: `${A} ${is} ${B} partner.` };
+  if(pb){ const r2 = blood(a, pb);
+    if(r2){
+      if(r2.kind === "parent") return { txt: `${A} ${is} ${B} ${g("mother-in-law", "father-in-law", "parent-in-law")}.` };
+      if(r2.kind === "sibling") return { txt: `${A} ${is} ${B} ${g("sister-in-law", "brother-in-law", "brother- or sister-in-law")}.` };
+      return { txt: `${A} ${is} ${B} partner ${nm(pb)}'s ${r2.word}.` };
+    } }
+  if(pa){ const r3 = blood(pa, b);
+    if(r3){
+      if(r3.kind === "sibling") return { txt: `${A} ${is} ${B} ${g("sister-in-law", "brother-in-law", "brother- or sister-in-law")}.` };
+      if(r3.kind === "parent" || r3.kind === "up") return { txt: `${A} ${is} ${B} step-${r3.word}.` };
+      return { txt: `${A} ${is} the partner of ${B} ${r3.word}, ${nm(pa)}.` };
+    } }
+  return { txt: `${A} and ${nm(b)} aren't joined up on the tree yet.`, none:true };
+}
+
+/* ------------------------------------------------------------
+   Drawing the tree: the oldest people at the top of each card,
+   their kids underneath, and so on down.
+   ------------------------------------------------------------ */
+let tab = "tree", nextUp = null;
+function chip(id, cls = ""){
+  return `<button class="pp${id === me.id ? " me" : ""}${passed(id) ? " gone" : ""}${cls ? " " + cls : ""}" data-p="${esc(id)}">${dot(id)}${esc(nmx(id))}${id === me.id ? " (you)" : ""}</button>`;
+}
+function drawTree(){
+  const ids = allIds().filter(onTree);
+  const done = new Set();
+  const count = id => below(id).size;
+  // tops: nobody above them, and their partner (if any) has nobody above either
+  const tops = ids.filter(id => !mum(id) && !dad(id) && !(partner(id) && (mum(partner(id)) || dad(partner(id)))))
+                  .sort((a, b) => (count(b) + (partner(b) ? count(partner(b)) : 0)) - (count(a) + (partner(a) ? count(partner(a)) : 0)) || nm(a).localeCompare(nm(b)));
+  const unit = (id, depth) => {
+    if(done.has(id)) return `<li><div class="unit">${chip(id, "ref")}<span class="gen">shown above</span></div></li>`;
+    done.add(id);
+    const p = partner(id); if(p) done.add(p);
+    const kids = [...new Set([...kidsOf(id), ...(p ? kidsOf(p) : [])])].sort((a, b) => count(b) - count(a) || nm(a).localeCompare(nm(b)));
+    return `<li><div class="unit">${chip(id)}${p ? `<span class="h">♥</span>${chip(p)}` : ""}</div>` +
+      (kids.length ? `<ul>${kids.map(k => unit(k, depth + 1)).join("")}</ul>` : "") + `</li>`;
+  };
+  const cards = [];
+  tops.forEach(id => {
+    if(done.has(id)) return;
+    const p = partner(id), html = unit(id, 0);
+    const big = count(id) + (p ? count(p) : 0);
+    const head = big ? `<h3>${esc(nm(id))}${p ? " & " + esc(nm(p)) : ""}'s family</h3>` : "";
+    cards.push(`<div class="card ft">${head}<ul>${html}</ul></div>`);
+  });
+  // anyone the walk above didn't reach (two people saved as each other's parent at the same moment, say)
+  ids.filter(id => !done.has(id)).forEach(id => { if(!done.has(id)) cards.push(`<div class="card ft"><ul>${unit(id, 0)}</ul></div>`); });
+  $("tree").innerHTML = cards.join("") || `<div class="card empty">Nobody on the tree yet. Start with yourself — tap your name below and pick your mum and dad.</div>`;
+
+  const off = people().filter(p => !onTree(p.id)).map(p => p.id).sort((a, b) => (b === me.id) - (a === me.id) || nm(a).localeCompare(nm(b)));
+  const offX = extras().map(d => d.id).filter(id => !onTree(id));   // added but not joined to anyone yet
+  $("tray").innerHTML = off.length || offX.length ? [...offX, ...off].map(id => chip(id)).join("") : `<span class="muted">Everyone's on the tree — well done! 🎉</span>`;
+  $("trayH").textContent = off.length + offX.length ? `Not on the tree yet · ${off.length + offX.length}` : "Not on the tree yet";
+  const inApp = people().length, placed = inApp - off.length;
+  $("sub").textContent = `${placed} of ${inApp} on the tree` + (extras().length ? ` · ${extras().length} more not in the app` : "");
+
+  // the game: who's next to place?
+  if(!nextUp || onTree(nextUp) || !off.includes(nextUp)) nextUp = off.includes(me.id) ? me.id : off[Math.floor(Math.random() * off.length)] || null;
+  $("next").innerHTML = nextUp
+    ? `<span class="small muted">${nextUp === me.id ? "Start with you" : "Next up"}</span><b class="big">Where does ${esc(nextUp === me.id ? "you" : nm(nextUp))} go?</b>
+       <span class="small">Pick ${nextUp === me.id ? "your" : "their"} mum, dad or partner — ⭐ 5 stars.</span>
+       <div class="acts2"><button class="btn green" data-p="${esc(nextUp)}">Put ${esc(nextUp === me.id ? "me" : nm(nextUp))} on the tree</button>${off.length > 1 ? `<button class="btn ghost" id="skip">Someone else</button>` : ""}</div>`
+    : `<b class="big">Everyone in the app is on the tree 🎉</b><span class="small">Keep going up — add great-grandparents with the button below, or try the quiz.</span>`;
+  if(nextUp === me.id) $("next").querySelector(".big").textContent = "Where do you go?";
+
+  // leaderboard: who put the most people on
+  const n = {};
+  Object.values(T).forEach(d => { if(d.placedBy) n[d.placedBy] = (n[d.placedBy] || 0) + 1; });
+  const rows = Object.entries(n).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  $("board").innerHTML = rows.length ? rows.map(([who, k], i) => `<div class="lrow"><span>${["🥇","🥈","🥉"][i] || "·"}</span><span class="nm">${esc(pname(who))}</span><span class="pt">${k} placed</span></div>`).join("")
+    : `<div class="empty" style="padding:10px">Nobody yet — be the first.</div>`;
+}
+
+/* ------------------------------------------------------------
+   Placing someone: mum, dad, partner, and a bit about them
+   ------------------------------------------------------------ */
+function options(skip, pick){
+  const opt = id => `<option value="${esc(id)}"${id === pick ? " selected" : ""}>${esc(nmx(id))}</option>`;
+  let h = `<option value="">— not set —</option><option value="__new">＋ Someone not in the app…</option>`;
+  const xs = extras().map(d => d.id).filter(id => !skip.has(id));
+  if(xs.length) h += `<optgroup label="Not in the app">${xs.map(opt).join("")}</optgroup>`;
+  bySurname().forEach(g => {
+    const ids = g.list.flatMap(hh => hh.members.map(m => m.id)).filter(id => !skip.has(id));
+    if(ids.length) h += `<optgroup label="${esc(g.surname)}">${ids.map(opt).join("")}</optgroup>`;
+  });
+  return h;
+}
+const newBox = k => `<div class="newp hide" id="nb-${k}"><label class="f" for="nn-${k}">Their name</label>
+  <input class="in" id="nn-${k}" maxlength="50" placeholder="e.g. Great-Nan Joan Townsend">
+  <label class="chk"><input type="checkbox" id="np-${k}"> Passed away ✝</label></div>`;
+
+const oops = msg => Object.assign(new Error(msg), { ours:true });
+function place(id){
+  const d = L(id), x = isX(id), kids = kidsOf(id);
+  const noUp = new Set([id, ...below(id)]);              // can't be your own parent or grandparent
+  let sex = d.sex || sexOf(id);
+  const rel = id !== me.id && onTree(me.id) && onTree(id) ? relSentence(id, me.id, true) : null;
+  const sh = openSheet(`<h3>${esc(id === me.id ? "You" : nmx(id))}</h3>
+    ${rel && !rel.none ? `<div class="relbox">${esc(rel.txt)}</div>` : ""}
+    ${x ? `<label class="f" for="pN">Name</label><input class="in" id="pN" maxlength="50" value="${esc(d.name || "")}">
+           <label class="chk"><input type="checkbox" id="pP"${d.passed ? " checked" : ""}> Passed away ✝</label>` : ""}
+    <label class="f">Female or male?</label>
+    <div class="sx"><button type="button" class="chip${sex === "f" ? " on" : ""}" data-sx="f">Female</button><button type="button" class="chip${sex === "m" ? " on" : ""}" data-sx="m">Male</button></div>
+    <label class="f" for="pM">Mum</label><select class="in" id="pM">${options(noUp, mum(id))}</select>${newBox("M")}
+    <label class="f" for="pD">Dad</label><select class="in" id="pD">${options(noUp, dad(id))}</select>${newBox("D")}
+    <label class="f" for="pQ">Partner (husband, wife…)</label><select class="in" id="pQ">${options(new Set([id]), partner(id))}</select>${newBox("Q")}
+    <div class="kids">${kids.length ? "Kids: " + kids.map(k => esc(nmx(k))).join(", ") : "Kids join up by themselves once you set their mum or dad."}</div>
+    ${d.by ? `<div class="kids">Last changed by ${esc(pname(d.by))}</div>` : ""}
+    <div class="acts"><button class="btn ghost" id="pNo">Cancel</button><button class="btn green" id="pGo">Save</button></div>
+    ${x ? `<button class="btn ghost wide" id="pDel" style="margin-top:10px">Take ${esc(d.name || "them")} off the tree</button>` : ""}`);
+  const el = sh.el, q = s => el.querySelector(s);
+  el.querySelectorAll("[data-sx]").forEach(b => b.onclick = () => { sex = sex === b.dataset.sx ? "" : b.dataset.sx;
+    el.querySelectorAll("[data-sx]").forEach(c => c.classList.toggle("on", c.dataset.sx === sex)); });
+  ["M", "D", "Q"].forEach(k => q("#p" + k).onchange = () => { const on = q("#p" + k).value === "__new"; q("#nb-" + k).classList.toggle("hide", !on); if(on) q("#nn-" + k).focus(); });
+  q("#pNo").onclick = () => closeSheet();
+  if(q("#pDel")) q("#pDel").onclick = async () => {
+    const b = q("#pDel"); if(!b.dataset.sure){ b.dataset.sure = "1"; b.textContent = "Really? Tap again"; return; }
+    try{
+      await Promise.all(Object.values(T).filter(o => o.mum === id || o.dad === id || o.partner === id).map(o =>
+        col("tree").set(o.id, { ...(o.mum === id ? { mum:"" } : {}), ...(o.dad === id ? { dad:"" } : {}), ...(o.partner === id ? { partner:"" } : {}) })));
+      await col("tree").remove(id); closeSheet(); toast("Taken off");
+    }catch(err){ toast("Couldn't do that — " + err.message); }
+  };
+  q("#pGo").onclick = async () => {
+    // a new person typed in? make them first
+    const pick = async (k, sx) => {
+      const v = q("#p" + k).value; if(v !== "__new") return v;
+      const name = q("#nn-" + k).value.trim(); if(!name) throw oops("Type a name for the new person");
+      const nid = "t-" + uid();
+      await col("tree").set(nid, { name, passed: q("#np-" + k).checked, sex: sx, by: me.id, at: Date.now() });
+      T[nid] = { id: nid, name, passed: q("#np-" + k).checked, sex: sx };      // so it counts before the shared copy comes back
+      return nid;
+    };
+    const btn = q("#pGo"); btn.disabled = true;
+    try{
+      if(x && !q("#pN").value.trim()) throw oops("They need a name");
+      const wasOn = onTree(id);
+      const m = await pick("M", "f"), dd = await pick("D", "m"), pq = await pick("Q", "");
+      if(m && m === dd) throw oops("Mum and dad can't be the same person");
+      const v = { mum: m, dad: dd, partner: pq, sex, by: me.id, at: Date.now() };
+      if(x){ v.name = q("#pN").value.trim(); v.passed = q("#pP").checked; }
+      const first = !wasOn && (m || dd || pq) && !d.starred;
+      if(first){ v.starred = true; v.placedBy = me.id; }
+      // partners go both ways: let go of the old ones first
+      const old = partner(id), jobs = [];
+      if(old && old !== pq && L(old).partner === id) jobs.push(col("tree").set(old, { partner:"" }));
+      if(pq){ const theirs = partner(pq); if(theirs && theirs !== id && L(theirs).partner === pq) jobs.push(col("tree").set(theirs, { partner:"" }));
+              jobs.push(col("tree").set(pq, { partner:id })); }
+      if(first) celebrate("tree");
+      await Promise.all([col("tree").set(id, v), ...jobs]);
+      closeSheet(); if(!first) toast("Saved ✓");
+    }catch(err){ toast(err.ours ? err.message : "Couldn't save — " + err.message); btn.disabled = false; }
+  };
+}
+
+function addExtra(){
+  const sh = openSheet(`<h3>Someone not in the app</h3>
+    <p class="small muted" style="margin:0 0 4px">Great-grandparents, someone who's passed away, a partner who isn't on the app. Once they're in, you can pick them as anyone's mum, dad or partner.</p>
+    <label class="f" for="xN">Name</label><input class="in" id="xN" maxlength="50" placeholder="e.g. Great-Grandad Bill Townsend">
+    <label class="chk"><input type="checkbox" id="xP"> Passed away ✝</label>
+    <label class="f">Female or male?</label>
+    <div class="sx"><button type="button" class="chip" data-sx="f">Female</button><button type="button" class="chip" data-sx="m">Male</button></div>
+    <div class="acts"><button class="btn ghost" id="xNo">Cancel</button><button class="btn green" id="xGo">Add, then place them</button></div>`);
+  const el = sh.el; let sex = "";
+  el.querySelectorAll("[data-sx]").forEach(b => b.onclick = () => { sex = sex === b.dataset.sx ? "" : b.dataset.sx;
+    el.querySelectorAll("[data-sx]").forEach(c => c.classList.toggle("on", c.dataset.sx === sex)); });
+  el.querySelector("#xNo").onclick = () => closeSheet();
+  el.querySelector("#xGo").onclick = async () => {
+    const name = el.querySelector("#xN").value.trim(); if(!name){ toast("Type their name"); return; }
+    const nid = "t-" + uid(), v = { name, passed: el.querySelector("#xP").checked, sex, by: me.id, at: Date.now() };
+    try{ T[nid] = { id: nid, ...v }; await col("tree").set(nid, v); closeSheet(); place(nid); }
+    catch(err){ delete T[nid]; toast("Couldn't add — " + err.message); }
+  };
+}
+
+/* ------------------------------------------------------------
+   Quiz: "What is Flynn to Isla?" — straight off the tree
+   ------------------------------------------------------------ */
+const WORDS = {
+  f: ["mum", "sister", "aunty", "niece", "grandmother", "granddaughter", "great-grandmother", "great-aunty", "daughter", "half-sister"],
+  m: ["dad", "brother", "uncle", "nephew", "grandfather", "grandson", "great-grandfather", "great-uncle", "son", "half-brother"],
+  n: ["first cousin", "second cousin", "first cousin once removed", "second cousin once removed", "first cousin twice removed"]
+};
+let quiz = null, streak = 0, best = +(localStorage.getItem("xmas_tree_best") || 0);
+function newQuiz(){
+  const ids = allIds().filter(onTree);
+  quiz = null;
+  for(let i = 0; i < 80 && !quiz; i++){
+    const a = Math.random() < .35 && onTree(me.id) ? me.id : ids[Math.floor(Math.random() * ids.length)];
+    const b = ids[Math.floor(Math.random() * ids.length)];
+    if(!a || !b || a === b) continue;
+    const r = blood(a, b); if(!r) continue;
+    const s = sexOf(a), pool = [...(s === "m" ? WORDS.m : s === "f" ? WORDS.f : [...WORDS.f, ...WORDS.m]), ...WORDS.n].filter(w => w !== r.word);
+    const opts = [r.word]; while(opts.length < 4 && pool.length) opts.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+    quiz = { a, b, r, opts: opts.sort(() => Math.random() - .5), done:false };
+  }
+  drawQuiz();
+}
+function drawQuiz(){
+  if(!quiz){ $("quiz").innerHTML = `<div class="big2">Not enough tree yet</div><p class="muted">Put a few more people on the tree — mums, dads, grandparents — and the questions will start.</p>
+      <button class="btn green" data-tab="tree">Go to the tree</button>`; return; }
+  const { a, b, r } = quiz, A = a === me.id ? "you" : nm(a), B = b === me.id ? "your" : nm(b) + "'s";
+  $("quiz").innerHTML = `<span class="small muted">Question</span>
+    <div class="q">${a === me.id ? "You are" : esc(nm(a)) + " is"} ${esc(B)} …</div>
+    <div class="opts2">${quiz.opts.map(o => `<button data-ans="${esc(o)}" class="${quiz.done ? (o === r.word ? "right" : o === quiz.done ? "wrong" : "") : ""}"${quiz.done ? " disabled" : ""}>${esc(o)}</button>`).join("")}</div>
+    <div class="say">${quiz.done ? (quiz.done === r.word ? "✅ Spot on!" : `❌ Not quite — ${esc(A === "you" ? "you're" : A + " is")} ${esc(B)} ${esc(r.word)}.`) + (r.shared.filter(c => c !== a && c !== b).length ? `<br><span class="small muted">Joined up through ${esc(r.shared.filter(c => c !== a && c !== b).map(nmx).join(" & "))}.</span>` : "") : ""}</div>
+    ${quiz.done ? `<button class="btn green" id="qNext" style="margin-top:12px">Next question →</button>` : ""}
+    <div class="streak">STREAK ${streak} · BEST ${best}</div>`;
+}
+
+/* ------------------------------------------------------------
+   How are we related? — pick any two
+   ------------------------------------------------------------ */
+function relPickers(){
+  const fill = (sel, pick) => { const v = sel.value || pick; sel.innerHTML = options(new Set(), v).replace(/<option value="__new">[^<]*<\/option>/, ""); sel.value = v; };
+  fill($("rA"), me.id); fill($("rB"), "");
+  relDraw();
+}
+function relDraw(){
+  const a = $("rA").value, b = $("rB").value;
+  if(!a || !b){ $("relOut").innerHTML = `<p class="muted small">Pick two people.</p>`; return; }
+  const r = relSentence(a, b, true), back = a !== b ? relSentence(b, a, true) : null;
+  $("relOut").innerHTML = `<div class="big2">${esc(r.txt)}</div>` + (back && !back.none ? `<p style="margin:4px 0">${esc(back.txt)}</p>` : "") +
+    (r.also ? `<p class="small muted" style="margin:4px 0">${esc(r.also)}</p>` : "") +
+    (r.none ? `<p class="small muted">Fill in a few more mums and dads on the tree and they'll join up.</p>` : "");
+}
+
+/* ------------------------------------------------------------ */
+function paint(){
+  drawTree();
+  if(tab === "rel") relPickers();
+  if(tab === "quiz" && !quiz) newQuiz();
+}
+col("tree").subscribe(rows => { T = {}; rows.forEach(r => { T[r.id] = r; }); paint(); });
+onPeople(paint);
+
+$("rA").onchange = relDraw; $("rB").onchange = relDraw;
+$("addX").onclick = addExtra;
+document.addEventListener("click", e => {
+  const t = e.target.closest("[data-tab]");
+  if(t){ tab = t.dataset.tab;
+    document.querySelectorAll(".tog [data-tab]").forEach(c => c.classList.toggle("on", c.dataset.tab === tab));
+    ["tree", "quiz", "rel"].forEach(k => $("t-" + k).classList.toggle("hide", k !== tab));
+    if(tab === "quiz") newQuiz(); if(tab === "rel") relPickers();
+    scrollTo(0, 0); return; }
+  const p = e.target.closest("[data-p]"); if(p){ place(p.dataset.p); return; }
+  if(e.target.closest("#skip")){ const off = people().filter(x => !onTree(x.id) && x.id !== nextUp); nextUp = off.length ? off[Math.floor(Math.random() * off.length)].id : nextUp; drawTree(); return; }
+  const an = e.target.closest("[data-ans]");
+  if(an && quiz && !quiz.done){ quiz.done = an.dataset.ans;
+    if(quiz.done === quiz.r.word){ streak++; if(streak > best){ best = streak; localStorage.setItem("xmas_tree_best", best); } } else streak = 0;
+    drawQuiz(); return; }
+  if(e.target.closest("#qNext")) newQuiz();
+});
+}
+</script>
+</body>
+</html>

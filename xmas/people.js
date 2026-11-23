@@ -22,12 +22,15 @@ export const HOUSEHOLDS = [
   { id:"h12", surname:"Rostron",    people:["Sally","Steve","Mila","Zara"],            arrive:"2026-12-24", leave:"2026-12-28", stay:"Caravan", note:"" },
   { id:"h13", surname:"Townsend",   people:["Shawn","Prue","Cooper","Isla","Josh"],    arrive:"2026-12-23", leave:"2026-12-28", stay:"Cabin",   note:"" },
   { id:"h14", surname:"Townsend",   people:["Lochie","Anna"],                          arrive:"2026-12-23", leave:"2026-12-26", stay:"Cabin",   note:"Lochie is bringing dinner rolls and an activity. Here until the 26th." },
-  { id:"h15", surname:"Townsend",   people:["Donald","Lisa","Dana","Lanie"],           arrive:"",           leave:"",           stay:"Not coming", note:"Not coming to Xmas camp" }
+  { id:"h15", surname:"Townsend",   people:["Donald","Lisa","Dana","Lanie"],           arrive:"",           leave:"",           stay:"Not coming", note:"Not coming to Xmas camp" },
+  /* Donald Townsend's grandkids with other surnames. No dates yet — change them in Who's coming if they come to camp. */
+  { id:"h16", surname:"Kaser",      people:["Flynn","Eli"],                            arrive:"",           leave:"",           stay:"Not coming", note:"Donald Townsend's grandkids" },
+  { id:"h17", surname:"Donald's grandkids", people:["Will","Josh","Bridie","Liam"],    arrive:"",           leave:"",           stay:"Not coming", note:"Donald Townsend's grandkids" }
 ];
 
 /* surnames in the order they're shown. A family with no surname
    (someone added a new family in the app) goes under "More family". */
-export const SURNAMES = ["Townsend","Chatterton","Rostron","Richards","Langford"];
+export const SURNAMES = ["Townsend","Kaser","Donald's grandkids","Chatterton","Rostron","Richards","Langford"];
 
 /* one colour per family, used for dots, bars and ladders */
 export const HH_COLOURS = ["#D8352A","#1F8A5B","#F2B33D","#1AA5B8","#FF7A59","#8E5BD0","#2C86C3",

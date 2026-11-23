@@ -63,7 +63,7 @@ export const dirLink = (to) => "https://www.google.com/maps/dir/?api=1&travelmod
 export const auDigits = p => { let d = String(p || "").replace(/\D/g, ""); if(d.startsWith("0")) d = "61" + d.slice(1); return d; };
 
 /* ============================================================
-   THE FAMILY — 15 households, 43 people (plus anyone added)
+   THE FAMILY — 17 households, 49 people (plus anyone added)
    A person is { id, name, label, hh, colour }. label is the name
    made unique ("Jack (Trudi's)") — use it wherever names sit together.
    A household is { id, name, people:[names], members:[person], arrive, leave, stay, site, note, colour }.
@@ -370,7 +370,8 @@ export const STAR = {
   guess:    [5,  "Guess in",             "Kay's keeping score"],
   checkin:  [5,  "Checked in",           "the family knows where you are"],
   song:     [3,  "Song asked for",       "turn it up"],
-  tune:     [5,  "On the playlist",      "camp tunes"]
+  tune:     [5,  "On the playlist",      "camp tunes"],
+  tree:     [5,  "On the family tree",   "the family grows"]
 };
 
 let _ac = null;
