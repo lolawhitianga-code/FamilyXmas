@@ -15,7 +15,7 @@ export const HOUSEHOLDS = [
   { id:"h05", surname:"Richards",   people:["Sam","Caprice"],                          arrive:"2026-12-23", leave:"2026-12-27", stay:"Cabin",   note:"Sam's girlfriend is coming 26th–28th" },
   { id:"h06", surname:"Rostron",    people:["Gemma","Georgia","Tayla"],                arrive:"2026-12-23", leave:"2026-12-28", stay:"Cabin",   note:"" },
   { id:"h07", surname:"Chatterton", people:["Kay","Roy","Mark"],                       arrive:"2026-12-23", leave:"2026-12-28", stay:"Cabin",   note:"" },
-  { id:"h08", surname:"Langford",   people:["Trudi","Clint","Jack","Reese"],          arrive:"2026-12-23", leave:"2026-12-30", stay:"Cabin",   note:"" },
+  { id:"h08", surname:"Langford",   people:["Trudi","Clint","Jack"],                   arrive:"2026-12-23", leave:"2026-12-30", stay:"Cabin",   note:"" },
   { id:"h09", surname:"Richards",   people:["Kristy","Jason","Nate","Charlie"],        arrive:"2026-12-23", leave:"2026-12-28", stay:"Caravan", note:"" },
   { id:"h10", surname:"Rostron",    people:["Ken","Lynda"],                            arrive:"2026-12-23", leave:"2026-12-28", stay:"Cabin",   note:"" },
   { id:"h11", surname:"Rostron",    people:["Adam","Sunny","Jack"],                    arrive:"2026-12-23", leave:"2026-12-28", stay:"Cabin",   note:"" },
@@ -25,7 +25,9 @@ export const HOUSEHOLDS = [
   { id:"h15", surname:"Townsend",   people:["Donald","Lisa","Dana","Lanie"],           arrive:"",           leave:"",           stay:"Not coming", note:"Not coming to Xmas camp" },
   /* Donald Townsend's grandkids with other surnames. No dates yet — change them in Who's coming if they come to camp. */
   { id:"h16", surname:"Kaser",      people:["Flynn","Eli"],                            arrive:"",           leave:"",           stay:"Not coming", note:"Donald Townsend's grandkids" },
-  { id:"h17", surname:"Donald's grandkids", people:["Will","Josh","Bridie","Liam"],    arrive:"",           leave:"",           stay:"Not coming", note:"Donald Townsend's grandkids" }
+  { id:"h17", surname:"Donald's grandkids", people:["Will","Josh","Bridie","Liam"],    arrive:"",           leave:"",           stay:"Not coming", note:"Donald Townsend's grandkids" },
+  /* Trudi & Clint's daughter. In the navy, so not sure yet if she can come — set her dates in Who's coming if she can. */
+  { id:"h18", surname:"Langford",   people:["Reese"],                                  arrive:"",           leave:"",           stay:"Not coming", note:"In the navy — not sure yet if she can make it" }
 ];
 
 /* surnames in the order they're shown. A family with no surname
