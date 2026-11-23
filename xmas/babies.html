@@ -66,7 +66,8 @@
       <small>Tap here, then pick the photos from your phone. You can pick lots at once.</small>
       <span class="go">Choose photos</span><small id="uplMsg"></small>
       <input type="file" id="file" class="vh-file" accept="image/*" multiple></label>
-    <p class="small muted" style="margin:8px 4px 0">They're numbered in the order you add them. Under each photo, type who the baby really is so the site can tick the right guesses — nobody else sees the answers.</p>
+    <div style="text-align:center;margin:10px 0 0"><button class="btn small ghost" id="shuffle">🔀 Shuffle the photos</button></div>
+    <p class="small muted" style="margin:8px 4px 0">They're numbered in the order you add them — tap Shuffle to mix up the numbers so brothers and sisters aren't side by side. Guesses and answers stay with their photo. Under each photo, type who the baby really is so the site can tick the right guesses — nobody else sees the answers.</p>
     <h2 class="sec">Who's guessing best</h2>
     <div class="card lb" id="board"></div>
     <h2 class="sec">The photos and the guesses</h2>
@@ -83,7 +84,7 @@
   </div>
 
   <div id="orgBar" style="text-align:center;margin-top:22px"></div>
-  <p class="buildstamp">build x51</p>
+  <p class="buildstamp">build x52</p>
 </main>
 <script type="module">
 import { boot, me, col, heroFromWall, esc, askPin, toast, lightbox, compressImage, pname, person, people, badge,
@@ -91,7 +92,7 @@ import { boot, me, col, heroFromWall, esc, askPin, toast, lightbox, compressImag
 if(boot("babies.html")){
 const $ = id => document.getElementById(id);
 heroFromWall();
-let babies = [], imgs = {}, guesses = [], answers = {}, armed = null, organiser = false, filter = "all";
+let babies = [], imgs = {}, guesses = [], answers = {}, armed = null, shuffleArmed = false, organiser = false, filter = "all";
 const canSee = () => isKay() || organiser;
 const sorted = () => [...babies].sort((a, b) => (a.n || 0) - (b.n || 0));
 /* does a guess match the answer? first names, case and spacing don't matter */
@@ -163,6 +164,16 @@ document.addEventListener("click", async e => {
   const f = e.target.closest("[data-f]"); if(f){ filter = f.dataset.f; paintKay(); return; }
   if(e.target.closest("#orgOn")){ if(await askPin("The guesses are for Kay and the organisers.")){ organiser = true; paint(); } return; }
   if(e.target.closest("#orgOff")){ organiser = false; paint(); return; }
+  if(e.target.closest("#shuffle")){ if(!canSee() || babies.length < 2) return;
+    const btn = $("shuffle");
+    if(!shuffleArmed){ shuffleArmed = true; btn.textContent = "Really shuffle? Numbers will change"; setTimeout(() => { shuffleArmed = false; btn.textContent = "🔀 Shuffle the photos"; }, 5000); return; }
+    shuffleArmed = false; btn.disabled = true; btn.textContent = "Shuffling…";
+    // new random order 1..N; guesses and answers are keyed by photo id, so they follow their photo
+    const ns = babies.map((_, i) => i + 1);
+    for(let i = ns.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [ns[i], ns[j]] = [ns[j], ns[i]]; }
+    try{ await Promise.all(babies.map((b, i) => col("babies").update(b.id, { n: ns[i] }))); toast("Shuffled ✓"); }
+    catch(err){ toast("Couldn't shuffle — " + err.message); }
+    btn.disabled = false; btn.textContent = "🔀 Shuffle the photos"; return; }
   const sv = e.target.closest("[data-save]");
   if(sv){ if(!canSee()) return; const v = document.querySelector(`[data-ans="${sv.dataset.save}"]`).value.trim();
     try{ await col("babykey").set(sv.dataset.save, { answer: v }); toast(v ? "Saved" : "Answer cleared"); }catch(err){ toast("Couldn't save — " + err.message); } return; }
