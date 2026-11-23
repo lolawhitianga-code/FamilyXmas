@@ -1265,11 +1265,11 @@ export function sosWatch(el){
   });
 }
 /* ============================================================
-   TRIVIA QUESTIONS — Kay and Lynda write the family trivia on
-   trivia.html. Only they can open it: nobody else's phone even
+   TRIVIA QUESTIONS — Kay, Lynda, Mark and Daisy write the family trivia on
+   trivia.html. Only those four can open it: nobody else's phone even
    loads the questions. Kept in "trivia": { round, q, a, n, by }.
    ============================================================ */
-export const TRIVIA_TEAM = ["h07-kay", "h10-lynda"];
+export const TRIVIA_TEAM = ["h07-kay", "h10-lynda", "h07-mark", "h01-daisy"];
 export const isTriviaTeam = () => !!me && TRIVIA_TEAM.includes(me.id);
 
 /* ============================================================

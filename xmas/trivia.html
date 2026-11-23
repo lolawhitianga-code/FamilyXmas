@@ -52,7 +52,7 @@
 </header>
 <main>
   <div id="nope" class="card lock hide"><span class="big">🔒</span><b>No peeking!</b>
-    <span class="muted">This page is just for Kay and Lynda — they're writing the family trivia. See you at the Bowling Club on Christmas Eve.</span></div>
+    <span class="muted">This page is just for Kay, Lynda, Mark and Daisy — they're writing the family trivia. See you at the Bowling Club on Christmas Eve.</span></div>
 
   <div id="team" class="hide">
     <p class="small muted stat" id="stat"></p>
@@ -71,9 +71,9 @@
     <div class="rnds" id="filters"></div>
     <div class="card" id="list"></div>
     <button class="btn wide" id="go" style="margin-top:12px">🎤 Quiz night — read them out one by one</button>
-    <p class="small muted" style="margin:14px 4px 0">🤫 Only Kay and Lynda can open this page. On anyone else's phone it's locked and the questions aren't even loaded. You can both add, change and delete questions — it saves straight away.</p>
+    <p class="small muted" style="margin:14px 4px 0">🤫 Only Kay, Lynda, Mark and Daisy can open this page. On anyone else's phone it's locked and the questions aren't even loaded. Any of you can add, change and delete questions — it saves straight away.</p>
   </div>
-  <p class="buildstamp">build x67</p>
+  <p class="buildstamp">build x68</p>
 </main>
 <script type="module">
 import { boot, me, col, heroFromWall, esc, toast, openSheet, closeSheet, isTriviaTeam, TRIVIA_TEAM, pname } from "./app.js";
@@ -83,8 +83,8 @@ heroFromWall();
 const ok = isTriviaTeam();
 $("nope").classList.toggle("hide", ok);
 $("team").classList.toggle("hide", !ok);
-const other = TRIVIA_TEAM.filter(id => id !== me.id).map(pname).join(" & ");
-$("sub").textContent = ok ? `Top secret — just you and ${other}` : "Top secret";
+const other = TRIVIA_TEAM.filter(id => id !== me.id).map(pname); const other2 = other.length < 2 ? other.join("") : other.slice(0, -1).join(", ") + " & " + other[other.length - 1];
+$("sub").textContent = ok ? `Top secret — just you, ${other2}` : "Top secret";
 
 if(ok){
 let qs = [], filter = "all", armed = null;

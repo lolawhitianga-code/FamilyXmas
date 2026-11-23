@@ -131,7 +131,7 @@ body.mine #full, body.mine .pokiebar, body.mine .pokiefloat, body.mine #quiet{di
       <input type="file" id="kayFile" class="vh-file" accept="image/*" multiple></label>
     <a class="btn ghost wide" href="babies.html" style="margin-top:8px">See the photos, answers &amp; guesses →</a>
   </div>
-  <a class="chatcard keep-top hide" href="trivia.html" id="triviaCard" style="margin-bottom:12px"><span class="g">🧩</span><span class="t"><b>Trivia questions</b><span id="triviaN">Only Kay and Lynda can see these</span></span>
+  <a class="chatcard keep-top hide" href="trivia.html" id="triviaCard" style="margin-bottom:12px"><span class="g">🧩</span><span class="t"><b>Trivia questions</b><span id="triviaN">Only Kay, Lynda, Mark and Daisy can see these</span></span>
     <span class="go">Open →</span></a>
   <a class="chatcard keep-top" href="chat.html" id="chatCard"><span class="g">💬</span><span class="t"><b>Family chat</b><span id="chatLast">Talk to everyone, or tap any name to message them</span></span>
     <span class="n hide" id="chatN"></span><span class="go">Open →</span></a>
@@ -388,10 +388,10 @@ col("shopping").subscribe(r => { shopping = r; paintMine(); });
 settings("santa").subscribe(s => { santa = s; paintMine(); });
 setMine(localStorage.getItem("xmas_mine_" + me.id) === "1");
 
-/* the trivia questions, top of the page, only for Kay and Lynda */
+/* the trivia questions, top of the page, only for Kay, Lynda, Mark and Daisy */
 if(isTriviaTeam()){
   $("triviaCard").classList.remove("hide");
-  col("trivia").subscribe(r => $("triviaN").textContent = r.length ? `${r.length} question${r.length === 1 ? "" : "s"} so far · only you two can see them` : "Write the family trivia — only you two can see it");
+  col("trivia").subscribe(r => $("triviaN").textContent = r.length ? `${r.length} question${r.length === 1 ? "" : "s"} so far · only the four of you can see them` : "Write the family trivia — only the four of you can see it");
 }
 /* Kay's Guess the Baby box, top of the page, only for Kay */
 if(isKay()){
