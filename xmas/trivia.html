@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12303B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Family Xmas">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Trivia questions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+<style>
+.lock{text-align:center;padding:30px 18px}
+.lock .big{font-size:52px;line-height:1}
+.lock b{display:block;font-family:'Fraunces',serif;font-size:22px;margin:8px 0 4px}
+.stat{text-align:center;margin:0 0 12px}
+.rnds{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 12px}
+.tq{display:flex;gap:10px;padding:10px 0;border-top:1px dashed var(--line)}
+.tq:first-child{border-top:0}
+.tq .no{font-family:'Fraunces',serif;font-weight:900;font-size:18px;color:var(--gold);width:26px;flex:none;text-align:center}
+.tq .body{flex:1;min-width:0}
+.tq .q{font-weight:600;overflow-wrap:anywhere}
+.tq .a{color:var(--green);margin-top:3px;overflow-wrap:anywhere}
+.tq .a::before{content:'Answer: ';color:var(--ink-soft);font-weight:400}
+.tq .meta{font-size:12px;color:var(--ink-soft);margin-top:4px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.tq .acts{display:flex;flex-direction:column;gap:6px;flex:none}
+/* quiz night: one question at a time, big, for reading out */
+.night{position:fixed;inset:0;z-index:80;background:#12303B;color:#fff;display:flex;flex-direction:column;padding:calc(18px + env(safe-area-inset-top)) 20px calc(20px + env(safe-area-inset-bottom))}
+.night .top2{display:flex;justify-content:space-between;align-items:center;font-family:'DM Mono',monospace;font-size:13px;letter-spacing:.08em;opacity:.8}
+.night .x{background:none;border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:999px;padding:6px 14px;font-size:14px}
+.night .mid{flex:1;display:flex;flex-direction:column;justify-content:center;text-align:center;gap:22px;overflow:auto}
+.night .bigq{font-family:'Fraunces',serif;font-weight:700;font-size:clamp(24px,6.5vw,44px);line-height:1.2;overflow-wrap:anywhere}
+.night .biga{font-size:clamp(20px,5vw,32px);color:#FFD166;font-weight:600;overflow-wrap:anywhere}
+.night .bot{display:flex;gap:10px}
+.night .bot .btn{flex:1;font-size:17px;padding:14px}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="back" href="home.html">← Home</a>
+  <p class="eyebrow">Christmas Eve · 6:45 pm · Bowling Club</p>
+  <h1 class="wordmark">Trivia questions</h1>
+  <p class="sub" id="sub">Top secret</p>
+</header>
+<main>
+  <div id="nope" class="card lock hide"><span class="big">🔒</span><b>No peeking!</b>
+    <span class="muted">This page is just for Kay and Lynda — they're writing the family trivia. See you at the Bowling Club on Christmas Eve.</span></div>
+
+  <div id="team" class="hide">
+    <p class="small muted stat" id="stat"></p>
+    <div class="card">
+      <label class="f" for="round">Round</label>
+      <input class="in" id="round" list="rounds" maxlength="40" placeholder="e.g. Round 1, Family, Music, Kids">
+      <datalist id="rounds"></datalist>
+      <label class="f" for="q">Question</label>
+      <textarea class="in" id="q" maxlength="600" placeholder="Type the question"></textarea>
+      <label class="f" for="a">Answer</label>
+      <input class="in" id="a" maxlength="200" placeholder="The answer">
+      <button class="btn red wide" id="add" style="margin-top:12px">Save question</button>
+    </div>
+
+    <h2 class="sec">The questions</h2>
+    <div class="rnds" id="filters"></div>
+    <div class="card" id="list"></div>
+    <button class="btn wide" id="go" style="margin-top:12px">🎤 Quiz night — read them out one by one</button>
+    <p class="small muted" style="margin:14px 4px 0">🤫 Only Kay and Lynda can open this page. On anyone else's phone it's locked and the questions aren't even loaded. You can both add, change and delete questions — it saves straight away.</p>
+  </div>
+  <p class="buildstamp">build x67</p>
+</main>
+<script type="module">
+import { boot, me, col, heroFromWall, esc, toast, openSheet, closeSheet, isTriviaTeam, TRIVIA_TEAM, pname } from "./app.js";
+if(boot("trivia.html")){
+const $ = id => document.getElementById(id);
+heroFromWall();
+const ok = isTriviaTeam();
+$("nope").classList.toggle("hide", ok);
+$("team").classList.toggle("hide", !ok);
+const other = TRIVIA_TEAM.filter(id => id !== me.id).map(pname).join(" & ");
+$("sub").textContent = ok ? `Top secret — just you and ${other}` : "Top secret";
+
+if(ok){
+let qs = [], filter = "all", armed = null;
+const roundOf = x => (x.round || "").trim() || "No round";
+const rounds = () => [...new Set(qs.map(roundOf))];
+/* in the order they were added, grouped by round */
+const sorted = () => { const rs = rounds(); return [...qs].sort((x, y) => rs.indexOf(roundOf(x)) - rs.indexOf(roundOf(y)) || (x.createdAt || 0) - (y.createdAt || 0)); };
+const shown = () => sorted().filter(x => filter === "all" || roundOf(x) === filter);
+
+function paint(){
+  const rs = rounds();
+  if(filter !== "all" && !rs.includes(filter)) filter = "all";
+  $("stat").textContent = qs.length ? `${qs.length} question${qs.length === 1 ? "" : "s"} in ${rs.length} round${rs.length === 1 ? "" : "s"}` : "No questions yet — add the first one below.";
+  $("rounds").innerHTML = rs.filter(r => r !== "No round").map(r => `<option value="${esc(r)}">`).join("");
+  $("filters").innerHTML = rs.length > 1 ? [["all", "All"], ...rs.map(r => [r, r])].map(([k, l]) =>
+    `<button class="chip${filter === k ? " on" : ""}" data-f="${esc(k)}">${esc(l)} <span class="muted">${k === "all" ? qs.length : qs.filter(x => roundOf(x) === k).length}</span></button>`).join("") : "";
+  const xs = shown();
+  let last = null, n = 0;
+  $("list").innerHTML = xs.length ? xs.map(x => {
+    const r = roundOf(x), head = r !== last ? `<h3 class="sec" style="margin:${last === null ? 0 : 14}px 0 2px;font-size:16px">${esc(r)}</h3>` : "";
+    if(r !== last){ last = r; n = 0; } n++;
+    return head + `<div class="tq"><span class="no">${n}</span><div class="body"><div class="q">${esc(x.q)}</div>${x.a ? `<div class="a">${esc(x.a)}</div>` : ""}
+      <div class="meta">Added by ${esc(pname(x.by))}</div></div>
+      <div class="acts"><button class="chip" data-edit="${x.id}">Change</button><button class="chip" data-del="${x.id}">${armed === x.id ? "Really?" : "Delete"}</button></div></div>`;
+  }).join("") : `<div class="empty">No questions yet.</div>`;
+  $("go").classList.toggle("hide", !xs.length);
+}
+col("trivia").subscribe(r => { qs = r; paint(); });
+
+$("add").onclick = async () => {
+  const q = $("q").value.trim(), a = $("a").value.trim(), round = $("round").value.trim();
+  if(!q){ toast("Type the question first"); $("q").focus(); return; }
+  $("add").disabled = true;
+  try{ await col("trivia").add({ round, q, a }); $("q").value = ""; $("a").value = ""; toast("Saved ✓"); $("q").focus(); }
+  catch(err){ toast("Couldn't save — " + err.message); }
+  $("add").disabled = false;
+};
+
+function edit(x){
+  const sh = openSheet(`<h3>Change question</h3>
+    <label class="f" for="eR">Round</label><input class="in" id="eR" list="rounds" maxlength="40" value="${esc(x.round || "")}">
+    <label class="f" for="eQ">Question</label><textarea class="in" id="eQ" maxlength="600">${esc(x.q)}</textarea>
+    <label class="f" for="eA">Answer</label><input class="in" id="eA" maxlength="200" value="${esc(x.a || "")}">
+    <div class="acts"><button class="btn ghost" id="eNo">Cancel</button><button class="btn red" id="eGo">Save</button></div>`);
+  sh.el.querySelector("#eNo").onclick = () => closeSheet();
+  sh.el.querySelector("#eGo").onclick = async () => {
+    const q = sh.el.querySelector("#eQ").value.trim(); if(!q){ toast("The question can't be empty"); return; }
+    try{ await col("trivia").update(x.id, { round: sh.el.querySelector("#eR").value.trim(), q, a: sh.el.querySelector("#eA").value.trim() }); closeSheet(); toast("Saved ✓"); }
+    catch(err){ toast("Couldn't save — " + err.message); }
+  };
+}
+
+/* quiz night: full screen, one at a time, tap to show the answer */
+function night(){
+  const xs = shown(); if(!xs.length) return;
+  let i = 0, open = false;
+  const el = document.createElement("div"); el.className = "night"; document.body.appendChild(el);
+  const draw = () => {
+    const x = xs[i], r = roundOf(x), inRound = xs.filter(y => roundOf(y) === r), k = inRound.indexOf(x) + 1;
+    el.innerHTML = `<div class="top2"><span>${esc(r).toUpperCase()} · Q${k} OF ${inRound.length}</span><button class="x" data-n="x">Close</button></div>
+      <div class="mid"><div class="bigq">${esc(x.q)}</div>${open ? `<div class="biga">${esc(x.a || "(no answer written)")}</div>` : ""}</div>
+      <div class="bot"><button class="btn ghost" style="color:#fff;border-color:rgba(255,255,255,.4)" data-n="b" ${i ? "" : "disabled"}>← Back</button>
+        <button class="btn" style="background:#FFD166;color:#12303B" data-n="a">${open ? "Hide answer" : "Show answer"}</button>
+        <button class="btn red" data-n="f" ${i < xs.length - 1 ? "" : "disabled"}>Next →</button></div>`;
+  };
+  el.addEventListener("click", e => { const b = e.target.closest("[data-n]"); if(!b) return;
+    const n = b.dataset.n;
+    if(n === "x"){ el.remove(); return; }
+    if(n === "a") open = !open;
+    if(n === "f" && i < xs.length - 1){ i++; open = false; }
+    if(n === "b" && i){ i--; open = false; }
+    draw(); });
+  draw();
+}
+
+document.addEventListener("click", async e => {
+  const f = e.target.closest("[data-f]"); if(f){ filter = f.dataset.f; armed = null; paint(); return; }
+  const ed = e.target.closest("[data-edit]"); if(ed){ const x = qs.find(y => y.id === ed.dataset.edit); if(x) edit(x); return; }
+  const d = e.target.closest("[data-del]");
+  if(d){ if(armed !== d.dataset.del){ armed = d.dataset.del; paint(); return; }
+    armed = null;
+    try{ await col("trivia").remove(d.dataset.del); toast("Deleted"); }catch(err){ toast("Couldn't delete — " + err.message); } return; }
+  if(e.target.closest("#go")) night();
+});
+}
+}
+</script>
+</body>
+</html>

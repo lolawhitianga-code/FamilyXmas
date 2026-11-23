@@ -131,6 +131,8 @@ body.mine #full, body.mine .pokiebar, body.mine .pokiefloat, body.mine #quiet{di
       <input type="file" id="kayFile" class="vh-file" accept="image/*" multiple></label>
     <a class="btn ghost wide" href="babies.html" style="margin-top:8px">See the photos, answers &amp; guesses →</a>
   </div>
+  <a class="chatcard keep-top hide" href="trivia.html" id="triviaCard" style="margin-bottom:12px"><span class="g">🧩</span><span class="t"><b>Trivia questions</b><span id="triviaN">Only Kay and Lynda can see these</span></span>
+    <span class="go">Open →</span></a>
   <a class="chatcard keep-top" href="chat.html" id="chatCard"><span class="g">💬</span><span class="t"><b>Family chat</b><span id="chatLast">Talk to everyone, or tap any name to message them</span></span>
     <span class="n hide" id="chatN"></span><span class="go">Open →</span></a>
   <button class="mineswitch" id="mineSwitch" role="switch" aria-checked="false"><i></i><span>Just show me my stuff</span></button>
@@ -176,7 +178,7 @@ body.mine #full, body.mine .pokiebar, body.mine .pokiefloat, body.mine #quiet{di
 
 <script type="module">
 import { boot, me, SLOTS, col, watchTrip, heroFromWall, tripDayToday, dayDate, fmtLong, isoDate, todayIso, XMAS_DAY,
-         households, people, household, onPeople, hereOn, pname, esc, isMuted, setMuted, badge, noPokies, noPokiesFixed, setNoPokies, toast, settings, aud, fmtDay, fromIso, installCard, addToHomeScreen, onHomeScreen, isKay, addBabyPhotos, sosWatch,
+         households, people, household, onPeople, hereOn, pname, esc, isMuted, setMuted, badge, noPokies, noPokiesFixed, setNoPokies, toast, settings, aud, fmtDay, fromIso, installCard, addToHomeScreen, onHomeScreen, isKay, isTriviaTeam, addBabyPhotos, sosWatch,
          onChat, chatRows, chatUnreadAll, dmUnread, dmOther, CHAT_ALL,
          SHOWCASE, showcaseApp, showcaseOn, showcaseSettings, saveShowcase, campDay, askPin, openSheet, closeSheet, babyPics, babyPolaroid } from "./app.js";
 
@@ -386,6 +388,11 @@ col("shopping").subscribe(r => { shopping = r; paintMine(); });
 settings("santa").subscribe(s => { santa = s; paintMine(); });
 setMine(localStorage.getItem("xmas_mine_" + me.id) === "1");
 
+/* the trivia questions, top of the page, only for Kay and Lynda */
+if(isTriviaTeam()){
+  $("triviaCard").classList.remove("hide");
+  col("trivia").subscribe(r => $("triviaN").textContent = r.length ? `${r.length} question${r.length === 1 ? "" : "s"} so far · only you two can see them` : "Write the family trivia — only you two can see it");
+}
 /* Kay's Guess the Baby box, top of the page, only for Kay */
 if(isKay()){
   $("kayBox").classList.remove("hide");

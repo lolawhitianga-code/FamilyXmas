@@ -1265,6 +1265,14 @@ export function sosWatch(el){
   });
 }
 /* ============================================================
+   TRIVIA QUESTIONS — Kay and Lynda write the family trivia on
+   trivia.html. Only they can open it: nobody else's phone even
+   loads the questions. Kept in "trivia": { round, q, a, n, by }.
+   ============================================================ */
+export const TRIVIA_TEAM = ["h07-kay", "h10-lynda"];
+export const isTriviaTeam = () => !!me && TRIVIA_TEAM.includes(me.id);
+
+/* ============================================================
    WHO'S THE BABY — Kay's competition. Kay (or an organiser with
    the PIN) uploads baby photos on babies.html; everyone else gets
    prompted now and then to guess who each baby is. Each person
