@@ -67,7 +67,7 @@
       <span class="go">Choose photos</span><small id="uplMsg"></small>
       <input type="file" id="file" class="vh-file" accept="image/*" multiple></label>
     <div style="text-align:center;margin:10px 0 0"><button class="btn small ghost" id="shuffle">🔀 Shuffle the photos</button></div>
-    <p class="small muted" style="margin:8px 4px 0">They're numbered in the order you add them — tap Shuffle to mix up the numbers so brothers and sisters aren't side by side. Guesses and answers stay with their photo. Under each photo, type who the baby really is so the site can tick the right guesses — nobody else sees the answers.</p>
+    <p class="small muted" style="margin:8px 4px 0">The numbers get mixed up every time you add photos, so brothers and sisters aren't side by side. Tap Shuffle to mix them again. Guesses and answers stay with their photo. Under each photo, type who the baby really is so the site can tick the right guesses — nobody else sees the answers.</p>
     <h2 class="sec">Who's guessing best</h2>
     <div class="card lb" id="board"></div>
     <h2 class="sec">The photos and the guesses</h2>
@@ -84,11 +84,11 @@
   </div>
 
   <div id="orgBar" style="text-align:center;margin-top:22px"></div>
-  <p class="buildstamp">build x52</p>
+  <p class="buildstamp">build x53</p>
 </main>
 <script type="module">
 import { boot, me, col, heroFromWall, esc, askPin, toast, lightbox, compressImage, pname, person, people, badge,
-         isKay, KAY, guessBaby, guessId, celebrate, addBabyPhotos, tapName } from "./app.js";
+         isKay, KAY, guessBaby, guessId, celebrate, addBabyPhotos, shuffleBabies, tapName } from "./app.js";
 if(boot("babies.html")){
 const $ = id => document.getElementById(id);
 heroFromWall();
@@ -168,10 +168,7 @@ document.addEventListener("click", async e => {
     const btn = $("shuffle");
     if(!shuffleArmed){ shuffleArmed = true; btn.textContent = "Really shuffle? Numbers will change"; setTimeout(() => { shuffleArmed = false; btn.textContent = "🔀 Shuffle the photos"; }, 5000); return; }
     shuffleArmed = false; btn.disabled = true; btn.textContent = "Shuffling…";
-    // new random order 1..N; guesses and answers are keyed by photo id, so they follow their photo
-    const ns = babies.map((_, i) => i + 1);
-    for(let i = ns.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [ns[i], ns[j]] = [ns[j], ns[i]]; }
-    try{ await Promise.all(babies.map((b, i) => col("babies").update(b.id, { n: ns[i] }))); toast("Shuffled ✓"); }
+    try{ await shuffleBabies(babies); toast("Shuffled ✓"); }
     catch(err){ toast("Couldn't shuffle — " + err.message); }
     btn.disabled = false; btn.textContent = "🔀 Shuffle the photos"; return; }
   const sv = e.target.closest("[data-save]");

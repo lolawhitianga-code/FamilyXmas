@@ -1365,7 +1365,16 @@ export function takeBaby(){ const b = _bPool.shift() || null; babyTopUp(); retur
 /** A little polaroid of a baby photo, as HTML. */
 export const babyPolaroid = (b, caption, cls = "") => b ? `<span class="bpol ${cls}"><img src="${b.src}" alt="Baby photo number ${b.n}"><i>${esc(caption || "Baby No. " + b.n)}</i></span>` : "";
 const BABY_SAYS = ["approves!", "is impressed", "says goo goo!", "wants a go", "is clapping", "can't believe it"];
-/** Kay's upload: shrink each photo, number it after the ones already up, save it. progress(done, total, finished). */
+/** Give every baby photo a new random number 1..N. Guesses and answers are keyed by photo id, so they follow
+ *  their photo. Returns { id: newNumber }. */
+export async function shuffleBabies(list){
+  list = list || await once("babies");
+  const ns = list.map((_, i) => i + 1);
+  for(let i = ns.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [ns[i], ns[j]] = [ns[j], ns[i]]; }
+  await Promise.all(list.map((b, i) => col("babies").update(b.id, { n: ns[i] })));
+  return Object.fromEntries(list.map((b, i) => [b.id, ns[i]]));
+}
+/** Kay's upload: shrink each photo, save it, then shuffle all the numbers. progress(done, total, finished). */
 export async function addBabyPhotos(files, progress = () => {}){
   files = [...files]; if(!files.length) return 0;
   const existing = await once("babies");
@@ -1380,8 +1389,12 @@ export async function addBabyPhotos(files, progress = () => {}){
       added.push({ id, n, data }); done++;
     }catch(e){ toast("Couldn't add one photo — " + e.message); }
   }
+  if(done){   // mix the numbers up again so new photos (often siblings, added together) don't sit side by side
+    try{ const nums = await shuffleBabies([...existing, ...added]); added.forEach(b => { b.n = nums[b.id] || b.n; }); }
+    catch(e){ toast("Photos added, but couldn't shuffle them — " + e.message); }
+  }
   progress(done, files.length, true);
-  if(done){ celebrate("photo"); setTimeout(() => askBabyNames(added), 900); }    // let the stars finish first
+  if(done){ added.sort((a, b) => a.n - b.n); celebrate("photo"); setTimeout(() => askBabyNames(added), 900); }    // let the stars finish first
   return done;
 }
 /** Straight after an upload: show each new photo in turn and ask Kay who the baby is. Skipping is fine —
