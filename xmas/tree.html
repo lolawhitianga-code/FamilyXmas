@@ -54,6 +54,40 @@
 .chk{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:15px}
 .chk input{width:20px;height:20px}
 .kids{font-size:13.5px;color:var(--ink-soft);margin-top:10px}
+/* the forest: one Christmas tree per mum & dad */
+.vtog{display:flex;justify-content:space-between;align-items:center;margin:22px 2px 10px;gap:8px}
+.vtog .chip{padding:6px 10px;margin-left:4px}
+.fpick{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 10px;scrollbar-width:none}
+.fpick::-webkit-scrollbar{display:none}
+.fpick .chip{flex:none;white-space:nowrap}
+.forest{display:grid;grid-auto-flow:column;grid-auto-columns:min(86%,360px);gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;
+  padding:16px 7% 18px;margin:0 -14px;scrollbar-width:none;
+  background:radial-gradient(1.5px 1.5px at 12% 9%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 33% 4%,#fff 50%,transparent 51%),
+    radial-gradient(1.5px 1.5px at 58% 12%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 81% 6%,#fff 50%,transparent 51%),
+    radial-gradient(1px 1px at 92% 15%,#fff 50%,transparent 51%),
+    linear-gradient(180deg,#0B1F2A 0%,#12303B 55%,#1C4A3A 88%,#24573F 100%)}
+.forest::-webkit-scrollbar{display:none}
+@media (min-width:760px){ .forest{grid-auto-columns:340px;margin:0;border-radius:16px} }
+.xt{scroll-snap-align:center;display:flex;flex-direction:column;align-items:center}
+.xt-in{position:relative;width:100%;min-height:470px;background:url(xmastree.webp) center bottom/100% 100% no-repeat;
+  display:flex;flex-direction:column;justify-content:space-around;align-items:center;padding:0 2% 9%;filter:drop-shadow(0 10px 18px rgba(0,0,0,.45))}
+.tier{display:flex;flex-direction:column;align-items:center;gap:3px}
+.tier .lbl{font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:#FFE08A;text-shadow:0 1px 4px #000,0 0 8px #000}
+.tier .row{display:flex;flex-wrap:wrap;justify-content:center;gap:5px 4px;width:100%}
+.bb{flex:none;display:inline-flex;align-items:center;gap:1px;background:rgba(255,253,245,.95);border:2.5px solid var(--c,#D8352A);border-radius:999px;
+  padding:1px 4px;box-shadow:0 2px 6px rgba(0,0,0,.4);font-size:12.5px;line-height:1.2;max-width:100%}
+.bb button{border:0;background:none;padding:3px 3px;font-size:12.5px;font-weight:600;color:var(--ink);white-space:nowrap}
+.bb button.gone{color:#7A7064;font-weight:500}
+.bb button.me{text-decoration:underline;text-decoration-thickness:2px}
+.bb i{font-style:normal;color:var(--red);font-size:10px}
+.bb .go{font-size:13px;padding:2px 2px 2px 4px}
+.topper{margin-top:-4px}
+.topper .bb{background:linear-gradient(180deg,#FFE9A8,#F2B33D);border-color:#FFF4C9;padding:2px 6px;font-size:14px}
+.topper .bb button{font-size:14.5px;font-weight:700}
+.xt-name{color:#fff;font-family:'Fraunces',serif;font-weight:700;font-size:17px;text-align:center;margin-top:8px;text-shadow:0 1px 6px #000}
+.xt-sum{color:rgba(255,255,255,.75);font-family:'DM Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;text-align:center}
+.xt-more{font-size:11px;color:#fff;background:rgba(0,0,0,.45);border-radius:8px;padding:2px 8px}
+.xt-empty{color:#fff;text-align:center;font-size:14px;background:rgba(0,0,0,.45);border-radius:12px;padding:10px;max-width:80%}
 /* quiz */
 .qz{text-align:center;padding:18px 14px}
 .qz .q{font-family:'Fraunces',serif;font-weight:700;font-size:22px;line-height:1.25;margin:4px 0 14px}
@@ -84,8 +118,14 @@
   <section id="t-tree">
     <div class="card next" id="next"></div>
     <button class="btn ghost wide" id="addX">＋ Add someone not in the app — great-grandparents, people who've passed away</button>
-    <h2 class="sec">The tree</h2>
-    <div id="tree"></div>
+    <div class="vtog"><h2 class="sec" style="margin:0">The family forest</h2>
+      <span><button class="chip" data-view="forest">🎄 Forest</button><button class="chip" data-view="list">📋 List</button></span></div>
+    <div id="forestBox">
+      <div class="fpick" id="fpick"></div>
+      <div class="forest" id="forest"></div>
+      <p class="small muted" style="margin:6px 4px 0">One Christmas tree for each mum and dad — them on top, then their kids, grandkids and great-grandkids. Swipe sideways for the next family. 🎄 next to a name jumps to that person's own tree.</p>
+    </div>
+    <div id="tree" class="hide"></div>
     <h2 class="sec" id="trayH">Not on the tree yet</h2>
     <div class="card"><div class="tray" id="tray"></div></div>
     <h2 class="sec">Tree builders</h2>
@@ -105,7 +145,7 @@
       <div id="relOut" style="margin-top:12px"></div>
     </div>
   </section>
-  <p class="buildstamp">build x72</p>
+  <p class="buildstamp">build x73</p>
 </main>
 
 <script type="module">
@@ -134,7 +174,8 @@ const passed = id => !!L(id).passed;
 const nmx = id => nm(id) + (passed(id) ? " ✝" : "");
 const mum = id => exists(L(id).mum) ? L(id).mum : "";
 const dad = id => exists(L(id).dad) ? L(id).dad : "";
-const partner = id => exists(L(id).partner) ? L(id).partner : "";
+/* partners go both ways — if only one side was saved, still count it */
+const partner = id => exists(L(id).partner) ? L(id).partner : (Object.values(T).find(d => d.partner === id && exists(d.id)) || {}).id || "";
 const kidsOf = id => allIds().filter(k => mum(k) === id || dad(k) === id);
 const sexOf = id => L(id).sex || (allIds().some(k => mum(k) === id) ? "f" : allIds().some(k => dad(k) === id) ? "m" : "");
 const onTree = id => !!(mum(id) || dad(id) || partner(id) || kidsOf(id).length);
@@ -216,7 +257,97 @@ let tab = "tree", nextUp = null;
 function chip(id, cls = ""){
   return `<button class="pp${id === me.id ? " me" : ""}${passed(id) ? " gone" : ""}${cls ? " " + cls : ""}" data-p="${esc(id)}">${dot(id)}${esc(nmx(id))}${id === me.id ? " (you)" : ""}</button>`;
 }
+/* ------------------------------------------------------------
+   The forest: every mum & dad (or just a mum, or just a dad) with
+   kids on the tree gets their own Christmas tree — them on top,
+   then kids, grandkids, great-grandkids.
+   ------------------------------------------------------------ */
+const BRANCH = ["#D8352A", "#E2A93B", "#2C86C3", "#1F8A5B", "#8E5BD0", "#E77FA0", "#0E7C86", "#C97A1E"];
+let view = localStorage.getItem("xmas_tree_view") || "forest", focus = null, jumped = false;
+const famKids = (id, p) => [...new Set([...kidsOf(id), ...(p ? kidsOf(p) : [])])];
+function levels(id, seen = new Set()){      // generations below
+  if(seen.has(id) || seen.size > 12) return 0; seen.add(id);
+  const k = kidsOf(id); return k.length ? 1 + Math.max(...k.map(x => levels(x, new Set(seen)))) : 0;
+}
+function units(){
+  const seen = new Set(), out = [];
+  allIds().forEach(id => {
+    if(!kidsOf(id).length) return;
+    const p = partner(id), key = [id, p].filter(Boolean).sort().join("+");
+    if(seen.has(key)) return; seen.add(key);
+    const heads = (p ? [id, p] : [id]).sort((a, b) => (sexOf(a) === "m" ? 0 : 1) - (sexOf(b) === "m" ? 0 : 1) || nm(a).localeCompare(nm(b)));
+    out.push({ key, heads, kids: famKids(id, p), deep: Math.max(levels(id), p ? levels(p) : 0) });
+  });
+  return out.sort((a, b) => b.deep - a.deep || below(b.heads[0]).size - below(a.heads[0]).size || nm(a.heads[0]).localeCompare(nm(b.heads[0])));
+}
+const unitOf = id => units().find(u => u.heads.includes(id));
+const unitName = u => u.heads.map(nm).join(" & ");
+function drawForest(){
+  const us = units();
+  if(!focus || !us.some(u => u.key === focus)){
+    const mine = us.find(u => u.kids.includes(me.id)) || us.find(u => u.heads.includes(me.id)) || us[0];
+    focus = mine ? mine.key : null;
+  }
+  $("fpick").innerHTML = us.length > 1 ? us.map(u => `<button class="chip${u.key === focus ? " on" : ""}" data-tree="${esc(u.key)}">🎄 ${esc(unitName(u))}</button>`).join("") : "";
+  const byHead = new Map(); us.forEach(u => u.heads.forEach(h => byHead.set(h, u)));
+  const ball = (id, c, withPartner = true) => {
+    const p = withPartner ? partner(id) : "", own = byHead.get(id) || (p && byHead.get(p)) || null;
+    const b = x => `<button class="${x === me.id ? "me" : ""}${passed(x) ? " gone" : ""}" data-p="${esc(x)}">${esc(nmx(x))}</button>`;
+    return `<span class="bb" style="--c:${c}">${b(id)}${p ? `<i>♥</i>${b(p)}` : ""}${own ? `<button class="go" data-tree="${esc(own.key)}" aria-label="${esc(nm(id))}'s own tree">🎄</button>` : ""}</span>`;
+  };
+  const WORDS2 = ["Kids", "Grandkids", "Great-grandkids"];
+  const html = us.map(u => {
+    // each kid's branch keeps one bauble colour all the way down
+    let tier = u.kids.sort((a, b) => nm(a).localeCompare(nm(b))).map((k, i) => ({ id:k, c: BRANCH[i % BRANCH.length] }));
+    const tiers = [];
+    for(let g = 0; g < 3 && tier.length; g++){
+      tiers.push(tier);
+      tier = tier.flatMap(t => famKids(t.id, partner(t.id)).sort((a, b) => nm(a).localeCompare(nm(b))).map(k => ({ id:k, c:t.c })));
+      tier = tier.filter((t, i) => tier.findIndex(x => x.id === t.id) === i);
+    }
+    const more = tier.length;
+    const n = tiers.length, counts = tiers.map((t, i) => `${t.length} ${(t.length === 1 ? ["kid", "grandkid", "great-grandkid"] : ["kids", "grandkids", "great-grandkids"])[i]}`);
+    return `<article class="xt" data-key="${esc(u.key)}"><div class="xt-in">
+      <div class="tier topper"><div class="row"><span class="bb">⭐${u.heads.map((h, i) => (i ? "<i>♥</i>" : "") + `<button class="${h === me.id ? "me" : ""}${passed(h) ? " gone" : ""}" data-p="${esc(h)}">${esc(nmx(h))}</button>`).join("")}</span></div></div>
+      ${tiers.map((t, i) => `<div class="tier" style="width:${Math.round(40 + 52 * (i + 1) / n)}%"><span class="lbl">${WORDS2[i]}</span>
+        <div class="row">${t.map(x => ball(x.id, x.c)).join("")}</div></div>`).join("")}
+      ${more ? `<span class="xt-more">＋ ${more} more further down — tap 🎄 for their trees</span>` : ""}
+    </div><div class="xt-name">${esc(unitName(u))}</div><div class="xt-sum">${counts.join(" · ")}</div></article>`;
+  }).join("");
+  const box = $("forest"), keep = box.scrollLeft;
+  box.innerHTML = html || `<article class="xt"><div class="xt-in"><span></span><div class="xt-empty">No trees yet. Set someone's mum or dad and their family's tree grows here. Start with yours!</div><span></span></div>
+    <div class="xt-name">Your family's tree</div></article>`;
+  if(!jumped && us.length){ jumped = true; jump(focus, false); } else box.scrollLeft = keep;
+}
+function jump(key, smooth = true){
+  const box = $("forest"), el = key && box.querySelector(`[data-key="${CSS.escape(key)}"]`);
+  if(!el) return;
+  focus = key;
+  box.scrollTo({ left: el.offsetLeft - (box.clientWidth - el.clientWidth) / 2, behavior: smooth ? "smooth" : "instant" });
+  $("fpick").querySelectorAll("[data-tree]").forEach(c => c.classList.toggle("on", c.dataset.tree === key));
+  const pc = $("fpick").querySelector(`[data-tree="${CSS.escape(key)}"]`); if(pc) pc.scrollIntoView({ block:"nearest", inline:"center", behavior: smooth ? "smooth" : "instant" });
+}
+/* as you swipe, the chip for the tree in the middle lights up */
+$("forest").addEventListener("scroll", () => {
+  clearTimeout($("forest")._t);
+  $("forest")._t = setTimeout(() => {
+    const box = $("forest"), mid = box.scrollLeft + box.clientWidth / 2;
+    let best = null, bd = 1e9;
+    box.querySelectorAll(".xt[data-key]").forEach(el => { const d = Math.abs(el.offsetLeft + el.clientWidth / 2 - mid); if(d < bd){ bd = d; best = el.dataset.key; } });
+    if(best && best !== focus){ focus = best;
+      $("fpick").querySelectorAll("[data-tree]").forEach(c => c.classList.toggle("on", c.dataset.tree === best));
+      const pc = $("fpick").querySelector(`[data-tree="${CSS.escape(best)}"]`); if(pc) pc.scrollIntoView({ block:"nearest", inline:"center", behavior:"smooth" }); }
+  }, 120);
+}, { passive:true });
+function setView(v){
+  view = v; localStorage.setItem("xmas_tree_view", v);
+  $("forestBox").classList.toggle("hide", v !== "forest"); $("tree").classList.toggle("hide", v !== "list");
+  document.querySelectorAll("[data-view]").forEach(c => c.classList.toggle("on", c.dataset.view === v));
+  if(v === "forest"){ jumped = false; drawForest(); }
+}
+
 function drawTree(){
+  drawForest();
   const ids = allIds().filter(onTree);
   const done = new Set();
   const count = id => below(id).size;
@@ -301,6 +432,7 @@ function place(id){
     <label class="f" for="pD">Dad</label><select class="in" id="pD">${options(noUp, dad(id))}</select>${newBox("D")}
     <label class="f" for="pQ">Partner (husband, wife…)</label><select class="in" id="pQ">${options(new Set([id]), partner(id))}</select>${newBox("Q")}
     <div class="kids">${kids.length ? "Kids: " + kids.map(k => esc(nmx(k))).join(", ") : "Kids join up by themselves once you set their mum or dad."}</div>
+    ${(() => { const u = unitOf(id) || units().find(v => v.kids.includes(id)); return u ? `<button class="btn ghost small" data-tree="${esc(u.key)}" style="margin-top:8px">🎄 See ${esc(unitName(u))}'s tree</button>` : ""; })()}
     ${d.by ? `<div class="kids">Last changed by ${esc(pname(d.by))}</div>` : ""}
     <div class="acts"><button class="btn ghost" id="pNo">Cancel</button><button class="btn green" id="pGo">Save</button></div>
     ${x ? `<button class="btn ghost wide" id="pDel" style="margin-top:10px">Take ${esc(d.name || "them")} off the tree</button>` : ""}`);
@@ -430,6 +562,7 @@ function paint(){
 col("tree").subscribe(rows => { T = {}; rows.forEach(r => { T[r.id] = r; }); paint(); });
 onPeople(paint);
 
+setView(view);
 $("rA").onchange = relDraw; $("rB").onchange = relDraw;
 $("addX").onclick = addExtra;
 document.addEventListener("click", e => {
@@ -439,6 +572,11 @@ document.addEventListener("click", e => {
     ["tree", "quiz", "rel"].forEach(k => $("t-" + k).classList.toggle("hide", k !== tab));
     if(tab === "quiz") newQuiz(); if(tab === "rel") relPickers();
     scrollTo(0, 0); return; }
+  const tr = e.target.closest("[data-tree]");
+  if(tr){ if(tr.closest("#xmas-sheet")) closeSheet();
+    if(view !== "forest") setView("forest");
+    jump(tr.dataset.tree); if(tr.closest("#xmas-sheet") || tr.classList.contains("go")) $("forestBox").scrollIntoView({ block:"start", behavior:"smooth" }); return; }
+  const vw = e.target.closest("[data-view]"); if(vw){ setView(vw.dataset.view); return; }
   const p = e.target.closest("[data-p]"); if(p){ place(p.dataset.p); return; }
   if(e.target.closest("#skip")){ const off = people().filter(x => !onTree(x.id) && x.id !== nextUp); nextUp = off.length ? off[Math.floor(Math.random() * off.length)].id : nextUp; drawTree(); return; }
   const an = e.target.closest("[data-ans]");
