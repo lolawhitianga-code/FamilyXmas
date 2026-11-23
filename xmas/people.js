@@ -15,7 +15,7 @@ export const HOUSEHOLDS = [
   { id:"h05", surname:"Richards",   people:["Sam","Caprice"],                          arrive:"2026-12-23", leave:"2026-12-27", stay:"Cabin",   note:"Sam's girlfriend is coming 26th–28th" },
   { id:"h06", surname:"Rostron",    people:["Gemma","Georgia","Tayla"],                arrive:"2026-12-23", leave:"2026-12-28", stay:"Cabin",   note:"" },
   { id:"h07", surname:"Chatterton", people:["Kay","Roy","Mark"],                       arrive:"2026-12-23", leave:"2026-12-28", stay:"Cabin",   note:"" },
-  { id:"h08", surname:"Langford",   people:["Trudi","Clint","Jack"],                   arrive:"2026-12-23", leave:"2026-12-30", stay:"Cabin",   note:"" },
+  { id:"h08", surname:"Langford",   people:["Trudi","Clint","Jack","Reese"],          arrive:"2026-12-23", leave:"2026-12-30", stay:"Cabin",   note:"" },
   { id:"h09", surname:"Richards",   people:["Kristy","Jason","Nate","Charlie"],        arrive:"2026-12-23", leave:"2026-12-28", stay:"Caravan", note:"" },
   { id:"h10", surname:"Rostron",    people:["Ken","Lynda"],                            arrive:"2026-12-23", leave:"2026-12-28", stay:"Cabin",   note:"" },
   { id:"h11", surname:"Rostron",    people:["Adam","Sunny","Jack"],                    arrive:"2026-12-23", leave:"2026-12-28", stay:"Cabin",   note:"" },
