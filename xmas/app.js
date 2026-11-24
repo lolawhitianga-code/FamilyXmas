@@ -534,7 +534,8 @@ export const GAMES = [
   { name:"Sally & Steve's Aussie Adventure", file:"sally_steves_aussie_adventure.html", kind:"fun", tag:"Cash out before Steve's had enough." },
   { name:"Lochie, Cooper & Josh's Olympics", file:"lochie_josh_olympics.html", kind:"fun", tag:"Back Lochie, Cooper or Josh, then sprint, hurdle, long jump or throw the discus." },
   { name:"Cargelligong Farms",       file:"jasons_farm.html",             kind:"fun",    tag:"Plant crops, run stock, fill the silo and sell the grain." },
-  { name:"Reese's Navy",             file:"reese_navy.html",              kind:"fun",    tag:"Battleships across the country - lob missiles from Perth to Sydney." }
+  { name:"Reese's Navy",             file:"reese_navy.html",              kind:"fun",    tag:"Battleships across the country - lob missiles from Perth to Sydney." },
+  { name:"Langers' Gopher Patrol",   file:"gopher_patrol.html",           kind:"fun",    tag:"Jack clears the gophers off the greens before the golfers get there." }
 ];
 /* The games sit either in /Casino/ or beside the Bali pages — we check once which, and remember. */
 let _casino = sessionStorage.getItem("xmas_casino") || "../Casino/";
