@@ -1926,7 +1926,7 @@ export function boot(page){
   document.body.appendChild(nav);
   watchChat();                             // 💬 unread count on the nav, and a pop-up when someone messages you
   startShowcase(page);                     // today's app: strips, floating button and the last nav slot
-  if(!quiet){ linkCasino(); setTimeout(() => raffleWin(page), 1200); } else _casinoReady = true;
+  if(!quiet){ linkCasino(); setTimeout(() => raffleWin(page), 1200); setTimeout(navyPopups, 2000); } else _casinoReady = true;
   setTimeout(babyShuffleOnce, 1500);                           // one-off mix-up of the photos already up
   if(page !== "babies.html") setTimeout(babyTopUp, 2500);      // a baby photo or two ready for the pop-ups
   promptWatch(page);
@@ -1936,6 +1936,22 @@ export function boot(page){
   else locationNotice(page);               // first time signed in on this phone: explain, then ask
   if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
   return true;
+}
+
+/* ============================================================
+   ⚓ REESE'S NAVY — challenge and "your turn" pop-ups here too.
+   The casino's pop-up script (navy_invites.js) runs on every page of
+   this app as well as the casino, using the casino login this app
+   signs people into ("x-<id>", see linkCasino). So when someone is
+   challenged to a navy battle they hear about it whichever app they
+   open. Accept takes them to the game in the casino.
+   ============================================================ */
+function navyPopups(){
+  if(document.getElementById("navyPopups")) return;
+  const s = document.createElement("script");
+  s.id = "navyPopups"; s.async = true;
+  s.src = new URL(_casino + "navy_invites.js", location.href).href;
+  document.body.appendChild(s);
 }
 
 /* ============================================================
