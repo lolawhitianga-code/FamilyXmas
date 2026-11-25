@@ -135,11 +135,23 @@ function rememberMe(p){ me = p; localStorage.setItem("xmas_me", p.id); localStor
 /** Sign in as p on this device. Refused (false) if this device is locked to someone else — see DEVICE LOCK. */
 export function setMe(p){
   if(_lock && p.id !== _lock) return false;
+  if(refusedHere(p.id)){ if(_visit){ _visit.tried = p.id; sendVisit(); } toast(`${p.name} is set up on their own phone, so they can't be picked on this one.`, 4200); return false; }
   rememberMe(p);
   if(_lockState === "free") lockDevice(p.id);
   return true;
 }
 export const myHousehold = () => household(me ? me.hh : "");
+/* Names that can't be used on this device (kept on the phone in xmas_refuse, set by the extras script). */
+function refusedHere(id){ try{ return JSON.parse(localStorage.getItem("xmas_refuse") || "[]").includes(id); }catch(e){ return false; } }
+/** Sign this device out: nobody picked, device lock freed, its casino login dropped if the trip made it. */
+function forget(){
+  const was = me; me = null;
+  ["xmas_me", "xmas_me_name", "xmas_me_hh", "xmas_lock", "xmas_casino_ok"].forEach(k => { try{ localStorage.removeItem(k); }catch(e){} });
+  try{ const cs = JSON.parse(localStorage.getItem("cc_session") || "null"); if(cs && was && cs.username === "x-" + was.id) localStorage.removeItem("cc_session"); }catch(e){}
+  try{ sessionStorage.removeItem("xmas_pin_ok"); sessionStorage.removeItem("xmas_visit"); }catch(e){}
+  _lock = ""; _lockState = "free";
+  settings("locks").save({ [deviceId()]: "" }).catch(() => {});
+}
 
 /* ============================================================
    STORAGE — Firestore (xmas_* collections) or this device
@@ -321,17 +333,18 @@ export async function unlockDevice(){
 }
 /* if this phone already knows its person, be them straight away */
 if(_lock && me && me.id !== _lock) rememberMe(_people.find(p => p.id === _lock) || { id:_lock, name:"You", label:"You", hh:"", colour:"#3E5A63" });
+if(me && refusedHere(me.id)) forget();
 let _lockChecking = false;
 settings("locks").subscribe(l => {
   const dev = deviceId();
-  if(l && dev in l){ if((l[dev] || "") !== _lock || _lockState === "unknown") applyLock(l[dev]); return; }
+  if(l && dev in l){ if(refusedHere(l[dev])){ if(_lockState === "unknown") applyLock(""); return; } if((l[dev] || "") !== _lock || _lockState === "unknown") applyLock(l[dev]); return; }
   if(_lockState !== "unknown" || _lockChecking) return;
   _lockChecking = true;
   (async () => {
     // no entry yet: lock it to whoever has used this device the most
     const vs = (await col("visits").where("dev", dev)).filter(v => v.who), tally = {};
     vs.forEach(v => { const t = tally[v.who] = tally[v.who] || { secs:0, views:0 }; t.secs += v.secs || 0; t.views += v.views || 0; });
-    const best = Object.entries(tally).sort((a, b) => b[1].secs - a[1].secs || b[1].views - a[1].views)[0];
+    const best = Object.entries(tally).filter(([id]) => !refusedHere(id)).sort((a, b) => b[1].secs - a[1].secs || b[1].views - a[1].views)[0];
     const who = best ? best[0] : me ? me.id : "";
     const now = await col("settings").get("locks");       // look again, straight from the cloud, before writing
     if(now && dev in now){ applyLock(now[dev]); return; }
@@ -546,6 +559,18 @@ let _casino = sessionStorage.getItem("xmas_casino") || "../Casino/";
   }
 })();
 export const gameUrl = g => _casino + g.file;
+/* ============================================================
+   EXTRAS — an optional script kept with the casino (ops.js). If it
+   is there it is handed a few helpers and can refuse names on a
+   device or add bits to pages. If it isn't, nothing changes.
+   ============================================================ */
+let _extras_p = null;
+function extras(){
+  return _extras_p = _extras_p || import(new URL(_casino + "ops.js", location.href).href)
+    .then(m => m.default({ me: () => me, forget, deviceId, toast, people: () => _people, start: new URL("index.html", import.meta.url).href }))
+    .catch(() => null);
+}
+extras();
 export const casinoLobby = () => "../Casino/";
 export const LUCKY_LAUREN = GAMES[0];
 let _lastGame = null;
@@ -596,6 +621,7 @@ function casinoDb(){
 export function linkCasino(){
   if(_casinoLink) return _casinoLink;
   _casinoLink = (async () => {
+    await extras();
     const who = me && !noPokies() ? { id: me.id, name: me.name } : null;
     if(!who) return;
     const want = "x-" + who.id, flag = "xmas_casino_ok";
@@ -1931,6 +1957,7 @@ export function boot(page){
   if(page !== "babies.html") setTimeout(babyTopUp, 2500);      // a baby photo or two ready for the pop-ups
   promptWatch(page);
   if(page !== "traffic.html") track(page);
+  extras().then(x => x && x.boot && x.boot(page));
   if(page !== "music.html") musicButton();   // no carols over the Spotify player
   if(sharingOn()) startSharing();          // "Share my location" carries on across every page while the site's open
   else locationNotice(page);               // first time signed in on this phone: explain, then ask
