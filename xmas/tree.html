@@ -149,7 +149,7 @@
 </main>
 
 <script type="module">
-import { boot, me, col, heroFromWall, esc, toast, openSheet, closeSheet, celebrate, people, person, pname, onPeople, bySurname, uid, pref, setPref, onPrefs } from "./app.js";
+import { boot, me, col, heroFromWall, esc, toast, openSheet, closeSheet, celebrate, people, person, pname, onPeople, bySurname, uid, pref, setPref, onPrefs, prefsReady } from "./app.js";
 
 if(boot("tree.html")){
 const $ = id => document.getElementById(id);
@@ -181,6 +181,48 @@ const sexOf = id => L(id).sex || (allIds().some(k => mum(k) === id) ? "f" : allI
 const onTree = id => !!(mum(id) || dad(id) || partner(id) || kidsOf(id).length);
 const colour = id => isX(id) ? "#9A8F80" : person(id).colour;
 const dot = id => `<span class="dot" style="background:${colour(id)}"></span>`;
+
+/* ------------------------------------------------------------
+   Your own to-do list. Each person is shown up to TODO_N people who
+   are already on the tree as "not on the tree yet", so there's always
+   someone to place. Only that person's screen changes (T is built from
+   the shared copy R with those links left out); the shared tree isn't
+   touched. Picked once per person: people with no kids, not you or your
+   own mum, dad, partner or kids, and only ones whose leaving out doesn't
+   knock anyone else off. Placing one fills in whatever of mum / dad /
+   partner the shared tree hasn't got yet; anything already there is
+   kept. It earns the usual 5 stars. Kept in your prefs: treeTodo (still
+   to do) and treeDone (done, never picked again).
+   ------------------------------------------------------------ */
+const TODO_N = 10;
+let R = {}, TODO = new Set(), _todoPicked = false;
+function buildT(){
+  T = {};
+  Object.values(R).forEach(r => { T[r.id] = TODO.has(r.id) ? { ...r, mum:"", dad:"", partner:"" } : TODO.has(r.partner) ? { ...r, partner:"" } : r; });
+}
+async function pickTodo(){
+  if(_todoPicked) return;
+  _todoPicked = true;
+  if(!Array.isArray(pref("treeTodo", null))) await prefsReady();   // first time: wait for the cloud copy before picking
+  let todo = pref("treeTodo", null);
+  if(!Array.isArray(todo)){
+    const done = new Set(pref("treeDone", []) || []);
+    TODO = new Set(); buildT();
+    const before = allIds().filter(onTree);
+    const mine = new Set([me.id, mum(me.id), dad(me.id), partner(me.id), ...kidsOf(me.id)].filter(Boolean));
+    const cand = people().map(p => p.id).filter(id => onTree(id) && !mine.has(id) && !done.has(id) && !passed(id) && !kidsOf(id).length);
+    for(let i = cand.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [cand[i], cand[j]] = [cand[j], cand[i]]; }
+    todo = [];
+    for(const id of cand){
+      if(todo.length >= TODO_N) break;
+      TODO = new Set([...todo, id]); buildT();
+      if(before.every(x => TODO.has(x) ? !onTree(x) : onTree(x))) todo.push(id);
+    }
+    setPref("treeTodo", todo);
+  }
+  TODO = new Set(todo); buildT(); paint();
+}
+onPrefs(() => { const t = pref("treeTodo", null); if(_todoPicked && Array.isArray(t) && t.join() !== [...TODO].join()){ TODO = new Set(t); buildT(); paint(); } });
 
 /* everyone below someone — so nobody ends up as their own grandad */
 function below(id){
@@ -456,7 +498,7 @@ function place(id){
       const name = q("#nn-" + k).value.trim(); if(!name) throw oops("Type a name for the new person");
       const nid = "t-" + uid();
       await col("tree").set(nid, { name, passed: q("#np-" + k).checked, sex: sx, by: me.id, at: Date.now() });
-      T[nid] = { id: nid, name, passed: q("#np-" + k).checked, sex: sx };      // so it counts before the shared copy comes back
+      T[nid] = R[nid] = { id: nid, name, passed: q("#np-" + k).checked, sex: sx };      // so it counts before the shared copy comes back
       return nid;
     };
     const btn = q("#pGo"); btn.disabled = true;
@@ -465,6 +507,24 @@ function place(id){
       const wasOn = onTree(id);
       const m = await pick("M", "f"), dd = await pick("D", "m"), pq = await pick("Q", "");
       if(m && m === dd) throw oops("Mum and dad can't be the same person");
+      if(TODO.has(id)){
+        // one of your to-do people: fill in only what the shared tree hasn't got, keep the rest
+        if(!m && !dd && !pq) throw oops("Pick their mum, dad or partner");
+        const r = R[id] || {}, w = {}, jobs2 = [];
+        if(!exists(r.mum)) w.mum = m;
+        if(!exists(r.dad)) w.dad = dd;
+        if(!exists(r.partner) && !Object.values(R).some(o => o.partner === id && exists(o.id)) && pq){
+          w.partner = pq; if(!exists((R[pq] || {}).partner)) jobs2.push(col("tree").set(pq, { partner:id })); }
+        if(!r.sex && sex) w.sex = sex;
+        Object.keys(w).forEach(k => { if(w[k] === "") delete w[k]; });
+        if(Object.keys(w).length){ w.by = me.id; w.at = Date.now(); jobs2.push(col("tree").set(id, w)); }
+        TODO.delete(id);
+        setPref("treeTodo", [...TODO]); setPref("treeDone", [...new Set([...(pref("treeDone", []) || []), id])]);
+        celebrate("tree");
+        await Promise.all(jobs2);
+        buildT(); paint(); closeSheet();
+        return;
+      }
       const v = { mum: m, dad: dd, partner: pq, sex, by: me.id, at: Date.now() };
       if(x){ v.name = q("#pN").value.trim(); v.passed = q("#pP").checked; }
       const first = !wasOn && (m || dd || pq) && !d.starred;
@@ -496,8 +556,8 @@ function addExtra(){
   el.querySelector("#xGo").onclick = async () => {
     const name = el.querySelector("#xN").value.trim(); if(!name){ toast("Type their name"); return; }
     const nid = "t-" + uid(), v = { name, passed: el.querySelector("#xP").checked, sex, by: me.id, at: Date.now() };
-    try{ T[nid] = { id: nid, ...v }; await col("tree").set(nid, v); closeSheet(); place(nid); }
-    catch(err){ delete T[nid]; toast("Couldn't add — " + err.message); }
+    try{ T[nid] = R[nid] = { id: nid, ...v }; await col("tree").set(nid, v); closeSheet(); place(nid); }
+    catch(err){ delete T[nid]; delete R[nid]; toast("Couldn't add — " + err.message); }
   };
 }
 
@@ -560,7 +620,7 @@ function paint(){
   if(tab === "rel") relPickers();
   if(tab === "quiz" && !quiz) newQuiz();
 }
-col("tree").subscribe(rows => { T = {}; rows.forEach(r => { T[r.id] = r; }); paint(); });
+col("tree").subscribe(rows => { R = {}; rows.forEach(r => { R[r.id] = r; }); buildT(); if(_todoPicked) paint(); else pickTodo(); });
 onPeople(paint);
 
 setView(view);
