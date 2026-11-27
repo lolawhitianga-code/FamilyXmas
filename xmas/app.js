@@ -1832,7 +1832,7 @@ function locationNotice(page){
     const sh = openSheet(`<div style="text-align:center;font-size:44px;line-height:1;margin:4px 0 6px">📍</div>
       <h3 style="text-align:center">Your location</h3>
       <p style="margin:0 0 10px">Hi ${esc(me.name)}! When you tap <b>OK</b>, your phone will ask if this website can use your location.</p>
-      <p style="margin:0 0 10px">If you say <b>Allow</b>, the family can see where you are on the <b>Where's Sally?</b> map while you have this site open — handy for finding each other at the beach or the club.</p>
+      <p style="margin:0 0 10px">If you say <b>Allow</b>, the family can see where you are on the <b>Where's Sally?</b> map while you have the Xmas app or the casino open — handy for finding each other at the beach or the club.</p>
       <p class="banner" style="margin:0 0 4px">🔒 Only the family on this website can see it. It isn't shared with anyone else, and you can turn it off any time on the Where's Sally? page.</p>
       <div class="acts"><button class="btn red wide" id="locOk">OK</button></div>
       <p style="text-align:center;margin:10px 0 0"><button id="locNo" style="background:none;border:0;color:var(--ink-soft);text-decoration:underline;text-underline-offset:3px;font-size:14px">Don't share my location</button></p>`);

@@ -1,7 +1,7 @@
 /* Christmas at Bateau Bay — offline shell.
    Bump CACHE when you change a page and want everyone to pick it up. */
 
-const CACHE = "xmas-x82";
+const CACHE = "xmas-x83";
 
 const SHELL = [
   "./", "./index.html", "./home.html", "./fun.html", "./crew.html", "./planner.html", "./places.html", "./food.html", "./shopping.html",
