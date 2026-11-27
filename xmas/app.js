@@ -914,7 +914,7 @@ document.addEventListener("click", e => {
    for the group, or dmRoom(a, b) for two people (to = [a, b]).
    Anywhere a page shows someone's name with tapName(id), tapping
    it opens a direct chat with them in a sheet, right there.
-   What you've read is kept on this phone, per chat.
+   What you've read is kept per person, per chat (see chatseen).
    ============================================================ */
 export const CHAT_ALL = "all";
 export const dmRoom = (a, b) => "dm:" + [a, b].sort().join("|");
@@ -929,11 +929,20 @@ export function tapName(id, label){
 
 let _chat = [], _chatOn = false, _chatFirst = true;
 const _chatSubs = [], _chatKnown = new Set();
+/* What you've read is kept on this phone AND in the cloud (xmas_chatseen/<your id> = { room: time }),
+   so reading a message on one phone or browser marks it read on all of them. */
 const seenKey = room => "xmas_chat_seen_" + (me ? me.id : "") + "_" + room;
-export const chatSeenAt = room => +(localStorage.getItem(seenKey(room)) || 0);
+let _seenCloud = {}, _seenFor = "", _seenReady = false;
+export const chatSeenAt = room => Math.max(+(localStorage.getItem(seenKey(room)) || 0), (me && _seenFor === me.id && +_seenCloud[room]) || 0);
+function markSeen(room, t){
+  if(!me || t <= chatSeenAt(room)) return;
+  try{ localStorage.setItem(seenKey(room), String(t)); }catch(e){}
+  if(_seenFor === me.id) _seenCloud[room] = t;
+  col("chatseen").set(me.id, { [room]: t }).catch(() => {});
+}
 export function chatSeen(room){
   const last = _chat.filter(m => m.room === room).reduce((t, m) => Math.max(t, m.createdAt || 0), Date.now());
-  try{ localStorage.setItem(seenKey(room), String(last)); }catch(e){}
+  markSeen(room, last);
   paintChatBadge();
 }
 /** Is this message in a chat I'm part of? */
@@ -953,7 +962,7 @@ export async function sendChat(room, text){
   const row = { room, text };
   if(room !== CHAT_ALL) row.to = room.slice(3).split("|");
   await col("chat").add(row);
-  try{ localStorage.setItem(seenKey(room), String(Date.now())); }catch(e){}
+  markSeen(room, Date.now());
 }
 export const deleteChat = id => col("chat").remove(id);
 let _openRoom = "";          // the chat on screen right now — it doesn't count as unread or pop up
@@ -961,6 +970,13 @@ export const chatViewing = room => { _openRoom = room; };
 
 function watchChat(){
   if(_chatOn) return; _chatOn = true;
+  // read times from my other phones / browsers
+  col("chatseen").subscribe(rows => {
+    const r = me && rows.find(x => x.id === me.id);
+    _seenFor = me ? me.id : ""; _seenCloud = r ? { ...r } : {}; _seenReady = true;
+    paintChatBadge(); _chatSubs.forEach(cb => cb());
+  });
+  setTimeout(() => { if(!_seenReady){ _seenReady = true; paintChatBadge(); } }, 4000);   // offline: go with this phone's copy
   col("chat").subscribe(rows => {
     _chat = rows.filter(chatMine).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
     let fresh = [];
@@ -979,6 +995,7 @@ function watchChat(){
 export const dmUnread = () => _chat.filter(m => m.room !== CHAT_ALL && m.by !== (me && me.id) && (m.createdAt || 0) > chatSeenAt(m.room));
 const _title = document.title;
 function paintChatBadge(){
+  if(!_seenReady) return;    // wait for read times from my other devices, so nothing old flashes up as new
   const n = chatUnreadAll(), dms = dmUnread();
   document.querySelectorAll(".chatn").forEach(b => { b.textContent = n > 99 ? "99+" : String(n); b.classList.toggle("hide", !n); b.classList.toggle("dmhot", !!dms.length); });
   document.querySelectorAll('.nav a[href="chat.html"]').forEach(a => a.classList.toggle("dmhot", !!dms.length));
