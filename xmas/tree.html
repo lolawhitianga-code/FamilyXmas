@@ -149,7 +149,7 @@
 </main>
 
 <script type="module">
-import { boot, me, col, heroFromWall, esc, toast, openSheet, closeSheet, celebrate, people, person, pname, onPeople, bySurname, uid } from "./app.js";
+import { boot, me, col, heroFromWall, esc, toast, openSheet, closeSheet, celebrate, people, person, pname, onPeople, bySurname, uid, pref, setPref, onPrefs } from "./app.js";
 
 if(boot("tree.html")){
 const $ = id => document.getElementById(id);
@@ -263,7 +263,7 @@ function chip(id, cls = ""){
    then kids, grandkids, great-grandkids.
    ------------------------------------------------------------ */
 const BRANCH = ["#D8352A", "#E2A93B", "#2C86C3", "#1F8A5B", "#8E5BD0", "#E77FA0", "#0E7C86", "#C97A1E"];
-let view = localStorage.getItem("xmas_tree_view") || "forest", focus = null, jumped = false;
+let view = pref("treeView", localStorage.getItem("xmas_tree_view") || "forest"), focus = null, jumped = false;
 const famKids = (id, p) => [...new Set([...kidsOf(id), ...(p ? kidsOf(p) : [])])];
 function levels(id, seen = new Set()){      // generations below
   if(seen.has(id) || seen.size > 12) return 0; seen.add(id);
@@ -340,7 +340,7 @@ $("forest").addEventListener("scroll", () => {
   }, 120);
 }, { passive:true });
 function setView(v){
-  view = v; localStorage.setItem("xmas_tree_view", v);
+  view = v; try{ localStorage.setItem("xmas_tree_view", v); }catch(e){} if(pref("treeView") !== v) setPref("treeView", v);
   $("forestBox").classList.toggle("hide", v !== "forest"); $("tree").classList.toggle("hide", v !== "list");
   document.querySelectorAll("[data-view]").forEach(c => c.classList.toggle("on", c.dataset.view === v));
   if(v === "forest"){ jumped = false; drawForest(); }
@@ -509,7 +509,8 @@ const WORDS = {
   m: ["dad", "brother", "uncle", "nephew", "grandfather", "grandson", "great-grandfather", "great-uncle", "son", "half-brother"],
   n: ["first cousin", "second cousin", "first cousin once removed", "second cousin once removed", "first cousin twice removed"]
 };
-let quiz = null, streak = 0, best = +(localStorage.getItem("xmas_tree_best") || 0);
+let quiz = null, streak = 0, best = +pref("treeBest", 0) || 0;     // your best streak follows you to any phone
+onPrefs(() => { best = Math.max(best, +pref("treeBest", 0) || 0); });
 function newQuiz(){
   const ids = allIds().filter(onTree);
   quiz = null;
@@ -581,7 +582,7 @@ document.addEventListener("click", e => {
   if(e.target.closest("#skip")){ const off = people().filter(x => !onTree(x.id) && x.id !== nextUp); nextUp = off.length ? off[Math.floor(Math.random() * off.length)].id : nextUp; drawTree(); return; }
   const an = e.target.closest("[data-ans]");
   if(an && quiz && !quiz.done){ quiz.done = an.dataset.ans;
-    if(quiz.done === quiz.r.word){ streak++; if(streak > best){ best = streak; localStorage.setItem("xmas_tree_best", best); } } else streak = 0;
+    if(quiz.done === quiz.r.word){ streak++; if(streak > best){ best = streak; setPref("treeBest", best); } } else streak = 0;
     drawQuiz(); return; }
   if(e.target.closest("#qNext")) newQuiz();
 });

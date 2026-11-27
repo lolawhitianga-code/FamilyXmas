@@ -250,6 +250,43 @@ export function settings(key){
 }
 
 
+/* ============================================================
+   MY PREFS — small per-person choices that follow you to any phone
+   or browser: xmas_prefs/<your id>. A copy is kept on this phone so
+   they show straight away; the cloud copy wins once it arrives.
+   ============================================================ */
+const _prefKey = () => "xmas_prefs_" + (me ? me.id : "");
+let _prefs = {}, _prefsFor = null, _prefsOn = false, _prefsGot = null;
+function _prefsLoad(){
+  const who = me ? me.id : "";
+  if(_prefsFor === who) return;
+  _prefsFor = who; try{ _prefs = JSON.parse(localStorage.getItem(_prefKey()) || "{}") || {}; }catch(e){ _prefs = {}; }
+}
+/** One of my prefs (or dflt if never set). */
+export const pref = (k, dflt = null) => { _prefsLoad(); return k in _prefs ? _prefs[k] : dflt; };
+export function setPref(k, v){
+  if(!me) return; _prefsLoad(); _prefs[k] = v;
+  try{ localStorage.setItem(_prefKey(), JSON.stringify(_prefs)); }catch(e){}
+  col("prefs").set(me.id, { [k]: v }).catch(() => {});
+}
+/** Resolves once my prefs have come down from the cloud (or after 4 seconds offline). */
+export function prefsReady(){
+  if(!_prefsOn){ _prefsOn = true;
+    _prefsGot = new Promise(res => {
+      setTimeout(res, 4000);
+      col("prefs").subscribe(rows => {
+        _prefsLoad();
+        const r = me && rows.find(x => x.id === me.id);
+        if(r){ const { id, ...v } = r; _prefs = { ..._prefs, ...v }; try{ localStorage.setItem(_prefKey(), JSON.stringify(_prefs)); }catch(e){} }
+        res(); dispatchEvent(new Event("xmas-prefs"));
+      });
+    });
+  }
+  return _prefsGot;
+}
+/** Call cb() when my prefs change (another phone changed one, or they've just arrived). */
+export function onPrefs(cb){ addEventListener("xmas-prefs", cb); prefsReady(); }
+
 /** Trip dates with the default filled in. cb({start, days}) */
 export function watchTrip(cb){
   settings("trip").subscribe(t => cb({ ...DEFAULT_TRIP, ...(t || {}) }));
@@ -821,14 +858,15 @@ async function myStars(){
   return snap.exists() ? Math.max(0, Number(snap.data().total) || 0) : 0;
 }
 async function starOffer(page){
-  const asked = "xmas_starswap_" + me.id;
-  if(Date.now() - (+localStorage.getItem(asked) || 0) < SWAP.every) return;
+  await prefsReady();
+  const asked = "starswap", last = Math.max(+pref(asked, 0) || 0, +localStorage.getItem("xmas_starswap_" + me.id) || 0);
+  if(Date.now() - last < SWAP.every) return;
   if(document.getElementById("raffle") || document.getElementById("kfile") || document.getElementById("xmas-sheet")) return;
   const stars = await myStars();
   if(stars === null || stars < SWAP.min) return;
   await linkCasino();
   if(!casinoUser() || document.getElementById("raffle")) return;
-  localStorage.setItem(asked, String(Date.now()));
+  setPref(asked, Date.now());
   showSwap(page, stars, asked);
 }
 /** The star swap pop-up. Also opened from the Gold stars page and the casino page. */
@@ -868,7 +906,7 @@ function showSwap(page, stars, asked){
         text: "Added to your casino balance. Good luck out there.", balance: bal });
     }catch(e){
       close(); toast("Couldn't swap — " + (e && e.message || "try again later") + ". Your stars are safe.", 4000);
-      if(asked) localStorage.removeItem(asked);
+      if(asked){ setPref(asked, 0); try{ localStorage.removeItem("xmas_starswap_" + me.id); }catch(err){} }
     }
   });
 }
@@ -1787,7 +1825,9 @@ function locationNotice(page){
   if(!me || !navigator.geolocation || page === "traffic.html") return;
   const key = "xmas_locask_" + me.id;
   if(localStorage.getItem(key)) return;
-  setTimeout(() => {
+  setTimeout(async () => {
+    await prefsReady();
+    if(pref("locNo")) return;               // said no on another phone — don't ask again
     if(document.getElementById("xmas-sheet") || document.getElementById("kfile") || sharingOn()) return;
     const sh = openSheet(`<div style="text-align:center;font-size:44px;line-height:1;margin:4px 0 6px">📍</div>
       <h3 style="text-align:center">Your location</h3>
@@ -1799,7 +1839,7 @@ function locationNotice(page){
     const done = () => { try{ localStorage.setItem(key, String(Date.now())); }catch(e){} };
     sh.el.querySelector("#locOk").onclick = async () => { done(); closeSheet();
       try{ await setSharing(true); toast("Thanks! If your phone asks, tap Allow.", 4000); }catch(e){ toast("Couldn't turn it on — " + e.message); } };
-    sh.el.querySelector("#locNo").onclick = () => { done(); closeSheet(); toast("No worries. You can switch it on later on the Where's Sally? page.", 4200); };
+    sh.el.querySelector("#locNo").onclick = () => { done(); setPref("locNo", Date.now()); closeSheet(); toast("No worries. You can switch it on later on the Where's Sally? page.", 4200); };
   }, 700);
 }
 
@@ -1967,6 +2007,7 @@ export function boot(page){
   nav.innerHTML = NAV.map(([href, g, l]) =>
     `<a href="${href}"${href === page ? ' aria-current="page"' : ""}><b>${g}${href === "chat.html" ? '<i class="chatn hide"></i>' : ""}</b>${l}</a>`).join("");
   document.body.appendChild(nav);
+  prefsReady();                            // my per-person choices, from the cloud
   watchChat();                             // 💬 unread count on the nav, and a pop-up when someone messages you
   startShowcase(page);                     // today's app: strips, floating button and the last nav slot
   if(!quiet){ linkCasino(); setTimeout(() => raffleWin(page), 1200); setTimeout(navyPopups, 2000); } else _casinoReady = true;
